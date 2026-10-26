@@ -10,7 +10,10 @@
 
 #include <QTest>
 
+#include <atomic>
+#include <chrono>
 #include <memory>
+#include <thread>
 
 void EventQueueTests::initTestCase()
 {
@@ -53,6 +56,34 @@ void EventQueueTests::dispatchEvent_handlerRemovesItself_keepsHandlerAliveUntilR
   QVERIFY(events.dispatchEvent(Event(EventTypes::ClientDisconnected, this)));
   QVERIFY(handlerAliveAfterRemoval);
   QVERIFY(handlerLifetimeObserver.expired());
+}
+
+void EventQueueTests::waitForReady_afterLoopStarted_returnsImmediately()
+{
+  // the loop signals readiness once; a caller that only starts waiting
+  // afterwards must not miss it (used to block for 10 s, then throw)
+  EventQueue events;
+  std::atomic<bool> handled = false;
+  events.addHandler(EventTypes::ClientDisconnected, this, [&handled](const Event &) { handled = true; });
+  std::thread loop([&events] { events.loop(); });
+
+  events.addEvent(Event(EventTypes::ClientDisconnected, this));
+  QTRY_VERIFY_WITH_TIMEOUT(handled, 2000); // the loop is running and was ready
+
+  const auto start = std::chrono::steady_clock::now();
+  bool threw = false;
+  try {
+    events.waitForReady();
+  } catch (const std::runtime_error &) {
+    threw = true;
+  }
+  const auto waited = std::chrono::steady_clock::now() - start;
+
+  events.addEvent(Event(EventTypes::Quit));
+  loop.join();
+
+  QVERIFY(!threw);
+  QVERIFY(waited < std::chrono::seconds(1));
 }
 
 QTEST_MAIN(EventQueueTests)

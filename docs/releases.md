@@ -9,10 +9,12 @@ shows “No public Orbit releases are available yet.”
 
 ## Prepare a release
 
-1. Tag the release `vMAJOR.MINOR.PATCH` (for example `v1.27.1`). Orbit also
+1. Tag the release `vMAJOR.MINOR.PATCH` (starting with `v1.0.0`). Orbit also
    accepts a fourth numeric build component. Versions compare numerically;
-   use a version higher than the installed build. The inherited development
-   build `1.27.0.37`, for example, updates to `1.27.1`.
+   use a version higher than the installed build. Orbit starts its own version
+   sequence at `1.0.0`, independently of Deskflow. Early development builds
+   numbered `1.27.x` must be replaced manually with Orbit 1.0 before they can
+   receive subsequent 1.x updates.
 2. Build from that tag. Confirm `Orbit.app/Contents/Info.plist` has the same
    `CFBundleShortVersionString` as the tag (a trailing `.0` is equivalent).
    CMake derives the version from `v*` tags; reconfigure after tagging.

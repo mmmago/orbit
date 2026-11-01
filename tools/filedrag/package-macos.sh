@@ -23,6 +23,12 @@ install_name_tool -id @rpath/QtSvg.framework/Versions/A/QtSvg \
   -change /opt/homebrew/opt/qtbase/lib/QtCore.framework/Versions/A/QtCore @rpath/QtCore.framework/Versions/A/QtCore \
   "$SVG/Versions/A/QtSvg" 2>/dev/null
 
+# The linker's debug map records the absolute path of every object file, i.e.
+# the builder's home directory. Drop it before the binaries are (re)signed below.
+for bin in Orbit orbit-core orbit-drag-helper; do
+  strip -S "$APP/Contents/MacOS/$bin"
+done
+
 codesign --force --sign "$ID" --options runtime --timestamp=none "$SVG"
 codesign --force --sign "$ID" --options runtime --timestamp=none --preserve-metadata=entitlements "$APP/Contents/MacOS/orbit-core"
 codesign --force --sign "$ID" --options runtime --timestamp=none "$APP/Contents/MacOS/orbit-drag-helper"

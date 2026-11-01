@@ -228,6 +228,17 @@ if(ENABLE_COVERAGE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-update=atomic")
 endif()
 
+# Keep the builder's absolute paths (home directory, user name) out of binaries:
+# __FILE__ in log/assert macros and debug info would otherwise embed them.
+if(NOT MSVC)
+  add_compile_options(
+    "$<$<COMPILE_LANGUAGE:C,CXX,OBJC,OBJCXX>:-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.>"
+    "$<$<COMPILE_LANGUAGE:C,CXX,OBJC,OBJCXX>:-ffile-prefix-map=${CMAKE_BINARY_DIR}=build>"
+    "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-file-prefix-map ${CMAKE_SOURCE_DIR}=.>"
+    "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-file-prefix-map ${CMAKE_BINARY_DIR}=build>"
+  )
+endif()
+
 if(BUILD_OSX_BUNDLE AND APPLE_CODESIGN_DEV)
   include(cmake/MacCodesign.cmake)
 endif()

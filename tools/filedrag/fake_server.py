@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
 # SPDX-License-Identifier: MIT
+# Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 """Minimal Deskflow protocol 1.9 server for testing the client half of file
 drag and drop on one machine (no TLS).
 

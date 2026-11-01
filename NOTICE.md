@@ -1,3 +1,7 @@
+<!-- SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux -->
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md. -->
+
 # Notice
 
 Orbit is a modified version of **Deskflow**
@@ -13,9 +17,9 @@ Orbit changes: Copyright (C) 2026 Lucas Magotteaux.
 
 Orbit is distributed under the GNU General Public License, version 2 only,
 with the OpenSSL exception (see `LICENSE` and `LICENSES/`). Files keep their
-original copyright and license headers; files Orbit changed carry an added
-copyright line, and the full history of changes is in this repository's git
-log.
+original copyright and license headers. Modified files carry dated Orbit
+change notices; new Orbit files identify their author and license. The full
+history of changes is in this repository's git log.
 
 "Deskflow" is the name of the original project. Orbit is not affiliated with
 or endorsed by it.
@@ -37,6 +41,12 @@ October-November 2026, Lucas Magotteaux:
 - Developer tools for drag and drop and gestures (`tools/`).
 - Native SwiftUI menu bar panel, About page, and GitHub release downloads
   with verified installation and restart.
+- Release packaging includes dependency licenses, notices and matching source
+  archives, with checks against the shipped library inventory.
+
+Third-party libraries and artwork retain their respective licenses and
+ownership; see `THIRD_PARTY_NOTICES.md` and `third-party/macos-arm64/`.
+The macOS app includes these documents in `Contents/Resources/Legal/`.
 
 The Buy Me a Coffee button in About uses the service's official yellow
 button image (<https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png>)

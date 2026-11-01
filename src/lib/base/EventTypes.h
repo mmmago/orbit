@@ -3,6 +3,7 @@
  * SPDX-FileCopyrightText: (C) 2023 Input-Leap Developers
  * SPDX-FileCopyrightText: (C) 2013 - 2016 Synergy App Ltd
  * SPDX-License-Identifier: GPL-2.0-only WITH LicenseRef-OpenSSL-Exception
+ * Orbit modifications: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
  */
 
 #pragma once

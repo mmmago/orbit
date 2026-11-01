@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
 # SPDX-License-Identifier: MIT
+# Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 
 set(updates_dir "${CMAKE_SOURCE_DIR}/src/lib/gui/panel/Updates")
 add_executable(ReleaseUpdateTests

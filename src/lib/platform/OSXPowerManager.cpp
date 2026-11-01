@@ -3,6 +3,7 @@
  * SPDX-FileCopyrightText: (C) 2012 - 2021 Synergy App Ltd
  * SPDX-FileCopyrightText: (C) 2008 Volker Lanz <vl@fidra.de>
  * SPDX-License-Identifier: GPL-2.0-only WITH LicenseRef-OpenSSL-Exception
+ * Orbit modifications: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
  */
 
 #include "OSXPowerManager.h"

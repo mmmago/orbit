@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: (C) 2012 - 2024 Symless Ltd
 # SPDX-FileCopyrightText: (C) 2009 - 2012 Nick Bolton
 # SPDX-License-Identifier: MIT
+# Orbit modifications: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 
 cmake_minimum_required(VERSION 3.24)
 
@@ -276,6 +277,22 @@ install(
   FILES ${PROJECT_SOURCE_DIR}/LICENSES/LicenseRef-OpenSSL-Exception.txt
   DESTINATION ${CMAKE_INSTALL_LICENSE_DIR}
   RENAME LICENSE_EXCEPTION
+)
+
+# Include legal material in source-built installs as well as release packages.
+install(
+  FILES ${PROJECT_SOURCE_DIR}/NOTICE.md
+        ${PROJECT_SOURCE_DIR}/THIRD_PARTY_NOTICES.md
+        ${PROJECT_SOURCE_DIR}/docs/source-distribution.md
+  DESTINATION ${CMAKE_INSTALL_LICENSE_DIR}/Legal
+)
+install(
+  DIRECTORY ${PROJECT_SOURCE_DIR}/LICENSES
+  DESTINATION ${CMAKE_INSTALL_LICENSE_DIR}/Legal
+)
+install(
+  DIRECTORY ${PROJECT_SOURCE_DIR}/third-party/macos-arm64/
+  DESTINATION ${CMAKE_INSTALL_LICENSE_DIR}/Legal/third-party
 )
 
 if(BUILD_INSTALLER)

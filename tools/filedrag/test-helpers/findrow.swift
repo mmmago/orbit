@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
 // SPDX-License-Identifier: MIT
+// Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 
 // Test harness helper: find an item by name in the frontmost Finder window
 // via Accessibility and print its CG center ("x,y").

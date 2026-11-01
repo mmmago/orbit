@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: (C) 2024 - 2026 Deskflow Developers
 # SPDX-FileCopyrightText: (C) 2024 Symless Ltd
 # SPDX-License-Identifier: MIT
+# Orbit modifications: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 
 set(target gui)
 

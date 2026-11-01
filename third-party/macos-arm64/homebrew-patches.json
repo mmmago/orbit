@@ -1,0 +1,66 @@
+{
+  "formulae": {
+    "brotli": {
+      "local_patch_checksums": {}
+    },
+    "dbus": {
+      "local_patch_checksums": {}
+    },
+    "double-conversion": {
+      "local_patch_checksums": {}
+    },
+    "freetype": {
+      "local_patch_checksums": {}
+    },
+    "gettext": {
+      "local_patch_checksums": {}
+    },
+    "glib": {
+      "local_patch_checksums": {
+        "Patches/glib/hardcoded-paths.diff": "d846efd0bf62918350da94f850db33b0f8727fece9bfaf8164566e3094e80c97"
+      }
+    },
+    "graphite2": {
+      "local_patch_checksums": {}
+    },
+    "harfbuzz": {
+      "local_patch_checksums": {}
+    },
+    "icu4c@78": {
+      "local_patch_checksums": {}
+    },
+    "jpeg-turbo": {
+      "local_patch_checksums": {}
+    },
+    "libb2": {
+      "local_patch_checksums": {
+        "Patches/libtool/configure-big_sur.diff": "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+      }
+    },
+    "libpng": {
+      "local_patch_checksums": {}
+    },
+    "md4c": {
+      "local_patch_checksums": {}
+    },
+    "openssl@3": {
+      "local_patch_checksums": {}
+    },
+    "openssl@4": {
+      "local_patch_checksums": {}
+    },
+    "pcre2": {
+      "local_patch_checksums": {}
+    },
+    "qtbase": {
+      "local_patch_checksums": {}
+    },
+    "qtsvg": {
+      "local_patch_checksums": {}
+    },
+    "zstd": {
+      "local_patch_checksums": {}
+    }
+  },
+  "revision": "96c457277e52d9fa16e37873c7b7994fa64b57a8"
+}

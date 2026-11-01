@@ -1,3 +1,7 @@
+<!-- SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux -->
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md. -->
+
 <p align="center"><img src="docs/images/orbit-icon.png" width="128" alt="Orbit icon"></p>
 
 # Orbit
@@ -76,10 +80,12 @@ cmake -S. -Bbuild -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_INSTALLER=O
 cmake --build build
 ```
 
-To make a self-contained app you can copy to another Mac:
+For a tagged release, prepare the matching dependency source cache as described
+in [source distribution](docs/source-distribution.md), then package a
+self-contained app you can copy to another Mac:
 
 ```sh
-tools/filedrag/package-macos.sh build dist "Apple Development: you@example.com (TEAMID)"
+tools/filedrag/package-macos.sh build dist "Apple Development: you@example.com (TEAMID)" build/compliance-sources
 ```
 
 Install the resulting `Orbit.app` on both computers.
@@ -88,6 +94,12 @@ Orbit automatically checks [GitHub Releases](https://github.com/mmmago/orbit/rel
 and downloads newer stable builds. It asks before installing and restarting.
 Open **About Orbit** to check manually or turn off automatic downloads.
 Release packaging and signing instructions are in [docs/releases.md](docs/releases.md).
+
+Each app release also provides `Orbit-sources-macos-arm64.tar.gz` on the same
+release page: Orbit's matching source, bundled libraries' source, patches and
+build scripts. See [source distribution](docs/source-distribution.md) and
+[third-party notices](THIRD_PARTY_NOTICES.md). The app includes these legal
+documents under `Orbit.app/Contents/Resources/Legal/`.
 
 ## Settings
 

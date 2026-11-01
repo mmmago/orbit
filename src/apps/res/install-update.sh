@@ -1,6 +1,7 @@
 #!/bin/bash
 # SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
 # SPDX-License-Identifier: MIT
+# Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 # Launched only after a verified update and the user's Install and Restart.
 # All paths are arguments, never interpolated into shell source.
 set -eu

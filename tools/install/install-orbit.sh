@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
+# SPDX-License-Identifier: MIT
+# Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 # Stage Orbit.app in /Applications and copy Deskflow's settings to Orbit.
 # Deskflow keeps running; switch-to-orbit.sh does the swap.
 # usage: install-orbit.sh <Orbit.zip> <expected orbit-core sha256>

@@ -1,0 +1,44 @@
+{
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "spdxVersion": "SPDX-2.3",
+  "name": "SBOM-SPDX-icu4c@78-78.3",
+  "creationInfo": {
+    "created": "2026-09-14T08:35:37Z",
+    "creators": [
+      "Tool: https://github.com/Homebrew/brew@7.0.1"
+    ]
+  },
+  "dataLicense": "CC0-1.0",
+  "documentNamespace": "https://formulae.brew.sh/spdx/icu4c@78-78.3.json",
+  "documentDescribes": [
+    "SPDXRef-Archive-icu4c@78-src"
+  ],
+  "files": [],
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-Archive-icu4c@78-src",
+      "name": "icu4c@78",
+      "versionInfo": "78.3",
+      "filesAnalyzed": false,
+      "licenseDeclared": "NOASSERTION",
+      "builtDate": "2026-03-17 17:44:54 UTC",
+      "licenseConcluded": "ICU",
+      "downloadLocation": "https://github.com/unicode-org/icu/releases/download/release-78.3/icu4c-78.3-sources.tgz",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [],
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "3a2e7a47604ba702f345878308e6fefeca612ee895cf4a5f222e7955fabfe0c0"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-File-icu4c@78",
+      "relationshipType": "PACKAGE_OF",
+      "relatedSpdxElement": "SPDXRef-Archive-icu4c@78-src"
+    }
+  ]
+}

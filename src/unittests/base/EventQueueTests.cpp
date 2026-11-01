@@ -2,6 +2,7 @@
  * Deskflow -- mouse and keyboard sharing utility
  * SPDX-FileCopyrightText: (C) 2026 Deskflow Developers
  * SPDX-License-Identifier: GPL-2.0-only WITH LicenseRef-OpenSSL-Exception
+ * Orbit modifications: 2026-10-26 by Lucas Magotteaux; see NOTICE.md.
  */
 
 #include "EventQueueTests.h"

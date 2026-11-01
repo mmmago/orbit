@@ -1,3 +1,5 @@
+<!-- Orbit modifications: 2026-11-01 by Lucas Magotteaux; see NOTICE.md. -->
+
 # GUI Config
 
  Deskflow will automatically figure out where to save settings and other files.

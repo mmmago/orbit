@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
+# SPDX-License-Identifier: MIT
+# Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 # Quit Deskflow, move it out of /Applications (kept in ~/Deskflow-backups), start Orbit.
 set -euo pipefail
 BACKUPS="$HOME/Deskflow-backups"

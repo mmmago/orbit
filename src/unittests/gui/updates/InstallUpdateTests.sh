@@ -1,6 +1,7 @@
 #!/bin/bash
 # SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
 # SPDX-License-Identifier: MIT
+# Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 # Exercise replacement/rollback with fake apps and launch/move commands.
 # Never launch or modify a real app.
 set -euo pipefail

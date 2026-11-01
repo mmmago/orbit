@@ -1,0 +1,1204 @@
+{
+  "architecture": "arm64",
+  "components": [
+    {
+      "downloads": [
+        {
+          "archive": "brotli/v1.2.1.tar.gz",
+          "kind": "source",
+          "sha256": "98d35d11a78dc453aebb7d10c3748f3f73ff78c8267c0dc697b8631f67bf7e8f",
+          "url": "https://github.com/google/brotli/archive/refs/tags/v1.2.1.tar.gz"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "brotli/1.2.1/lib/libbrotlicommon.1.2.1.dylib",
+          "path": "Frameworks/libbrotlicommon.1.dylib",
+          "uuids": [
+            [
+              "F055F233-8F52-3485-8D00-0A51B6EBB2C1",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "brotli/1.2.1/lib/libbrotlidec.1.2.1.dylib",
+          "path": "Frameworks/libbrotlidec.1.dylib",
+          "uuids": [
+            [
+              "F335EF0F-0AEE-3443-B346-CACAC596AF2B",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "brotli",
+      "installed_version": "1.2.1",
+      "package_license_expression": "MIT",
+      "recipe_sha256": "5e2f806ea663cf0b0e8d403236e043855619c22e0c646a23fbbb716461a872b3",
+      "version": "1.2.1"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "dbus/dbus-1.16.2.tar.xz",
+          "kind": "source",
+          "mirrors": [
+            "https://deb.debian.org/debian/pool/main/d/dbus/dbus_1.16.2.orig.tar.xz"
+          ],
+          "sha256": "0ba2a1a4b16afe7bceb2c07e9ce99a8c2c3508e5dec290dbb643384bd6beb7e2",
+          "url": "https://dbus.freedesktop.org/releases/dbus/dbus-1.16.2.tar.xz"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "dbus/1.16.2_1/lib/libdbus-1.3.dylib",
+          "path": "Frameworks/libdbus-1.3.dylib",
+          "uuids": [
+            [
+              "47CEC117-9C3D-3DF5-B74C-48AEEE2B3E57",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "dbus",
+      "installed_version": "1.16.2_1",
+      "package_license_expression": "AFL-2.1 OR GPL-2.0-or-later",
+      "recipe_sha256": "e890fc9d67bfca3a0fbe8343926a7010f93341238f939ffa56dec10feafaf78d",
+      "version": "1.16.2"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "double-conversion/v3.4.0.tar.gz",
+          "kind": "source",
+          "sha256": "42fd4d980ea86426e457b24bdfa835a6f5ad9517ddb01cdb42b99ab9c8dd5dc9",
+          "url": "https://github.com/google/double-conversion/archive/refs/tags/v3.4.0.tar.gz"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "double-conversion/3.4.0/lib/libdouble-conversion.3.4.0.dylib",
+          "path": "Frameworks/libdouble-conversion.3.dylib",
+          "uuids": [
+            [
+              "76522CA0-8B07-3A98-9154-36E06EE5E753",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "double-conversion",
+      "installed_version": "3.4.0",
+      "package_license_expression": "BSD-3-Clause",
+      "recipe_sha256": "6986a91105e51d75e326303723e3cf55144589e79c32ebd23a54f2ebaf43b057",
+      "version": "3.4.0"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "freetype/freetype-2.15.0.tar.xz",
+          "kind": "source",
+          "mirrors": [
+            "https://download.savannah.gnu.org/releases/freetype/freetype-2.15.0.tar.xz"
+          ],
+          "sha256": "93cd47eb719c325107f2d3cf087d06299e944c3b48a40b55537302304dea1dd5",
+          "url": "https://downloads.sourceforge.net/project/freetype/freetype2/2.15.0/freetype-2.15.0.tar.xz"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "freetype/2.15.0/lib/libfreetype.6.dylib",
+          "path": "Frameworks/libfreetype.6.dylib",
+          "uuids": [
+            [
+              "B780F53E-4D94-3E1D-8761-DDFA7A0BAB30",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "freetype",
+      "installed_version": "2.15.0",
+      "package_license_expression": "FTL",
+      "recipe_sha256": "996aaa19623ee3f24f686922b0ca977fff33c9c2cf39f68ef688b7f9a338bb12",
+      "version": "2.15.0"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "gettext/gettext-1.0.tar.gz",
+          "kind": "source",
+          "mirrors": [
+            "https://ftp.gnu.org/gnu/gettext/gettext-1.0.tar.gz"
+          ],
+          "sha256": "85d99b79c981a404874c02e0342176cf75c7698e2b51fe41031cf6526d974f1a",
+          "url": "https://ftpmirror.gnu.org/gnu/gettext/gettext-1.0.tar.gz"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "gettext/1.0/lib/libintl.8.dylib",
+          "path": "Frameworks/libintl.8.dylib",
+          "uuids": [
+            [
+              "685F7630-FFC2-340B-B015-A7EE74C4D830",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "gettext",
+      "installed_version": "1.0",
+      "package_license_expression": "GPL-3.0-or-later AND LGPL-2.1-or-later",
+      "recipe_sha256": "dd8d1b5914bb96c9c59140dd8cf76ad1d270f65a88111a395f79fe22106367c6",
+      "version": "1.0"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "glib/glib-2.90.1.tar.xz",
+          "kind": "source",
+          "sha256": "93c941aa17d5eb1d53fe838365f29a8b4e539c222a256d974ec8f30fc413e396",
+          "url": "https://download.gnome.org/sources/glib/2.90/glib-2.90.1.tar.xz"
+        },
+        {
+          "archive": "glib/Patches/glib/hardcoded-paths.diff",
+          "kind": "patch",
+          "sha256": "d846efd0bf62918350da94f850db33b0f8727fece9bfaf8164566e3094e80c97",
+          "url": "https://raw.githubusercontent.com/Homebrew/homebrew-core/96c457277e52d9fa16e37873c7b7994fa64b57a8/Patches/glib/hardcoded-paths.diff"
+        },
+        {
+          "archive": "glib/resources/gobject-introspection-1.86.0.tar.xz",
+          "kind": "resource",
+          "sha256": "920d1a3fcedeadc32acff95c2e203b319039dd4b4a08dd1a2dfd283d19c0b9ae",
+          "url": "https://download.gnome.org/sources/gobject-introspection/1.86/gobject-introspection-1.86.0.tar.xz"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "glib/2.90.1/lib/libgio-2.0.0.dylib",
+          "path": "Frameworks/libgio-2.0.0.dylib",
+          "uuids": [
+            [
+              "89A13D30-0BB4-31A9-A04E-61B651B58385",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "glib/2.90.1/lib/libglib-2.0.0.dylib",
+          "path": "Frameworks/libglib-2.0.0.dylib",
+          "uuids": [
+            [
+              "27D1BA34-5D60-3DE0-8F3B-00BCF5E09139",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "glib/2.90.1/lib/libgmodule-2.0.0.dylib",
+          "path": "Frameworks/libgmodule-2.0.0.dylib",
+          "uuids": [
+            [
+              "B0128761-B3AC-351D-9B6C-364C8A04730C",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "glib/2.90.1/lib/libgobject-2.0.0.dylib",
+          "path": "Frameworks/libgobject-2.0.0.dylib",
+          "uuids": [
+            [
+              "B086FDBA-868D-3C61-8749-8264F51490FD",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "glib/2.90.1/lib/libgthread-2.0.0.dylib",
+          "path": "Frameworks/libgthread-2.0.0.dylib",
+          "uuids": [
+            [
+              "740CADD9-F507-3416-8F43-2D3BF3F08FE4",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "glib",
+      "installed_version": "2.90.1",
+      "package_license_expression": "LGPL-2.1-or-later",
+      "recipe_sha256": "7352a67a6a1a15554d996d38886812e858bebbbcbf3985901724cab444ee3b3b",
+      "version": "2.90.1"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "graphite2/graphite2-1.3.15.tgz",
+          "kind": "source",
+          "sha256": "c6bc8b4252724665297f7cad0c55897285c673f9b8e6db3522ace833593fe0b1",
+          "url": "https://github.com/silnrsi/graphite/releases/download/1.3.15/graphite2-1.3.15.tgz"
+        },
+        {
+          "archive": "graphite2/resources/Simple-Graphite-Font.ttf",
+          "kind": "resource",
+          "sha256": "7e573896bbb40088b3a8490f83d6828fb0fd0920ac4ccdfdd7edb804e852186a",
+          "url": "https://scripts.sil.org/pub/woff/fonts/Simple-Graphite-Font.ttf"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "graphite2/1.3.15/lib/libgraphite2.3.3.1.dylib",
+          "path": "Frameworks/libgraphite2.3.dylib",
+          "uuids": [
+            [
+              "6A793C2F-5759-3012-8CCC-7DC558236EAF",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "graphite2",
+      "installed_version": "1.3.15",
+      "package_license_expression": "GPL-2.0-or-later OR LGPL-2.1-or-later OR MPL-1.1+",
+      "recipe_sha256": "dc60f1784330fbf36c320a92dbf31b0f4f5ed83bab6b252963cdade7b87f6d49",
+      "version": "1.3.15"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "harfbuzz/harfbuzz-14.6.0.tar.xz",
+          "kind": "source",
+          "sha256": "d07a007327277708a2a73ae437887cdbaf282937f6d03ca5467723e9099af586",
+          "url": "https://github.com/harfbuzz/harfbuzz/releases/download/14.6.0/harfbuzz-14.6.0.tar.xz"
+        },
+        {
+          "archive": "harfbuzz/resources/270b89df543a7e48e206a2d830c0e10e5265c630.ttf",
+          "kind": "resource",
+          "sha256": "9535d35dab9e002963eef56757c46881f6b3d3b27db24eefcc80929781856c77",
+          "url": "https://github.com/harfbuzz/harfbuzz/raw/fc0daafab0336b847ac14682e581a8838f36a0bf/test/shaping/fonts/sha1sum/270b89df543a7e48e206a2d830c0e10e5265c630.ttf"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "harfbuzz/14.6.0/lib/libharfbuzz.0.dylib",
+          "path": "Frameworks/libharfbuzz.0.dylib",
+          "uuids": [
+            [
+              "F22F2032-E229-3972-A590-4AD916ACEDF6",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "harfbuzz",
+      "installed_version": "14.6.0",
+      "package_license_expression": "MIT",
+      "recipe_sha256": "7b1193219f89a61b86d7226dcebfe18505b097a40ba92ccbe0a930d222c734df",
+      "version": "14.6.0"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "icu4c@78/icu4c-78.3-sources.tgz",
+          "kind": "source",
+          "sha256": "3a2e7a47604ba702f345878308e6fefeca612ee895cf4a5f222e7955fabfe0c0",
+          "url": "https://github.com/unicode-org/icu/releases/download/release-78.3/icu4c-78.3-sources.tgz"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "icu4c@78/78.3/lib/libicudata.78.3.dylib",
+          "path": "Frameworks/libicudata.78.dylib",
+          "uuids": [
+            [
+              "405A29E4-230E-3E63-8CA7-2F482D507E59",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "icu4c@78/78.3/lib/libicui18n.78.3.dylib",
+          "path": "Frameworks/libicui18n.78.dylib",
+          "uuids": [
+            [
+              "6D9ABF1A-5E38-3103-A0EC-F1C0868F6FCA",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "icu4c@78/78.3/lib/libicuuc.78.3.dylib",
+          "path": "Frameworks/libicuuc.78.dylib",
+          "uuids": [
+            [
+              "EC934797-EFF8-36BA-BA4D-A1EFD318018A",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "icu4c@78",
+      "installed_version": "78.3",
+      "package_license_expression": "ICU",
+      "recipe_sha256": "db6d475bc93d9138f6ec7272dcc2718614e3df68dc0edeb2ab63054493eec04b",
+      "version": "78.3"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "jpeg-turbo/libjpeg-turbo-3.2.0.tar.gz",
+          "kind": "source",
+          "sha256": "6f30092cef9fb839779646608f4ee14ae3cbac989c47fa05e841b0841f09878e",
+          "url": "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.2.0/libjpeg-turbo-3.2.0.tar.gz"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "jpeg-turbo/3.2.0/lib/libjpeg.8.3.2.dylib",
+          "path": "Frameworks/libjpeg.8.dylib",
+          "uuids": [
+            [
+              "B1700FCF-6A50-3752-B353-E43C3888F311",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "jpeg-turbo",
+      "installed_version": "3.2.0",
+      "package_license_expression": "IJG AND Zlib AND BSD-3-Clause",
+      "recipe_sha256": "860c0c90f8c2d0541de067218452d57f555dd4da5b5dc49151f13b563229ab24",
+      "version": "3.2.0"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "libb2/libb2-0.98.1.tar.gz",
+          "kind": "source",
+          "sha256": "53626fddce753c454a3fea581cbbc7fe9bbcf0bc70416d48fdbbf5d87ef6c72e",
+          "url": "https://github.com/BLAKE2/libb2/releases/download/v0.98.1/libb2-0.98.1.tar.gz"
+        },
+        {
+          "archive": "libb2/Patches/libtool/configure-big_sur.diff",
+          "kind": "patch",
+          "sha256": "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c",
+          "url": "https://raw.githubusercontent.com/Homebrew/homebrew-core/96c457277e52d9fa16e37873c7b7994fa64b57a8/Patches/libtool/configure-big_sur.diff"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "libb2/0.98.1/lib/libb2.1.dylib",
+          "path": "Frameworks/libb2.1.dylib",
+          "uuids": [
+            [
+              "90618C40-89AC-3A43-936F-32F636755D8F",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "libb2",
+      "installed_version": "0.98.1",
+      "package_license_expression": "CC0-1.0",
+      "recipe_sha256": "972ca2546719e26aaf8d608f75706c8fc620d253ae7de76330239b45617c9e2b",
+      "version": "0.98.1"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "libpng/libpng-1.6.59.tar.xz",
+          "kind": "source",
+          "sha256": "d80dd2a38a37f803cb9b6ac7b14bd6e74ddc3b654780a8380bdf93523fdb4389",
+          "url": "https://downloads.sourceforge.net/project/libpng/libpng16/1.6.59/libpng-1.6.59.tar.xz"
+        },
+        {
+          "archive": "libpng/resources/pngtest.png",
+          "kind": "resource",
+          "sha256": "f925a657a5343cfb724414c01e87afd4d60b1f82a46edc0e11f016a126f84064",
+          "url": "https://src.fedoraproject.org/rpms/libpng/raw/49e9a06ca115aaa911dd3419ee79c1870d1428fb/f/pngtest.png"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "libpng/1.6.59/lib/libpng16.16.dylib",
+          "path": "Frameworks/libpng16.16.dylib",
+          "uuids": [
+            [
+              "4CC26026-4CD3-3266-8F77-BA6679FA1D42",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "libpng",
+      "installed_version": "1.6.59",
+      "package_license_expression": "libpng-2.0",
+      "recipe_sha256": "3ef2e9c5f499c302dc8e9f1f76980732ad850618a00606fbfac2522080632b37",
+      "version": "1.6.59"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "md4c/v0.6.0.tar.gz",
+          "kind": "source",
+          "sha256": "4d151298125a81da3b2efa2e0eed8bdb7a9318569804e4fa4d7a2375ab83ef70",
+          "url": "https://github.com/mity/md4c/archive/refs/tags/v0.6.0.tar.gz"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "md4c/0.6.0/lib/libmd4c.0.6.0.dylib",
+          "path": "Frameworks/libmd4c.0.dylib",
+          "uuids": [
+            [
+              "8BB854D7-9D6F-3641-8D0B-53A4D9CB6B0A",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "md4c",
+      "installed_version": "0.6.0",
+      "package_license_expression": "MIT",
+      "recipe_sha256": "74346a540eeacdd467de96bb48067d5d5ce00b635b82ad26d85c03d6ad019a0a",
+      "version": "0.6.0"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "openssl@3/openssl-3.6.4.tar.gz",
+          "kind": "source",
+          "sha256": "9bffaa1ad1e07b354c21bd3324ec02fa15579f45a7d0494b3e74bc449b7333ef",
+          "url": "https://github.com/openssl/openssl/releases/download/openssl-3.6.4/openssl-3.6.4.tar.gz"
+        },
+        {
+          "archive": "openssl@3/resources/Test-Harness-3.52.tar.gz",
+          "kind": "resource",
+          "sha256": "8fe65cfc0261ed3c8a4395f0524286f5719669fe305f9b03b16cf3684d62cd70",
+          "url": "https://cpan.metacpan.org/authors/id/L/LE/LEONT/Test-Harness-3.52.tar.gz"
+        },
+        {
+          "archive": "openssl@3/resources/Test-Simple-1.302224.tar.gz",
+          "kind": "resource",
+          "sha256": "6c366b8ab03553976dd1813940770b60bdb4396e7bbae8c263baa6e96ec52fd7",
+          "url": "https://cpan.metacpan.org/authors/id/E/EX/EXODIST/Test-Simple-1.302224.tar.gz"
+        },
+        {
+          "archive": "openssl@3/resources/ExtUtils-MakeMaker-7.78.tar.gz",
+          "kind": "resource",
+          "sha256": "43b33c20f8d82dba7cc48f8cd702f8fc9811e9d07880886dfd31b7077bd4a3a6",
+          "url": "https://cpan.metacpan.org/authors/id/B/BI/BINGOS/ExtUtils-MakeMaker-7.78.tar.gz"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "openssl@3/3.6.4/lib/libcrypto.3.dylib",
+          "path": "Frameworks/libcrypto.3.dylib",
+          "uuids": [
+            [
+              "B5FB28DB-1AC6-383C-9DDD-585812A35CE8",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "openssl@3/3.6.4/lib/libssl.3.dylib",
+          "path": "Frameworks/libssl.3.dylib",
+          "uuids": [
+            [
+              "1B8AB7A7-AD95-3B41-85F2-FB21B66B6423",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "openssl@3",
+      "installed_version": "3.6.4",
+      "package_license_expression": "Apache-2.0",
+      "recipe_sha256": "df9c2b56e0d961d3c22eb60f5c2e41112be1901a8ee85de1c7472955f6da391a",
+      "version": "3.6.4"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "openssl@4/openssl-4.1.0.tar.gz",
+          "kind": "source",
+          "sha256": "50c17baf54cb008f6ce42d50deb4b28050a1aad711636cabd4b241c7e90cc2fd",
+          "url": "https://github.com/openssl/openssl/releases/download/openssl-4.1.0/openssl-4.1.0.tar.gz"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "openssl@4/4.1.0/lib/libcrypto.4.dylib",
+          "path": "Frameworks/libcrypto.4.dylib",
+          "uuids": [
+            [
+              "D90EA590-E67C-3FC0-90B1-FB1E1AA31BCD",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "openssl@4/4.1.0/lib/libssl.4.dylib",
+          "path": "Frameworks/libssl.4.dylib",
+          "uuids": [
+            [
+              "E1D52CC5-62D0-3DB1-A12F-E96B7882ED71",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "openssl@4",
+      "installed_version": "4.1.0",
+      "package_license_expression": "Apache-2.0",
+      "recipe_sha256": "7ff5915f10c5e950f35e65471fae7e04711bc962689f1369e646e2f68b41b19d",
+      "version": "4.1.0"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "pcre2/pcre2-10.49.tar.bz2",
+          "kind": "source",
+          "sha256": "53c156e1ba416a20da8e65395daa132da0d80e76910424caca3fcdae7831d384",
+          "url": "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.49/pcre2-10.49.tar.bz2"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "pcre2/10.49/lib/libpcre2-16.0.dylib",
+          "path": "Frameworks/libpcre2-16.0.dylib",
+          "uuids": [
+            [
+              "A8AF7D9B-BE00-3296-9EC7-F4229EC1021D",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "pcre2/10.49/lib/libpcre2-8.0.dylib",
+          "path": "Frameworks/libpcre2-8.0.dylib",
+          "uuids": [
+            [
+              "D5E8721E-717E-33FA-AFC2-43784CD7EE3A",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "pcre2",
+      "installed_version": "10.49",
+      "package_license_expression": "BSD-3-Clause",
+      "recipe_sha256": "94c19a0d869da4990a8f3f371e37c986ad72124d2d94032e061c4a9019f9e174",
+      "version": "10.49"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "qtbase/qtbase-everywhere-src-6.12.0.tar.xz",
+          "kind": "source",
+          "mirrors": [
+            "https://qt.mirror.constant.com/archive/qt/6.12/6.12.0/submodules/qtbase-everywhere-src-6.12.0.tar.xz",
+            "https://mirrors.ukfast.co.uk/sites/qt.io/archive/qt/6.12/6.12.0/submodules/qtbase-everywhere-src-6.12.0.tar.xz"
+          ],
+          "sha256": "a951bd163c7b80fc6b8c88d7668fb56abf91c152373e13c10666763238131307",
+          "url": "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qtbase-everywhere-src-6.12.0.tar.xz"
+        },
+        {
+          "archive": "qtbase/0.patch",
+          "kind": "patch",
+          "sha256": "6870a711a6fb7ce6367f541e10ec9fe2785bd7d7484a2b1759b8d1f082a3f09f",
+          "url": "https://github.com/qt/qtbase/commit/032643f99e090e0304ef935c2ee11c109d55c8a1.patch?full_index=1"
+        },
+        {
+          "archive": "qtbase/1.patch",
+          "kind": "patch",
+          "sha256": "07742a103f8928457f7df8140a0f88589980f81670ab0b6c646b19dc8cc36344",
+          "url": "https://github.com/qt/qtbase/commit/8c260a771ab1ed7d6cdb5f221854ee470e5790a6.patch?full_index=1"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "qtbase/6.12.0_1/lib/QtCore.framework/Versions/A/QtCore",
+          "path": "Frameworks/QtCore.framework/Versions/A/QtCore",
+          "uuids": [
+            [
+              "8D92D78B-E978-3A9E-95DF-476FA6BE9EA7",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "qtbase/6.12.0_1/lib/QtDBus.framework/Versions/A/QtDBus",
+          "path": "Frameworks/QtDBus.framework/Versions/A/QtDBus",
+          "uuids": [
+            [
+              "7983E84C-CFA6-3F10-A12F-0875A7D947B0",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "qtbase/6.12.0_1/lib/QtGui.framework/Versions/A/QtGui",
+          "path": "Frameworks/QtGui.framework/Versions/A/QtGui",
+          "uuids": [
+            [
+              "15EDA5A6-C662-3B4A-B1AE-FB623F143261",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "qtbase/6.12.0_1/lib/QtNetwork.framework/Versions/A/QtNetwork",
+          "path": "Frameworks/QtNetwork.framework/Versions/A/QtNetwork",
+          "uuids": [
+            [
+              "B44ED8CB-42F7-3C46-98B3-4C8FB31DEEA3",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "qtbase/6.12.0_1/lib/QtWidgets.framework/Versions/A/QtWidgets",
+          "path": "Frameworks/QtWidgets.framework/Versions/A/QtWidgets",
+          "uuids": [
+            [
+              "D7974434-1974-3083-9E35-57E27FE1CACE",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "qtbase/6.12.0_1/share/qt/plugins/imageformats/libqgif.dylib",
+          "path": "PlugIns/imageformats/libqgif.dylib",
+          "uuids": [
+            [
+              "F870407B-F054-3365-BD23-258D2CEA4DF6",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "qtbase/6.12.0_1/share/qt/plugins/imageformats/libqico.dylib",
+          "path": "PlugIns/imageformats/libqico.dylib",
+          "uuids": [
+            [
+              "81748C37-50F4-3B1A-AEF7-8CAFD3C8F86A",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "qtbase/6.12.0_1/share/qt/plugins/imageformats/libqjpeg.dylib",
+          "path": "PlugIns/imageformats/libqjpeg.dylib",
+          "uuids": [
+            [
+              "A7746387-E332-3E68-9822-0ECCEE046B60",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "qtbase/6.12.0_1/share/qt/plugins/networkinformation/libqapplenetworkinformation.dylib",
+          "path": "PlugIns/networkinformation/libqapplenetworkinformation.dylib",
+          "uuids": [
+            [
+              "C1A5CF82-03DA-393D-B080-6BFA622DBD7A",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "qtbase/6.12.0_1/share/qt/plugins/networkinformation/libqglib.dylib",
+          "path": "PlugIns/networkinformation/libqglib.dylib",
+          "uuids": [
+            [
+              "575898BE-7DD5-3EC4-9F0E-C1B5C3B5A950",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "qtbase/6.12.0_1/share/qt/plugins/platforms/libqcocoa.dylib",
+          "path": "PlugIns/platforms/libqcocoa.dylib",
+          "uuids": [
+            [
+              "32C1B9DC-E0FD-3704-AFCD-565F6CF77E97",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "qtbase/6.12.0_1/share/qt/plugins/styles/libqmacstyle.dylib",
+          "path": "PlugIns/styles/libqmacstyle.dylib",
+          "uuids": [
+            [
+              "5252D007-66F9-325C-AF45-5C1E5E39C525",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "qtbase/6.12.0_1/share/qt/plugins/tls/libqcertonlybackend.dylib",
+          "path": "PlugIns/tls/libqcertonlybackend.dylib",
+          "uuids": [
+            [
+              "97BE87AE-7FE5-3720-B652-3A721CD1EB08",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "qtbase/6.12.0_1/share/qt/plugins/tls/libqopensslbackend.dylib",
+          "path": "PlugIns/tls/libqopensslbackend.dylib",
+          "uuids": [
+            [
+              "89B590E0-8385-3ABE-AB4F-097761BF24F2",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "qtbase/6.12.0_1/share/qt/plugins/tls/libqsecuretransportbackend.dylib",
+          "path": "PlugIns/tls/libqsecuretransportbackend.dylib",
+          "uuids": [
+            [
+              "34FF3222-FED3-337F-BC16-6F7928B38960",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "qtbase",
+      "installed_version": "6.12.0_1",
+      "package_license_expression": "(LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only) AND (GPL-3.0-only WITH Qt-GPL-exception-1.0) AND BSD-3-Clause AND GFDL-1.3-no-invariants-only",
+      "recipe_sha256": "d7b3f160895d4ff888d8b1f3927dbc82a3bfc4f12bfc53a79483c10f2fdddf17",
+      "version": "6.12.0"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "qtsvg/qtsvg-everywhere-src-6.12.0.tar.xz",
+          "kind": "source",
+          "mirrors": [
+            "https://qt.mirror.constant.com/archive/qt/6.12/6.12.0/submodules/qtsvg-everywhere-src-6.12.0.tar.xz",
+            "https://mirrors.ukfast.co.uk/sites/qt.io/archive/qt/6.12/6.12.0/submodules/qtsvg-everywhere-src-6.12.0.tar.xz"
+          ],
+          "sha256": "e4ab39534ec97987b1b9b60ef7f4d3253d5912a69f8c713a01753174a4029331",
+          "url": "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qtsvg-everywhere-src-6.12.0.tar.xz"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "qtsvg/6.12.0_1/lib/QtSvg.framework/Versions/A/QtSvg",
+          "path": "Frameworks/QtSvg.framework/Versions/A/QtSvg",
+          "uuids": [
+            [
+              "998EFA12-B2C4-3AB7-8CC4-0A7286586384",
+              "arm64"
+            ]
+          ]
+        },
+        {
+          "cellar_relative_path": "qtsvg/6.12.0_1/share/qt/plugins/iconengines/libqsvgicon.dylib",
+          "path": "PlugIns/iconengines/libqsvgicon.dylib",
+          "uuids": [
+            [
+              "D79C4279-296D-335A-A77B-2F2F960C6842",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "qtsvg",
+      "installed_version": "6.12.0_1",
+      "package_license_expression": "(LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only) AND BSD-3-Clause",
+      "recipe_sha256": "a13d4d1c52f77cb7bc331ba974becf6fdb01bd8f5b8905384ed0f37e08a48d1d",
+      "version": "6.12.0"
+    },
+    {
+      "downloads": [
+        {
+          "archive": "zstd/v1.5.7.tar.gz",
+          "kind": "source",
+          "sha256": "37d7284556b20954e56e1ca85b80226768902e2edabd3b649e9e72c0c9012ee3",
+          "url": "https://github.com/facebook/zstd/archive/refs/tags/v1.5.7.tar.gz"
+        }
+      ],
+      "files": [
+        {
+          "cellar_relative_path": "zstd/1.5.7_1/lib/libzstd.1.5.7.dylib",
+          "path": "Frameworks/libzstd.1.dylib",
+          "uuids": [
+            [
+              "1CE1197A-4A2B-3036-984E-95599210332B",
+              "arm64"
+            ]
+          ]
+        }
+      ],
+      "formula": "zstd",
+      "installed_version": "1.5.7_1",
+      "package_license_expression": "(BSD-3-Clause OR GPL-2.0-only) AND BSD-2-Clause AND MIT",
+      "recipe_sha256": "9a9b0183896886e82b915af4db576f27d34d1cee7757d6c5beb0e1eb74c68e0d",
+      "version": "1.5.7"
+    }
+  ],
+  "homebrew_build_scripts": {
+    "archive": "Homebrew-build-scripts.tar.gz",
+    "revision": "2833c25c11846269f89b8c0bd90abf58bcba89fe",
+    "sha256": "777a697c96722a2486164d98e50a5f26ff49d5836aa91bb977f924b6c154d3c1"
+  },
+  "legal_files": {
+    "LICENSE-Homebrew.txt": "f80329e58613ad669c0e73cb132d8060b9b2c55e339c73848068e4d1567f4627",
+    "brotli/brotli.rb": "5e2f806ea663cf0b0e8d403236e043855619c22e0c646a23fbbb716461a872b3",
+    "brotli/homebrew.spdx.json": "1ec7c89fc815bfc239f6c85e7b6b3f822f2d4e66ddb0c8053fb59ab0d135cc70",
+    "brotli/notices/brotli-1.2.1/LICENSE": "3d180008e36922a4e8daec11c34c7af264fed5962d07924aea928c38e8663c94",
+    "dbus/dbus.rb": "e890fc9d67bfca3a0fbe8343926a7010f93341238f939ffa56dec10feafaf78d",
+    "dbus/homebrew.spdx.json": "e0bc22b8a55a2ef469b9124dc694a467fb88054ee6dc7d30b5d8ac8013f977b7",
+    "dbus/notices/dbus-1.16.2/AUTHORS": "a56f6628c407e46ec72eb5512591b4c6204e7c0854c15ed0af4daad807edb84f",
+    "dbus/notices/dbus-1.16.2/COPYING": "150e5d08e1cb5e62b65967d7931acad2c42d98ec1bbb584bebb01921cbc853c2",
+    "dbus/notices/dbus-1.16.2/LICENSES/AFL-2.0.txt": "7ecc7db84298adb05d2cf10339c63a5315a1c5c270a68d97d7d40a53b508ccde",
+    "dbus/notices/dbus-1.16.2/LICENSES/AFL-2.1.txt": "93bb4f7417aa775bab9026cc3d0af28aeb64451fc5a8ec651876785edd8eaf9b",
+    "dbus/notices/dbus-1.16.2/LICENSES/Apache-2.0.txt": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff",
+    "dbus/notices/dbus-1.16.2/LICENSES/BSD-3-Clause.txt": "5a93d5831e1297ab10fe643e1a631e83be392896da14ee2951285a79012df69d",
+    "dbus/notices/dbus-1.16.2/LICENSES/GPL-2.0-or-later.txt": "aaf135472f81c5b4a0dca9367e5bb5e9750032b5bebe5442b36e4c0a47430df3",
+    "dbus/notices/dbus-1.16.2/LICENSES/LGPL-2.1-or-later.txt": "fa6f36630bb1e0c571d34b2bbdf188d08495c9dbf58f28cac112f303fc1f58fb",
+    "dbus/notices/dbus-1.16.2/LICENSES/LicenseRef-CMakeScripts.txt": "a4c1387064fda4c22bfca364b606eb4e0421efa37cad27c040a3d7ca7186d522",
+    "dbus/notices/dbus-1.16.2/LICENSES/LicenseRef-GAP.txt": "cf4bc4c56dd0837f3d53b8c1467e0d7dbb95223de8bcfe83a4981c318a738ae3",
+    "dbus/notices/dbus-1.16.2/LICENSES/LicenseRef-pycrypto-orig.txt": "2cb8f4f410f0ffc5dcfbadd188e20c859fdbb161e616cf2f3d34dfbf8c740547",
+    "dbus/notices/dbus-1.16.2/LICENSES/MIT.txt": "b85dcd3e453d05982552c52b5fc9e0bdd6d23c6f8e844b984a88af32570b0cc0",
+    "dbus/notices/dbus-1.16.2/LICENSES/TCL.txt": "36fc2d8a56a2a014ded51e298a7e63635eb4ec62e8bedb99c82b892542ac5e7d",
+    "dbus/notices/dbus-1.16.2/test/data/invalid-messages/boolean-has-no-value.message-raw.license": "9d37880fc70412ffd0627da8c098f50a1d86d11b89883e45233b1ece450b7b0b",
+    "dbus/notices/dbus-1.16.2/test/data/invalid-messages/fixed-array-not-divisible.message-raw.license": "1c8435b1d5ac54ee500a2afcea481d7bbc5f1f5e0a55a8a9372e249ea3ff2c11",
+    "dbus/notices/dbus-1.16.2/test/data/invalid-messages/issue418.message-raw.license": "1c8435b1d5ac54ee500a2afcea481d7bbc5f1f5e0a55a8a9372e249ea3ff2c11",
+    "dbus/notices/dbus-1.16.2/test/data/invalid-messages/mis-nested-sig.message-raw.license": "1c8435b1d5ac54ee500a2afcea481d7bbc5f1f5e0a55a8a9372e249ea3ff2c11",
+    "dbus/notices/dbus-1.16.2/test/data/invalid-messages/truncated-variant-sig.message-raw.license": "2a9e1e2f7f0955cfe517d67b653c651317e358445282e19dc90e35d3e2903a74",
+    "dbus/notices/dbus-1.16.2/test/data/invalid-messages/zero-length-variant-sig.message-raw.license": "2a9e1e2f7f0955cfe517d67b653c651317e358445282e19dc90e35d3e2903a74",
+    "dbus/notices/dbus-1.16.2/test/data/valid-messages/byteswap-fd-index.message-raw.license": "1c8435b1d5ac54ee500a2afcea481d7bbc5f1f5e0a55a8a9372e249ea3ff2c11",
+    "dbus/notices/dbus-1.16.2/test/data/valid-messages/minimal.message-raw.license": "2a9e1e2f7f0955cfe517d67b653c651317e358445282e19dc90e35d3e2903a74",
+    "double-conversion/double-conversion.rb": "6986a91105e51d75e326303723e3cf55144589e79c32ebd23a54f2ebaf43b057",
+    "double-conversion/homebrew.spdx.json": "9b29f589a0b424171e1fa4c735f738189ce16aa2bd780a3f53130fbf7e4fb837",
+    "double-conversion/notices/double-conversion-3.4.0/AUTHORS": "02f8e5babc63a87d460219a74b97e15046d198ed3bab061e3d46b4f44ea77a9d",
+    "double-conversion/notices/double-conversion-3.4.0/COPYING": "4af93c12062c58058378de2397dc1c92bbff9ddfb1d583a01c84127557ce97ca",
+    "double-conversion/notices/double-conversion-3.4.0/LICENSE": "4af93c12062c58058378de2397dc1c92bbff9ddfb1d583a01c84127557ce97ca",
+    "freetype/freetype.rb": "996aaa19623ee3f24f686922b0ca977fff33c9c2cf39f68ef688b7f9a338bb12",
+    "freetype/homebrew.spdx.json": "9800af8543db1c7d52b89fdb23f682622e20f38e365b7ecf329b1d698bba7fb1",
+    "freetype/notices/freetype-2.15.0/LICENSE.TXT": "bd36c8b474855fa294c2ec5c184544478ef3720aad37d65a6296a4f264fd2d3b",
+    "freetype/notices/freetype-2.15.0/docs/FTL.TXT": "5a5ee54c5001bbad1cdc1a57cc3dd4c42199b2da09d39c7ee41fab002d02967f",
+    "freetype/notices/freetype-2.15.0/src/tools/update-copyright-year": "f3e4b6f122dce96b6ba85c3d600fd19a766ab5e0fd0cbdeee785d0d88f111d3a",
+    "gettext/gettext.rb": "dd8d1b5914bb96c9c59140dd8cf76ad1d270f65a88111a395f79fe22106367c6",
+    "gettext/homebrew.spdx.json": "87b3ef0014d2ba99ae9eaf565bc63ba644de8c7af4a59b781b95fff6dfc5d7c3",
+    "gettext/notices/gettext-1.0/AUTHORS": "167b04ed012e59c2d2cfc87d420d8c8a8f5c528ef1fd068598b36d57f39db203",
+    "gettext/notices/gettext-1.0/COPYING": "e79e9c8a0c85d735ff98185918ec94ed7d175efc377012787aebcf3b80f0d90b",
+    "gettext/notices/gettext-1.0/check-copyright-headers": "ab4debce24b500a2a56d22d2850e521a0630dc7fa4b22d65fb0ce0f9b4ec4a1a",
+    "gettext/notices/gettext-1.0/gettext-runtime/AUTHORS": "136ea88816ec1990c2fc060970013b9e94c875ba8b387f9bb3d62e77c90bc9b4",
+    "gettext/notices/gettext-1.0/gettext-runtime/COPYING": "7ef2cdfe58e0c0460657b6598b49af29d4e03c1e41cbaf0e1da1eb8ad74b95d0",
+    "gettext/notices/gettext-1.0/gettext-runtime/intl/AUTHORS": "4bd9e2cd15ab6d68b30965512b63a1d4aae95f4c1dd040657a4d1300252a695f",
+    "gettext/notices/gettext-1.0/gettext-runtime/intl/COPYING.LIB": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95",
+    "gettext/notices/gettext-1.0/gettext-runtime/libasprintf/AUTHORS": "590f1c4aa72c2c14dd52b0e230bf652e2109d00099fc7bb272e4594b800913d0",
+    "gettext/notices/gettext-1.0/gettext-runtime/libasprintf/COPYING": "03133addae5b99a6148c538300e6d97074453089be1423b741bd081f18e2b298",
+    "gettext/notices/gettext-1.0/gettext-runtime/libasprintf/COPYING.LIB": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95",
+    "gettext/notices/gettext-1.0/gettext-tools/AUTHORS": "4027705b723299dd8e6153939ab73395e22685503994cc8de92fa2ebaa432a49",
+    "gettext/notices/gettext-1.0/gettext-tools/COPYING": "5d4cff30d5038f82a0edc79798456049b61e1752fdb7e9ab1f4bfb9fae3a7303",
+    "gettext/notices/gettext-1.0/gettext-tools/gnulib-lib/libxml/COPYING": "c5c63674f8a83c4d2e385d96d1c670a03cb871ba2927755467017317878574bd",
+    "gettext/notices/gettext-1.0/gettext-tools/tree-sitter-0.23.2/LICENSE": "5f9cf9fb6acb1972b35ae29119ce563bb60ec097656bc4b69b9bac2d04c7a147",
+    "gettext/notices/gettext-1.0/gettext-tools/tree-sitter-0.23.2/lib/src/unicode/LICENSE": "6a18c5fac70d7860b57f5b72b4e2c9a1ba6b3d2741eef7ff9767c5379364f10d",
+    "gettext/notices/gettext-1.0/gettext-tools/tree-sitter-d-0.8.2/LICENSE": "ecf206b1a27e8e4ea07f1e1529cb111b4be5ce8420bd27b8269981d9c0c389f8",
+    "gettext/notices/gettext-1.0/gettext-tools/tree-sitter-go-0.23.4/LICENSE": "2e0110e07abef7c2548b26ec9d6969775617ca539a0dc8dbeeb14d6452c711d1",
+    "gettext/notices/gettext-1.0/gettext-tools/tree-sitter-ocaml-0.23.2/LICENSE": "f977a20805dd6e275f14bc090a5f8e638401dad4df366841c1060f12c75b74ae",
+    "gettext/notices/gettext-1.0/gettext-tools/tree-sitter-rust-0.23.2/LICENSE": "31d5b6f4243d5c7c6e1c4ebbbb9f6407bd1457a08bcc4f706521710341acba36",
+    "gettext/notices/gettext-1.0/gettext-tools/tree-sitter-typescript-0.23.2/LICENSE": "49bf33cf78ef5897e4e161ce1517df7de1ae5042a65b6bcfd44401e0fc606559",
+    "gettext/notices/gettext-1.0/gnulib-local/lib/libxml/COPYING": "c5c63674f8a83c4d2e385d96d1c670a03cb871ba2927755467017317878574bd",
+    "gettext/notices/gettext-1.0/libtextstyle/AUTHORS": "71c0580cb05d28848b341e5a4da2761d4a8eb482592358d646dab104648a8303",
+    "gettext/notices/gettext-1.0/libtextstyle/COPYING": "e79e9c8a0c85d735ff98185918ec94ed7d175efc377012787aebcf3b80f0d90b",
+    "gettext/notices/gettext-1.0/libtextstyle/lib/libxml/COPYING": "c5c63674f8a83c4d2e385d96d1c670a03cb871ba2927755467017317878574bd",
+    "glib/glib.rb": "7352a67a6a1a15554d996d38886812e858bebbbcbf3985901724cab444ee3b3b",
+    "glib/homebrew.spdx.json": "f903590dc44860808f53ffe45387efe802d8a1472da9839027459771e6e20ec5",
+    "glib/notices/glib-2.90.1/LICENSES/AFL-2.0.txt": "7ecc7db84298adb05d2cf10339c63a5315a1c5c270a68d97d7d40a53b508ccde",
+    "glib/notices/glib-2.90.1/LICENSES/Apache-2.0.txt": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff",
+    "glib/notices/glib-2.90.1/LICENSES/CC-BY-SA-3.0.txt": "3f941b3b89cf7b8370ceb83cc76d2120d471b58735d8ca60238a751a48d7f72f",
+    "glib/notices/glib-2.90.1/LICENSES/CC0-1.0.txt": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+    "glib/notices/glib-2.90.1/LICENSES/GPL-2.0-or-later.txt": "aaf135472f81c5b4a0dca9367e5bb5e9750032b5bebe5442b36e4c0a47430df3",
+    "glib/notices/glib-2.90.1/LICENSES/LGPL-2.1-only.txt": "fa6f36630bb1e0c571d34b2bbdf188d08495c9dbf58f28cac112f303fc1f58fb",
+    "glib/notices/glib-2.90.1/LICENSES/LGPL-2.1-or-later.txt": "fa6f36630bb1e0c571d34b2bbdf188d08495c9dbf58f28cac112f303fc1f58fb",
+    "glib/notices/glib-2.90.1/LICENSES/LLVM-exception.txt": "e34c58338bd89d43e709e226610d8f32b3e3c47f4ad9a99a8dc1d4ac7842488e",
+    "glib/notices/glib-2.90.1/LICENSES/LicenseRef-old-glib-tests.txt": "fb261b2d5dbe76c4850f90da763210bc385e52428df6bbfd7b06295ac8a32914",
+    "glib/notices/glib-2.90.1/LICENSES/MIT.txt": "b85dcd3e453d05982552c52b5fc9e0bdd6d23c6f8e844b984a88af32570b0cc0",
+    "glib/notices/glib-2.90.1/LICENSES/MPL-1.1.txt": "6214f8b1300bb9f37b16ebc146f8f61af0187e0025042ff95c8b3030744a8795",
+    "glib/notices/glib-2.90.1/docs/reference/AUTHORS": "b4f60a02b2b1f82764f8295b2eafbfcd4c33f596d70abcf5cb3c3623b1cfbc6d",
+    "glib/notices/glib-2.90.1/docs/reference/COPYING": "b1ec1d0e5947f81e815d8771f7d4d90671a94bb10a42dc687fb566de461a57aa",
+    "glib/notices/glib-2.90.1/gmodule/AUTHORS": "28073c8c65c072387b778ba00b6c24a2ff1b573ca4415e151aa91fab5a6454be",
+    "glib/notices/glib-2.90.1/subprojects/gvdb/COPYING": "bdbcdaa7858872393e9d6b216bbdc8a23e99d98dd6cdb7cda19458025b9e19fc",
+    "glib/notices/glib-2.90.1/subprojects/gvdb/LICENSES/LGPL-2.1-or-later.txt": "5749785c8bdefafcb5d798270ed0a967036fe2ca63dcedade1627565dfef81d2",
+    "graphite2/graphite2.rb": "dc60f1784330fbf36c320a92dbf31b0f4f5ed83bab6b252963cdade7b87f6d49",
+    "graphite2/homebrew.spdx.json": "54fa60944a1c006a1fe997ec6e03ed7b5e8d019953188a1d2937bd7edb326933",
+    "graphite2/notices/graphite2-1.3.15/COPYING": "2c272829ff23f182c8bf7ea12fedea69b0ae148663123ed5240c117cb129c9c1",
+    "graphite2/notices/graphite2-1.3.15/LICENSE": "cab46cd45adbfea4b1d0f14b033c70062c73074fa0b56532c2f351576ddf455e",
+    "graphite2/notices/graphite2-1.3.15/debian-src/copyright": "88f17179e66c9efcdd88316a0294499bd5e221e8ccb14523c389fccc491bfb3a",
+    "graphite2/notices/graphite2-1.3.15/site/LICENSE": "d33679dceb70f30adc7d184ab009dc92e7b03385a606e544feb7465357e078d3",
+    "harfbuzz/harfbuzz.rb": "7b1193219f89a61b86d7226dcebfe18505b097a40ba92ccbe0a930d222c734df",
+    "harfbuzz/homebrew.spdx.json": "f576db547a243817cf5ea44fa53246fc484e6be8f47df5d35655a787fba27de0",
+    "harfbuzz/notices/harfbuzz-14.6.0/AUTHORS": "19bfe8f5ed100636cd24ab0c90a3f71c21d8b02d9ba00719447a0faab364d49f",
+    "harfbuzz/notices/harfbuzz-14.6.0/COPYING": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64",
+    "harfbuzz/notices/harfbuzz-14.6.0/perf/texts/COPYING": "cf977e70247d5fa9d44955e4d8ed23b503c31f78570f62136756278c2cfcb3c3",
+    "harfbuzz/notices/harfbuzz-14.6.0/src/ms-use/COPYING": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+    "harfbuzz/notices/harfbuzz-14.6.0/test/COPYING": "9b35b8485f69cd298fccbb3c40a827dc06cf1185553bef827903497d2944a8d7",
+    "harfbuzz/notices/harfbuzz-14.6.0/test/shape/data/aots/COPYING": "f55f74bf740db07bb032a90aa74af4307adea3d489c1ccba12453cf0c0a764cb",
+    "harfbuzz/notices/harfbuzz-14.6.0/test/shape/data/text-rendering-tests/COPYING": "d24039e4d22c9bc72096f6174374539d92a3d6e1163938546ec59179fe095e6f",
+    "homebrew-patches.json": "5e64bfdde824bed81ee637f164e3aa6766a61581a95500bc74d292899fe4edad",
+    "icu4c@78/homebrew.spdx.json": "2c9ab751c0310e166dbb30c60577d7bd7e72932fd8621b5201c486a25b962c85",
+    "icu4c@78/icu4c@78.rb": "db6d475bc93d9138f6ec7272dcc2718614e3df68dc0edeb2ab63054493eec04b",
+    "icu4c@78/notices/icu/LICENSE": "e55522d81edc687a341a4411e0776e54ca654e90147f354a90458aaced4116af",
+    "icu4c@78/notices/icu/license.html": "c62d7697c03979f5056d28b338fafc7a1152820f7b379adf4a9d88cd37160f96",
+    "jpeg-turbo/homebrew.spdx.json": "453014f55941fbf1181da4e36c4288a9a3c9b69547e04a3e6f42fe5954f2ebd6",
+    "jpeg-turbo/jpeg-turbo.rb": "860c0c90f8c2d0541de067218452d57f555dd4da5b5dc49151f13b563229ab24",
+    "jpeg-turbo/notices/libjpeg-turbo-3.2.0/LICENSE.md": "ba6bceebcba0fdd35488477c2cca8c4632ce82c74dbfbc87d886ce6fc4433579",
+    "jpeg-turbo/notices/libjpeg-turbo-3.2.0/README.ijg": "75815e3bf6484201a3c3d17a1bbf10f2e8e3237f84df10a2357ea896db2a81d6",
+    "jpeg-turbo/notices/libjpeg-turbo-3.2.0/release/License.rtf": "d26120ab237f87dea10aa4fa7fd4243cadffd26e54eb2f3903d5fb0f8ed336b2",
+    "jpeg-turbo/notices/libjpeg-turbo-3.2.0/src/spng/LICENSE": "0622b0794d0fecde47d743f1bb70a03e6fdf082be8e71f39de672ed995d96ff9",
+    "jpeg-turbo/notices/libjpeg-turbo-3.2.0/src/spng/libpng-LICENSE.txt": "4f52a606ef0eb8a1bedee6088364f483df777611c0d554b090bf9b0f7cd3e798",
+    "jpeg-turbo/notices/libjpeg-turbo-3.2.0/src/spng/zlib/LICENSE": "e32ff4e00d9d94930537635291da39e7e612703334bf6fde8c7f1686fe8a45a2",
+    "jpeg-turbo/notices/libjpeg-turbo-3.2.0/testimages/LICENSE.txt": "1c4d5dfc985d5061ba11180a8ffb541cc1778bccf87fd9f0fb92cbae69d8a9cc",
+    "libb2/homebrew.spdx.json": "3143cc791d3ea626329acc71c329c292fb9640500d0557a9c01d4f6f2749fddf",
+    "libb2/libb2.rb": "972ca2546719e26aaf8d608f75706c8fc620d253ae7de76330239b45617c9e2b",
+    "libb2/notices/libb2-0.98.1/COPYING": "6a1ee543e5282cd9061881edf462e6fdab181f328da71fc2c9a6950a80e94d01",
+    "libpng/homebrew.spdx.json": "f31ea46aa919fe4da7652c70b0066469d4e743ff5c32d2f9f0f90d3a56119eb8",
+    "libpng/libpng.rb": "3ef2e9c5f499c302dc8e9f1f76980732ad850618a00606fbfac2522080632b37",
+    "libpng/notices/libpng-1.6.59/AUTHORS": "b55efa9a0bb709187cfb609860e926535b462a28bbf61b4294bc2e724747cb8e",
+    "libpng/notices/libpng-1.6.59/LICENSE": "bdb0a645ea18c60507d0368379b1ac5474b92255fcc2d115e07486a7672ba526",
+    "libpng/notices/libpng-1.6.59/LICENSES/MIT-0.txt": "8876cdca96eb380d16d5ea32bf4529d85e87dedc7765ae2861a9bec7f34acbed",
+    "libpng/notices/libpng-1.6.59/LICENSES/MIT.txt": "508a77d2e7b51d98adeed32648ad124b7b30241a8e70b2e72c99f92d8e5874d1",
+    "libpng/notices/libpng-1.6.59/contrib/gregbook/COPYING": "d6cb0e9e560f51085556949a84af12b79a00f10ab8b66c752537faf7cd665572",
+    "libpng/notices/libpng-1.6.59/contrib/gregbook/LICENSE": "b6a03c1803eb58ffb1f1278d5c7d4096c4c116e66dce8a7553e8c77d163c3438",
+    "libpng/notices/libpng-1.6.59/contrib/pngexif/LICENSE_MIT.txt": "508a77d2e7b51d98adeed32648ad124b7b30241a8e70b2e72c99f92d8e5874d1",
+    "libpng/notices/libpng-1.6.59/contrib/pngminus/LICENSE.txt": "1806f1f10d393e9e377b3a8d1b968452b54f1a90378f14eeef45426946ace330",
+    "libpng/notices/libpng-1.6.59/scripts/cmake/AUTHORS.md": "041eb1a61714e564f39735695377093c4e8eace8f7b460be2d4ce8876e4a6466",
+    "md4c/homebrew.spdx.json": "1d54c759794d729db484e75e8b7ae21bff2a0c1806dcb43746553ea68dd9e0e5",
+    "md4c/md4c.rb": "74346a540eeacdd467de96bb48067d5d5ce00b635b82ad26d85c03d6ad019a0a",
+    "md4c/notices/md4c-0.6.0/LICENSE.md": "e547c9a66c120b19f9838a1f7c2f51137f5c71ba27b70c3611b673f2cdb4e02e",
+    "md4c/notices/md4c-0.6.0/test/LICENSE.md": "4a745999973a2333058d40e1b6acdd736af99b6a9be825dbe5476359a943ca7f",
+    "openssl@3/homebrew.spdx.json": "fa2380ab2456c1cdb819f996344cf04e9629c51ea557a22e849a008bcd112c5a",
+    "openssl@3/notices/openssl-3.6.4/AUTHORS.md": "b9f638dfc06b59c2d3b808186c3b30f713805a5db390f5b77b1703ac58acb83e",
+    "openssl@3/notices/openssl-3.6.4/LICENSE.txt": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
+    "openssl@3/notices/openssl-3.6.4/external/perl/Text-Template-1.56/LICENSE": "9837f05336ef3cbacb6a96e1672a0426d81ad01191f214b8d48e22ca62338181",
+    "openssl@3/notices/openssl-3.6.4/util/perl/OpenSSL/copyright.pm": "04213b69dbebc8ba0dd8a6216af1d9422f9b63619c1cf2f1d8aa107b83bbb608",
+    "openssl@3/openssl@3.rb": "df9c2b56e0d961d3c22eb60f5c2e41112be1901a8ee85de1c7472955f6da391a",
+    "openssl@4/homebrew.spdx.json": "c9ff10f116462e80725f20cac6df5859ecb67df085f69fb21de28010c45fc447",
+    "openssl@4/notices/openssl-4.1.0/AUTHORS.md": "b9f638dfc06b59c2d3b808186c3b30f713805a5db390f5b77b1703ac58acb83e",
+    "openssl@4/notices/openssl-4.1.0/LICENSE.txt": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
+    "openssl@4/notices/openssl-4.1.0/external/perl/Text-Template-1.56/LICENSE": "9837f05336ef3cbacb6a96e1672a0426d81ad01191f214b8d48e22ca62338181",
+    "openssl@4/notices/openssl-4.1.0/util/perl/OpenSSL/copyright.pm": "3bcbc1f6a60606607b9dfbd1694cafa603b1ba7dd62d21dde1466c131df7e06d",
+    "openssl@4/openssl@4.rb": "7ff5915f10c5e950f35e65471fae7e04711bc962689f1369e646e2f68b41b19d",
+    "pcre2/homebrew.spdx.json": "1fa5ae80bad10cae32fc699e9a5d0fb1d6c639f98c173b5ad29d9a25fcd97f01",
+    "pcre2/notices/pcre2-10.49/AUTHORS.md": "412ace3355a4d6a4d835c350a7df172903811eafda7b13500dacf58429ee757e",
+    "pcre2/notices/pcre2-10.49/COPYING": "99272c55f3dcfa07a8a7e15a5c1a33096e4727de74241d65fa049fccfdd59507",
+    "pcre2/notices/pcre2-10.49/LICENCE.md": "197d8a73ffee0d6b09adba2f9c677b5f5aede24edf89258a68e48248d010d811",
+    "pcre2/notices/pcre2-10.49/cmake/COPYING-CMAKE-SCRIPTS": "c666ec2313dba24523ccad88f4c04ea4b24fad6545263a35b1d4ab2b08efe50a",
+    "pcre2/notices/pcre2-10.49/deps/sljit/LICENSE": "5f216505c0f6ea3273caec89e766eef93cdeb7bbb0c429f9360116d7c938feeb",
+    "pcre2/pcre2.rb": "94c19a0d869da4990a8f3f371e37c986ad72124d2d94032e061c4a9019f9e174",
+    "qtbase/homebrew.spdx.json": "f6f81055a6ad03ef0e1b9d257f5892232be08c10942d13095f15bd81b3072035",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/AFL-2.1.txt": "93bb4f7417aa775bab9026cc3d0af28aeb64451fc5a8ec651876785edd8eaf9b",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/Apache-2.0.txt": "e3ba223bb1423f0aad8c3dfce0fe3148db48926d41e6fbc3afbbf5ff9e1c89cb",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/BSD-2-Clause.txt": "8fda146749ca071ac9cdce2e24d25444676ea48d1f9dccc2b7c15c054b717db8",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/BSD-3-Clause.txt": "9f0490f18656c6f2435bd14f603ef0c96434d1825615363dce43abb42ed1dcce",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/BSD-4-Clause.txt": "83faa0d205c316ce3efeafee465b6a165914fb29595968c08dc6437021b7b6fd",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/BSL-1.0.txt": "3abd6471b9a9a08d65ce771143f8e278bb4c1aeb10c1c2d476935a6b049653f5",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/Bitstream-Vera.txt": "7a083b136e64d064794c3419751e5c7dd10d2f64c108fe5ba161eae5e5958a93",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/CC0-1.0.txt": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/FTL.txt": "08c135755dd589039470f1fdbb400daaabaaa50d0b366d19cebff4d22986baa1",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/GFDL-1.3-no-invariants-only.txt": "110535522396708cea37c72a802c5e7e81391139f5f7985631c93ef242b206a4",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/GPL-2.0-only.txt": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/GPL-2.0-or-later.txt": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/GPL-3.0-only.txt": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/HPND.txt": "67ac968431270291f5e9cd3ed76705e1169f57082ee102093b2543b28cef63cf",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/IJG.txt": "1cb448f5e2e6d3aca60943f4eee1a04675628dc0266a074a42bc1560ebc28d61",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/IPL-1.0.txt": "d5328e672fb1bff47ee18e890784541453380081cf3771bb7b3c06fc19c7d503",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/Imlib2.txt": "8846f2baba1a7f4c36f7ca19a923a000d8a21afa37cf0fe006f6ce88a6058a89",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/LGPL-2.1-or-later.txt": "1ccf09bf2f598308df4bed9cd8e9657dc5cd0973d2800318f2e241486e2edf3f",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/LGPL-3.0-only.txt": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/Libpng.txt": "58fe669792f9b4e0740bf75ecfe90b5326128bb2ce7e27e1c342abd9db4d8ea6",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/LicenseRef-BSD-3-Clause-with-PCRE2-Binary-Like-Packages-Exception.txt": "0526625fcc746a42d3f19a0ab357d3dc8479fdbe3bfd168825498f50215c7a63",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/LicenseRef-ICC-License.txt": "9e34ff47b3a44814e183342e7e198d127a6740e29d20e8381fba7688dafc79dd",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/LicenseRef-Lcs-Telegraphics.txt": "c10225ebbd5191bfdd761b0d7752c785f2453ab665d6c454473fb12d254668aa",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/LicenseRef-Qt-Commercial.txt": "9b1f50aae6267f9d5e0ceb6775ee86450262c25ec7c0573e151fe5d3f18a4700",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/LicenseRef-SHA1-Public-Domain.txt": "65d86b8ec6b1cd8b8f6e64fd8710274ba00d6a3c520e00dfdcd1c3d2071f3305",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/Linux-syscall-note.txt": "3f9e477523febab58de8b716ccfbcf02e6ef1c8e7728953905e8558637abe2a9",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/MIT-Khronos-old.txt": "3c58021633974f9ed3c3d445a374240a5244fd039628f4d7f6f3e674bc8e6694",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/MIT-open-group.txt": "c55d2ab72d8a4f9e9cd8fbd1379268e575e8cfa16874affa5899b75a6d754514",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/MIT.txt": "d040359701c01996a017d5c515678929cd1b0625e64cb86db44025fbb6cdf1fc",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/MPL-2.0.txt": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/Qt-GPL-exception-1.0.txt": "40678d338ce53cd93f8b22b281a2ecbcaa3ee65ce60b25ffb0c462b0530846b2",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/SPL-1.0.txt": "f58f2f30909982445f97f1a61667261920a7caeab21ef5bea1b740f5b144d141",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/Unicode-3.0.txt": "80bb6294022d8764adb36a9d65ebb6bd94efb1865918a71e31e6c247607d7634",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/X11.txt": "e2936c6509784b4f0ec27bac74182393866fad9422b29a70e085ff14aba87193",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/Xerox.txt": "b6bc52205d01e10cf43dbb7b8aec06dcaa3b21d1486e7c9c0bec329ee8244d8d",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/Zlib.txt": "d7e3139972874dc8abdbbfce27ec1e6f942b28279dd7d27453630a8b4610e080",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/blessing.txt": "592db1199aab67aafe4515db9808b420db122083807c5329b2f061951e79acbe",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/LICENSES/libpng-2.0.txt": "7317e078e2d3b5d7ba5a6159e650945153262b44b76f6700f8e9edb261c5143e",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/cmake/3rdparty/extra-cmake-modules/COPYING-CMAKE-SCRIPTS": "46cde7dc11e64c78d650b4851b88f6704b4665ff60f22a1caf68ceb15e217e5b",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/cmake/3rdparty/extra-cmake-modules/qt_attribution.json": "f34f498d6c63a78a882b352fa38c9dd076a59b1696cd6a6f921151a61f2a02e0",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/cmake/3rdparty/kwin/COPYING-CMAKE-SCRIPTS": "46cde7dc11e64c78d650b4851b88f6704b4665ff60f22a1caf68ceb15e217e5b",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/cmake/3rdparty/kwin/qt_attribution.json": "bf3a3c09e99f1c9fab7553ebc4a7548b71dc23fcfdbe6e5df0fa0e7847c2efc3",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/coin/instructions/prepare_license_test.yaml": "192ed2b86472f450eac338b35beddc38728f4d9fb2c62dc32afb484f277a5dba",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/coin/instructions/run_license_check.yaml": "cd779963b9ca303b74f89a454093530387eadd043802bc72abe9916c6383767e",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/D3D12MemoryAllocator/LICENSE.txt": "5478a2f36b736e13dd3250b9c71a4ab521bc327fb9d112a92c647bf3e69ddb68",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/D3D12MemoryAllocator/qt_attribution.json": "ad36f74f9d5bb4c2a5d7bce97507711452a2089c1f4f673473bf75d17851f381",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/VulkanMemoryAllocator/LICENSE.txt": "846d97c8b74ccaa92b9ad031140a04363b3b3985f318094552f297b8bda1c68e",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/VulkanMemoryAllocator/qt_attribution.json": "bdadb296dc4d3aadea5f9eb68f8f4abab2e6a9e135fec084d2914c030af5bab2",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/android/LICENSE": "4a51cf7f724f51bedb5fa4f9583a2762f1db8d05e43a577e2487c7aab2fdce18",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/android/qt_attribution.json": "120710d661892ceb44a94556c56998795372334674c79710947282e8279ef415",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/blake2/COPYING": "4103f471877ed0bae500752c5fcd7ecca409d4a4a8dc2ad40437daba60f1a2bc",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/blake2/qt_attribution.json": "bab552307bdd03ed9a4cf7f8f1397c3d18d4dbee19ee576033284104785245be",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/double-conversion/LICENSE": "4af93c12062c58058378de2397dc1c92bbff9ddfb1d583a01c84127557ce97ca",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/double-conversion/qt_attribution.json": "4d9c7505a7c12e4e6b57bbee63af926c861abb5515cdf802b8f3491e321146fe",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/easing/LICENSE": "92fac99458f1754b73edf50f9c9983e0efaa06ad96e2afd5e538c79f45b4b191",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/easing/qt_attribution.json": "77d67a1db5882bb0b9a1278b014885bee45a4c059d1da9f835b6da5bc4b9c93d",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/emoji-segmenter/qt_attribution.json": "9a980fc0f9e478d2a7e9a571d4cd234c259aaf8e2ea3fb60a0a7cf02cc3c3700",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/forkfd/LICENSE": "d0d683ae18e78fbef90eb41168fb781920da2d12bf80704490f0882915c18ae0",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/forkfd/qt_attribution.json": "525fd890017a3966f542da42a9ff0ca2a0d71bc45f80a4871de3e0bd0f612612",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/freetype/BDF-LICENSE.txt": "e4e792f29e66750f2e410fd7b50a567652c180f6ee15e1a4dfa0bb5cde524537",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/freetype/LICENSE.txt": "bf543cdda11864477b8d2ca2aa9afc2aaa8f9133461b4d962ed6ec73646256a1",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/freetype/PCF-LICENSE.txt": "6938597bfdeca0db191a8f9ede52eaf2482c2c71a0094c084747a1235f9958fe",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/freetype/ZLIB-LICENSE.txt": "2b1f5d615382a151af3eb71462ad17d89e2efee8fa7664058d35d3d9237ebb19",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/freetype/docs/FTL.TXT": "5a5ee54c5001bbad1cdc1a57cc3dd4c42199b2da09d39c7ee41fab002d02967f",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/freetype/qt_attribution.json": "628b68bf60eb3bc1616342bc3545b63be2392e78bbebbc4c19f49675dd2ac8a7",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/freetype/src/tools/update-copyright-year": "f3e4b6f122dce96b6ba85c3d600fd19a766ab5e0fd0cbdeee785d0d88f111d3a",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/gradle/LICENSE": "cf234c4188d773406f640bf89be680d9288f40ff96901c70d643fcea96ad46df",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/gradle/qt_attribution.json": "06ab470b6b136cbc3486068995ff3c6abf2b27a999031032121cd0f0602fc487",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/harfbuzz-ng/AUTHORS": "19bfe8f5ed100636cd24ab0c90a3f71c21d8b02d9ba00719447a0faab364d49f",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/harfbuzz-ng/COPYING": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/harfbuzz-ng/qt_attribution.json": "b869a7f186e4cfc00cc979e7c4ffd369d823f7a0a94b951a6aedb9b3278c8419",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/icc/LICENSE.txt": "9e34ff47b3a44814e183342e7e198d127a6740e29d20e8381fba7688dafc79dd",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/icc/qt_attribution.json": "509da9bd2b3f769c730aa4627b1080d65f39b0ecd4130111c9e1122e13cd35b5",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/libjpeg/COPYRIGHT.txt": "e5b349c6a98d997a8d0f5fcfe5cc900b1f76bbc32743674c52a70981498748c0",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/libjpeg/LICENSE": "ba6bceebcba0fdd35488477c2cca8c4632ce82c74dbfbc87d886ce6fc4433579",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/libjpeg/README.ijg": "75815e3bf6484201a3c3d17a1bbf10f2e8e3237f84df10a2357ea896db2a81d6",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/libjpeg/ijg-license.txt": "1cb448f5e2e6d3aca60943f4eee1a04675628dc0266a074a42bc1560ebc28d61",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/libjpeg/qt_attribution.json": "ed7cb7abdd9124f664acd26cf552ba821c8cf236c4cd34a6737f202215bd41bc",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/libpng/LICENSE": "bdb0a645ea18c60507d0368379b1ac5474b92255fcc2d115e07486a7672ba526",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/libpng/qt_attribution.json": "a43ff8e146c949f7cd14e00bd681f4957e27def06ecafec55ccc7231c451d3fa",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/libpsl/PSL-LICENSE.txt": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/libpsl/qt_attribution.json": "ae227b5f2cf40511fe1a84d4c752f4005917b7eeb44e7c4495b1403c27cc3647",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/libpsl/src/LICENSE.chromium": "1d7f52747a9169751cdf2641a8299c0098e9ecdf9429296ffd55bdb14c9ed5b3",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/md4/qt_attribution.json": "34bda63a2fcc23c83f2e5364ccd394553b4baa505b1f79ded9cc2161c56a9b4c",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/md4c/LICENSE.md": "d30937367d5413e7eaa218b1640b8946ff76fd34d97152f6979fd96169d5d0fc",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/md4c/qt_attribution.json": "7b2bc7be22e4be2a2984119ce3d0bfc210ddd0d8ef6193d66e8479d4c22af4ba",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/md5/qt_attribution.json": "20b0f1b17ccd1bd5e8d763b1cdca4b095b8f0c037644b5ee18154536b7d8425e",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/pcre2/AUTHORS.md": "412ace3355a4d6a4d835c350a7df172903811eafda7b13500dacf58429ee757e",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/pcre2/LICENCE.md": "197d8a73ffee0d6b09adba2f9c677b5f5aede24edf89258a68e48248d010d811",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/pcre2/LICENSE-SLJIT": "5f216505c0f6ea3273caec89e766eef93cdeb7bbb0c429f9360116d7c938feeb",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/pcre2/qt_attribution.json": "c65e311b057e3ecb8ee9aeddd681add5aa4484485e265d3a6a8e7967abc19948",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/pixman/LICENSE": "942c4f2a80394d3f53599b8382e9f27349b95c45d92b69b84f26d404f4dd74a5",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/pixman/qt_attribution.json": "f1dc159b63bf84a4c9c367e8ff79aa748b63f5fc622d5080c0a7ddd98ddc7ac7",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/rfc6234/LICENSE": "7ccebd514aaabc86192f957d773cebf06577c12fe9f25ecd419c6cac5da7a14c",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/rfc6234/qt_attribution.json": "fa24413bdc5015fc7fc84297fa17d4c8a598f8f7c76b9495a6e6b26a77b4a324",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/sha1/qt_attribution.json": "53cab2c771f7f7ffbf6a58ff759e5846b746e91d98dfe467d5145edf8cd7d306",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/sha3/BRG_ENDIAN_LICENSE": "2fed6f252ca4a7e813811de3cd3cd08183edd4138bdee909410ef6eee394e82c",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/sha3/CC0_LICENSE": "1f2786e2c5befeb4dcba6638db6528bf96ef5d2cf24bc85ab5a81ef00abef59d",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/sha3/qt_attribution.json": "d904a6c21c150d9cac693c0806a469480306cb4e5879cc13c994fbadba71a56e",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/siphash/qt_attribution.json": "8614947dfc0ca1d21aad2f88b4400598262ab8c08aa87c4f7acc0c2de6e5619e",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/sqlite/qt_attribution.json": "fcba08e23508524b77ee22186a5ef2d35957979fe9e2a604d994c5e9604c8fb9",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/tinycbor/LICENSE": "3c6ba0b5bfa7830505301ffb336a17b0748e0d61c4d34216e9dc98f10e40395e",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/tinycbor/qt_attribution.json": "788408509fb7967042640f24ba78b263712e816d886303ba1733f49753d33863",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wasm/DEJAVU-LICENSE": "7a083b136e64d064794c3419751e5c7dd10d2f64c108fe5ba161eae5e5958a93",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wasm/qt_attribution.json": "2019d37665bfb2ce7d4931d0bdf7427ea178919399cf37c0fef14a229144936b",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/MIT_LICENSE.txt": "a8341b9c90ef447a77f55d550e6691e370d3ac15d60edb584def356e348ab828",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/appmenu/LGPL-2.1-or-later.txt": "1ccf09bf2f598308df4bed9cd8e9657dc5cd0973d2800318f2e241486e2edf3f",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/appmenu/qt_attribution.json": "b7200f7fdfd2223aaecbd9b2ec8e4145eebe4f0b376ffbcb3859154661fb1095",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/color-management/qt_attribution.json": "6081490578a0a5ff17e450a3f9a05a36a3433de0832f1b2b497ca3c8ec1f9ba9",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/fractional-scale/qt_attribution.json": "bf87b7dc5bf42e91c9d98ad2a109d197141aaebffe563ab247dd771e0b9b07c8",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/fullscreen-shell/qt_attribution.json": "24ebba6014034dcf2c9a23a5b1085dc9708eaa81c021dfe51ba3f6b51ba788a7",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/linux-dmabuf/qt_attribution.json": "6dd0dbdb4e0fba8ac2a17700e462f1f2df53e4fe14a5ac6168ca4bc2c594cea5",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/pointer-gestures/qt_attribution.json": "3c85ce329ccb30c469aa3f3c71596eb915c9cccd645ac1192d94a8fe548556b7",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/pointer-warp/qt_attribution.json": "3eb309adae44fe120dab08dca8c4df57a34ac347ecf1764cafdd7542cd0a0a11",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/presentation-time/qt_attribution.json": "c3af7f51726c7584d5e8ad74a29813d66cac6a215a9675da7cfc9a42f15c2d0a",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/scaler/qt_attribution.json": "8b7751412fc26d70f641d6bad9c6aadd406317cbf17359ffcc58651f58aa2fca",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/session-management/qt_attribution.json": "23b07636c4bbaae01b94b11041d8664e8b7e21038a6a4860af0abed2ff2a4d8a",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/tablet/qt_attribution.json": "a46626dbac8fc1f57d5b34eb077425fc402fc0767b75ec06578e1465502883b5",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/text-input/v1/qt_attribution.json": "882ac88020f0ecaea6d991f7e8d292542c9422592ede0396c4d217f040ef6a54",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/text-input/v2/HPND_LICENSE.txt": "8172d52f3b7bba7d10af2f9134c63d0f699ba6b20a47e35f5ac45654c500bfd7",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/text-input/v2/qt_attribution.json": "197d9edcc6fb17d7bc2b230f7061ce0d2ef90fa4291c86e87ae2817e8f2809fe",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/text-input/v3/qt_attribution.json": "476225d10cb5789d993c38335c6cc442fdc19a8d91f1ceb7a3ddb50414a8e68a",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/viewporter/qt_attribution.json": "95139e441967bc289d174078f1ca0485363e8405bd8d06eb9946356c09c0a5e4",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/wayland/qt_attribution.json": "d2b263d97853d72128987f55fb912fc197f488de003a8e4bbc53cae2549d0e6e",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/wl-eglstream/qt_attribution.json": "2432510e17446887decd1fc58770aeeef060aff5331a8bfec7fb668555f3b347",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/wlr-data-control/qt_attribution.json": "433a74149249d01d946d86aa0d88d30bc755523f1a978f640f6142e9c8fa1035",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/wp-primary-selection/qt_attribution.json": "14586c06e09439e9c2b7719766f68e219d0ff0231811e13e44f4587dabf52707",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/xdg-activation/qt_attribution.json": "8f13cfd4c78a2f116d3e674c329d3d211b647d80190e7a95493528cd6dedbd89",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/xdg-decoration/qt_attribution.json": "b8d9102ff3c7eccd840f7d5332d072e41e95eb055a8a9f2e3719a83005879c86",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/xdg-dialog/qt_attribution.json": "c7918fb63ad5be29e9a95db3464a7832224c7d904d21617ccfc689e6b0ab04c0",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/xdg-foreign/qt_attribution.json": "0ed6fbddba411b647bbe895b6e7a842c2a884905206888c0b4df6b6cd3bb9f79",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/xdg-output/qt_attribution.json": "c5e4f132de8d08a75af02682bba3a9349a00f49b773e23ef5543648209b76658",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/xdg-shell/qt_attribution.json": "e1367b44fe28fce2eee7656cda75203f4102662bb6aa370b3c9f3eb5a2cc3f82",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/xdg-system-bell/qt_attribution.json": "43a10e6b73a26d9c75e99447f5e731d170047ed2e709878e61eb83f6453cb3da",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wayland/protocols/xdg-toplevel-icon/qt_attribution.json": "2e022951f22a56051a099b9045f4fb0c569daa896a218d23f47b0dac3e905c04",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/wintab/qt_attribution.json": "b879ea91b719531d45e1cfe33d2241d060a9260200bd91a09ada074b16063f9c",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/xcb/LICENSE": "82775191bc05f85b40404d77bb69b1edeaeb4033f48387e9e5eab4dd67f5d6f1",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/xcb/qt_attribution.json": "8bae8861957bc0168d586d24da6e8e93edceb11796811c5f614d211f4674d437",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/zlib/LICENSE": "d7e3139972874dc8abdbbfce27ec1e6f942b28279dd7d27453630a8b4610e080",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/3rdparty/zlib/qt_attribution.json": "0346805e9c4048316dbc7c58d560a20c12482ea0218de264282212e9619b6d64",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/corelib/global/qt_attribution.json": "64698063a65a1502b986bd61163b5eb9c6bde87f93feb28e4eab43ff07a4f10a",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/corelib/kernel/LICENSE.QEVENTDISPATCHER_CF.txt": "e9e5b9f66d21c0e88a4179525ab39cd8d7eac9af78a8404f322c32b0874783d5",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/corelib/kernel/qt_attribution.json": "27bb1f28d336f1f8f6d44689f28cb650f0844cc82672e36ae168d0716783fad5",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/corelib/mimetypes/3rdparty/qt_attribution.json": "329652c93e6b47663115543cfd746cb56b96a98d774d540d58e64614bd9739eb",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/corelib/text/qt_attribution.json": "4e23736600be956e4214849ad8baaa955441656db7324713fab6353c1163b4f5",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/dbus/LICENSE.LIBDBUS-1.txt": "ad90aa08bb1a9b7056aa51e2e215b36630855457cde5dffd36aa0faa7b169f24",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/dbus/qt_attribution.json": "346532e1fb3bf653bc949408834c305646fc93f96650a2af9b2171d141c107ee",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/gui/opengl/LICENSE.KHRONOS.txt": "2e484f3c26ff5008c704a3ca9dd809d43f24a004a1abb6c202660fbff0d19715",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/gui/opengl/qt_attribution.json": "d05626e02386f22186b385b3ce2cd5a6431b84e2fc552c68f7133e38da552fc1",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/gui/painting/LICENSE.QIMAGETRANSFORM.txt": "46b3cbfa2f2946b93291506351e9be1dd0a28d2a53260f5aa488abd36fbeca9d",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/gui/painting/LICENSE.XCONSORTIUM.txt": "a216b01291eb38fc1af93cfccf1fc67b48d9923612e517c2a695e95b3f03c22c",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/gui/painting/qt_attribution.json": "8cddd6c73a885f697261c4d6d60e5cd814a2544fcd407504b52a5eb9b7cc3600",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/gui/rhi/LICENSE.MiniEngine.txt": "cf248820bf1178370bb4f1670a59f8748d46bc96d0f64080cd631511c6046409",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/gui/rhi/qt_attribution.json": "59df3efb041ed346aa797602a76ef8d284e84c3cc6ace30967d6704fc65dbb47",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/gui/text/LICENSE.AGLFN.txt": "40818155548ff41c67d3a40edf355e9658992b292c227f4c1147425cedc746c6",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/gui/text/qt_attribution.json": "7960234e4078c69003e4d9de24c1bf36c9370cfae8a1797ceb1501c4eec81e5d",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/gui/util/LICENSE.XSVG.txt": "3a946598a9f674d44df764279ca0b85b5d6faba08f3bc75d8e0fcf6cd729a9bd",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/gui/util/qt_attribution.json": "95156a38085638f0e14785cdcf95ff06f009ecfddfd64699366ed94446f164cc",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/gui/vulkan/LICENSE.txt": "5f618873b0cdd1e84c611c5529212c2524bfc887bdfd7d1f3b568bad3c649612",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/gui/vulkan/qt_attribution.json": "b4beb6ac27b066a6a71408da116fea60131c06ac9799c9763fe9cef28a76e7b9",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/plugins/platforms/cocoa/LICENSE.COCOA.txt": "e9e5b9f66d21c0e88a4179525ab39cd8d7eac9af78a8404f322c32b0874783d5",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/plugins/platforms/cocoa/qt_attribution.json": "27a435bfea96ca950f4a5ad6a82be7fe2a62bb4db0d8851e7a84fc5dce0c3ff3",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/testinternal/3rdparty/cmake/Copyright.txt": "0676e30827684487aa0ea8f72f01e9460a6320fa34a2888df0ad1dd3e8a06eb8",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/testinternal/3rdparty/cmake/qt_attribution.json": "f194ea33cf9b0d44615a6fa9eb4d45e7796b50cb0a88cdadf5d9b15745bf52f0",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/testlib/3rdparty/catch2/LICENSE.txt": "c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/testlib/3rdparty/catch2/qt_attribution.json": "8149331a9f68c529955173cbfb12e3f0193c2e4db23ae4117bcd537ee1eacde0",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/testlib/3rdparty/cycle/LICENSE.txt": "cb5aedb296c5246d1f22e9099f925a65146f9f0d6b4eebba97fd27a6cdbbab2d",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/testlib/3rdparty/cycle/qt_attribution.json": "5b4c5fc477cd61b935983b93ec6d09b39a8f5644ea4fe5ac787c84583f521c7c",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/testlib/3rdparty/linux/LICENSE.txt": "ed71cfca021790f74094e9810f42e31288e7f43cf00c8d9ac8d6f904124bd815",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/testlib/3rdparty/linux/qt_attribution.json": "a69f1c5519995cb3e77d34a864d9a383b68d0d3304883ee28c6b14a7c4efbe50",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/testlib/3rdparty/valgrind/LICENSE.txt": "ec72eebd6326165156787da828caaa18386489387aefaa073c9bd40b8b2a400e",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/src/testlib/3rdparty/valgrind/qt_attribution.json": "202daf86588d8cded6c492d490cec190e5790796fff23ec5065b116b78e70fbc",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/tests/auto/cmake/RunCMake/Sbom/attributions/multi_entry/qt_attribution.json": "2aecfbea7527b27ffe8e402e83c5227ace022d9b343124a27c6f8220e9fbff66",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/tests/auto/corelib/serialization/qxmlstream/LICENSE.XML-Test-Suite.txt": "b2ace830c68a486d548834b9a93806d064a3eb041f603ec6368034d060fdf46a",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/tests/manual/rhi/shared/imgui/fonts/LICENSE.txt": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/tests/manual/rhi/shared/imgui/imgui/LICENSE.txt": "1b64b23b817e547982a86984685f5e9337695caa542753fb6f08d502d5208e38",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/util/gradientgen/LICENSE.WEBGRADIENTS.txt": "9be732e45b638c74f9c0e5248541dd54dc7e8e9a5545df96b5c4b7c9ac0c68ba",
+    "qtbase/notices/qtbase-everywhere-src-6.12.0/util/gradientgen/qt_attribution.json": "6e87ac5d79ab92110e6e517b2c74e4f4fd15878540e93eea0300e529d3318572",
+    "qtbase/qtbase.rb": "d7b3f160895d4ff888d8b1f3927dbc82a3bfc4f12bfc53a79483c10f2fdddf17",
+    "qtsvg/homebrew.spdx.json": "7536a35a77cc4eaaa0192afa7bcf6fe0d27b2dd6449991aa22cd30ffc2c79d0c",
+    "qtsvg/notices/qtsvg-everywhere-src-6.12.0/LICENSES/BSD-3-Clause.txt": "9f0490f18656c6f2435bd14f603ef0c96434d1825615363dce43abb42ed1dcce",
+    "qtsvg/notices/qtsvg-everywhere-src-6.12.0/LICENSES/GFDL-1.3-no-invariants-only.txt": "110535522396708cea37c72a802c5e7e81391139f5f7985631c93ef242b206a4",
+    "qtsvg/notices/qtsvg-everywhere-src-6.12.0/LICENSES/GPL-2.0-only.txt": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+    "qtsvg/notices/qtsvg-everywhere-src-6.12.0/LICENSES/GPL-3.0-only.txt": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+    "qtsvg/notices/qtsvg-everywhere-src-6.12.0/LICENSES/HPND-sell-variant.txt": "3a946598a9f674d44df764279ca0b85b5d6faba08f3bc75d8e0fcf6cd729a9bd",
+    "qtsvg/notices/qtsvg-everywhere-src-6.12.0/LICENSES/LGPL-3.0-only.txt": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768",
+    "qtsvg/notices/qtsvg-everywhere-src-6.12.0/LICENSES/LicenseRef-Qt-Commercial.txt": "9b1f50aae6267f9d5e0ceb6775ee86450262c25ec7c0573e151fe5d3f18a4700",
+    "qtsvg/notices/qtsvg-everywhere-src-6.12.0/tests/baseline/data/svg_12_testsuite/LICENSE.txt": "635f33fbb460f1731dad45d79dbf2301255f63296d77a064c000f92e2cc79173",
+    "qtsvg/qtsvg.rb": "a13d4d1c52f77cb7bc331ba974becf6fdb01bd8f5b8905384ed0f37e08a48d1d",
+    "zstd/homebrew.spdx.json": "009cf810439bd420a333f1dae010bad449021efb96a84c832bdf89858530c9dc",
+    "zstd/notices/zstd-1.5.7/COPYING": "f9c375a1be4a41f7b70301dd83c91cb89e41567478859b77eef375a52d782505",
+    "zstd/notices/zstd-1.5.7/LICENSE": "7055266497633c9025b777c78eb7235af13922117480ed5c674677adc381c9d8",
+    "zstd/notices/zstd-1.5.7/build/LICENSE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "zstd/notices/zstd-1.5.7/contrib/linux-kernel/test/include/linux/xxhash.h.LICENSE.txt": "52a0e77952a9d3d4de3bc9165cdd50e6db7564af00d8b21051d852bbb967fdde",
+    "zstd/notices/zstd-1.5.7/lib/common/xxhash.h.LICENSE.txt": "305a98499dcac175386474653b2355032da0105a4c78ebbbf3fe7d318151b6ea",
+    "zstd/zstd.rb": "9a9b0183896886e82b915af4db576f27d34d1cee7757d6c5beb0e1eb74c68e0d"
+  },
+  "schema": 1,
+  "source_asset": "Orbit-sources-macos-arm64.tar.gz"
+}

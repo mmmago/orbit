@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
 // SPDX-License-Identifier: MIT
+// Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 
 import Cocoa
 // Press the button with tooltip "Arrêter"/"Stop" in the windows of process argv[1].

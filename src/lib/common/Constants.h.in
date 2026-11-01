@@ -3,6 +3,7 @@
  * SPDX-FileCopyrightText: (C) 2024 - 2026 Chris Rizzitello <sithlord48@gmail.com>
  * SPDX-FileCopyrightText: (C) 2025 Synergy App Ltd
  * SPDX-License-Identifier: GPL-2.0-only WITH LicenseRef-OpenSSL-Exception
+ * Orbit modifications: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
  */
 
 #pragma once

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
+# SPDX-License-Identifier: MIT
+# Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 # Update an installed Orbit: quit it, install the new build, start it again.
 # usage: update-orbit.sh <Orbit.zip> <sha256 of Orbit.app/Contents/MacOS/orbit-core>
 set -euo pipefail

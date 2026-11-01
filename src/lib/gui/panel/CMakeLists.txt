@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
 # SPDX-License-Identifier: MIT
+# Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 
 # The menu bar panel, in SwiftUI. Objective-C++ (gui/OrbitPanel.mm) uses it
 # through the generated OrbitPanel-Swift.h header.

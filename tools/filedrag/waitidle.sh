@@ -1,6 +1,7 @@
 #!/bin/bash
 # SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
 # SPDX-License-Identifier: MIT
+# Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 # Wait until there was no keyboard/mouse input for $1 seconds (default 15, max 10 min),
 # so end-to-end tests that move the cursor don't collide with someone using the Mac.
 need=${1:-15}

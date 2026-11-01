@@ -1,3 +1,7 @@
+<!-- SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux -->
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md. -->
+
 # macOS server cursor hiding
 
 Upstream's [issue #10225](https://github.com/deskflow/deskflow/issues/10225)

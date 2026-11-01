@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
 # SPDX-License-Identifier: MIT
+# Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 
 # macOS helper that shows the native drag for files dragged in from another
 # computer. It runs as its own process so deskflow-core never owns a window:

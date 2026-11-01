@@ -3,6 +3,7 @@
  * SPDX-FileCopyrightText: (C) 2012 - 2016 Synergy App Ltd
  * SPDX-FileCopyrightText: (C) 2004 Chris Schoeneman
  * SPDX-License-Identifier: GPL-2.0-only WITH LicenseRef-OpenSSL-Exception
+ * Orbit modifications: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
  */
 
 #include "platform/OSXClipboard.h"

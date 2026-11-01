@@ -1,10 +1,11 @@
 # SPDX-FileCopyrightText: 2025 Chris Rizzitello <sithlord48@gmail.com>
 # SPDX-License-Identifier: MIT
+# Orbit modifications: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 
 version = 1
-SPDX-PackageName = "deskflow"
-SPDX-PackageSupplier = "Deskflow Devs"
-SPDX-PackageDownloadLocation = "https://github.com/deskflow/deskflow"
+SPDX-PackageName = "Orbit"
+SPDX-PackageSupplier = "Lucas Magotteaux"
+SPDX-PackageDownloadLocation = "https://github.com/mmmago/orbit"
 
 [[annotations]]
 path = [
@@ -39,24 +40,26 @@ path = [
  , "deploy/linux/org.deskflow.deskflow.png"
  , "deploy/windows/wix-banner.png"
  , "deploy/windows/wix-dialog.png"
- , "src/apps/res/icons/deskflow-**/apps/64/deskflow*.svg"
  , "src/apps/res/image/welcome.png"
- , "src/apps/res/Deskflow.icns"
  , "src/apps/res/DeskflowMark@2x.png"
  , "src/apps/res/DeskflowWordmark@2x.png"
  , "src/apps/res/deskflow.ico"
- , "src/apps/res/deskflow.qrc"
 ]
 SPDX-FileCopyrightText = "Deskflow Developers"
 SPDX-License-Identifier = "GPL-2.0-only"
 
 [[annotations]]
-path = "src/apps/res/icons/deskflow-**/**/**/**.svg"
+path = [
+   "src/apps/res/icons/orbit-*/actions/**/*.svg"
+ , "src/apps/res/icons/orbit-*/devices/**/*.svg"
+ , "src/apps/res/icons/orbit-*/places/**/*.svg"
+ , "src/apps/res/icons/orbit-*/status/**/*.svg"
+]
 SPDX-FileCopyrightText = "Kde Breeze Icons"
 SPDX-License-Identifier = "LGPL-2.1-only"
 
 [[annotations]]
-path = "src/apps/res/icons/deskflow-**/index.theme"
+path = "src/apps/res/icons/orbit-*/index.theme"
 SPDX-FileCopyrightText = "Chris Rizzitello <sithlord48@gmail.com>"
 SPDX-License-Identifier = "LGPL-2.1-only"
 
@@ -66,4 +69,9 @@ path = [
  , "src/lib/gui/dialogs/*.ui"
 ]
 SPDX-FileCopyrightText = "Deskflow Developers"
+SPDX-License-Identifier = "GPL-2.0-only WITH LicenseRef-OpenSSL-Exception"
+
+[[annotations]]
+path = ["src/apps/res/Orbit.icns", "docs/images/orbit-icon.png"]
+SPDX-FileCopyrightText = "2026 Lucas Magotteaux"
 SPDX-License-Identifier = "GPL-2.0-only WITH LicenseRef-OpenSSL-Exception"

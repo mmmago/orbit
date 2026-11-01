@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: (C) 2024 Chris Rizzitello <sithlord48@gmail.com>
 # SPDX-License-Identifier: MIT
+# Orbit modifications: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 
 # HACK This is set when the files is included so its the real path
 # calling CMAKE_CURRENT_LIST_DIR after include would return the wrong scope var

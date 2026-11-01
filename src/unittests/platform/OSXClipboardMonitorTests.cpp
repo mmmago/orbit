@@ -2,6 +2,7 @@
  * Deskflow -- mouse and keyboard sharing utility
  * SPDX-FileCopyrightText: (C) 2026 Deskflow Developers
  * SPDX-License-Identifier: GPL-2.0-only WITH LicenseRef-OpenSSL-Exception
+ * Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
  */
 
 #include "OSXClipboardMonitorTests.h"

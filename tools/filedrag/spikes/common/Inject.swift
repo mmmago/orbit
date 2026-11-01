@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
 // SPDX-License-Identifier: MIT
+// Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 
 // Synthetic mouse/keyboard injection that mirrors OSXComputer::postMouseEvent
 // and OSXComputer::fakeMouseButton (event numbers on macOS 27+, click state,

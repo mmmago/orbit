@@ -3,6 +3,7 @@
  * SPDX-FileCopyrightText: (C) 2025 Deskflow Developers
  * SPDX-FileCopyrightText: (C) 2021 Barrier Contributors
  * SPDX-License-Identifier: GPL-2.0-only WITH LicenseRef-OpenSSL-Exception
+ * Orbit modifications: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
  */
 
 #include "SecureUtils.h"

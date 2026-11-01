@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
 // SPDX-License-Identifier: MIT
+// Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 
 // Test harness helper: open a folder in Finder, move/resize its window via
 // Accessibility to a known spot on the main display, print its CG center.

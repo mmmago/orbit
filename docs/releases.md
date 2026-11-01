@@ -1,3 +1,7 @@
+<!-- SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux -->
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md. -->
+
 # Publishing Orbit updates
 
 Orbit checks the latest stable, public release at
@@ -19,7 +23,12 @@ shows “No public Orbit releases are available yet.”
    `CFBundleShortVersionString` as the tag (a trailing `.0` is equivalent).
    CMake derives the version from `v*` tags; reconfigure after tagging.
 3. Package a self-contained, signed `Orbit.app` using
-   `tools/filedrag/package-macos.sh`. Keep the same signing identity/team
+   `tools/filedrag/package-macos.sh build dist "<identity>" /path/to/source-cache`.
+   Capture the dependency source/notice inventory first as described in
+   [source-distribution.md](source-distribution.md). Commit and tag the exact
+   source before packaging. The packager verifies the dependency inventory,
+   installs legal documents before signing, and emits both the app ZIP and
+   `Orbit-sources-macos-arm64.tar.gz`. Keep the same signing identity/team
    and bundle identifier (`io.github.mmmago.orbit`) across releases.
    For public distribution, use Developer ID signing and notarization.
 4. Upload a ZIP containing `Orbit.app` at its root as a **release asset**:
@@ -29,7 +38,14 @@ shows “No public Orbit releases are available yet.”
    The existing packager's `Orbit.zip` is also accepted as a fallback. It
    must support the user's architecture. GitHub-generated source ZIPs are
    never used as updates.
-5. Publish the release as the latest stable release. No appcast, token, or
+5. Upload `Orbit-sources-macos-arm64.tar.gz` and `SHA256SUMS` alongside the app.
+   This archive includes the matching Orbit source and all bundled libraries'
+   source, patches, resources and build recipes; GitHub's generated source ZIP
+   alone is insufficient for the bundled dependencies. Verify the source asset
+   checksum against `Contents/Resources/Legal/SOURCE_CODE.md`. Keep source
+   available alongside every distributed binary. Make the source repository
+   and both downloads accessible to intended public recipients when publishing.
+6. Publish the release as the latest stable release. No appcast, token, or
    separate update server is needed. Metadata follows GitHub's
    [latest-release API](https://docs.github.com/en/rest/releases/releases#get-the-latest-release).
 

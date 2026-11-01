@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: (C) 2025 Deskflow Developers
 # SPDX-License-Identifier: MIT
+# Orbit modifications: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 
 if(WIN32)
   set(extra_libs platform version)

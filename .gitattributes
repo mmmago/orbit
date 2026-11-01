@@ -1,8 +1,13 @@
 # SPDX-FileCopyrightText: Chris Rizzitello <sithlord48@gmail.com>
 # SPDX-License-Identifier: MIT
+# Orbit modifications: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 
 #auto handle line feed
 * text=auto eol=lf
+
+# Preserve captured upstream license texts and recipes byte-for-byte, including
+# their original whitespace and Markdown heading underlines.
+third-party/** -text whitespace=-blank-at-eol,-space-before-tab,-blank-at-eof conflict-marker-size=32
 
 .gitattributes export-ignore
 .gitignore export-ignore

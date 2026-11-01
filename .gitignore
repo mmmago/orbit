@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (C) 2011 Synergy App Ltd
 # SPDX-FileCopyrightText: Copyright (C) 2010 Jason Axelson <BostonVaulter@gmail.com>
 # SPDX-License-Identifier: MIT
+# Orbit modifications: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 
 # temp dirs created during build
 /build
@@ -24,6 +25,8 @@ deskflow-config.toml
 /scripts/*.egg-info
 /*.user
 *.ui.autosave
+__pycache__/
+*.py[cod]
 
 #Qt creator 18 user files
 /.qtcreator

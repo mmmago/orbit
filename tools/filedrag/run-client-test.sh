@@ -1,6 +1,7 @@
 #!/bin/bash
 # SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
 # SPDX-License-Identifier: MIT
+# Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 # Run a second, test-only deskflow-core client on this Mac against fake_server.py.
 # It uses its own settings (TLS off, port 24991) and its own TMPDIR so it does not
 # touch a Deskflow instance that is already running.

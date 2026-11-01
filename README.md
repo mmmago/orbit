@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <!-- Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md. -->
 
-<p align="center"><img src="docs/images/orbit-icon.png" width="128" alt="Orbit icon"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/mmmago/orbit/21e002ba52d6fc5a25828626efaea8398a143e5f/src/apps/res/orbit-appicon.svg" width="128" alt="Orbit icon"></p>
 
 # Orbit
 

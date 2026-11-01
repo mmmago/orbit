@@ -3,14 +3,19 @@
 
 import SwiftUI
 
+/// The updates group: the automatic download switch, then where the updater
+/// is and its buttons on one row
 struct UpdateSettingsView: View {
     @Bindable var updater: ReleaseUpdater
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Toggle("Automatically download updates", isOn: $updater.automaticallyChecks)
-                .font(.callout)
-            HStack {
+        SectionCard {
+            OptionToggle(
+                title: "Automatically download updates",
+                isOn: $updater.automaticallyChecks
+            )
+            Divider()
+            HStack(spacing: 8) {
                 if updater.isBusy {
                     ProgressView()
                         .controlSize(.small)
@@ -20,21 +25,24 @@ struct UpdateSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: 0)
+                Spacer(minLength: 8)
+                buttons
+                    .controlSize(.small)
+                    .fixedSize()
             }
-            HStack {
-                Button("Check for Updates…", action: updater.checkNow)
-                    .disabled(updater.isBusy)
-                if updater.readyVersion != nil {
-                    Button("Install and Restart", action: updater.install)
-                        .disabled(updater.isBusy)
-                }
-                if updater.isBusy, updater.readyVersion == nil {
-                    Button("Cancel", action: updater.cancel)
-                }
-            }
-            .controlSize(.small)
+            .padding(.vertical, 8)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder private var buttons: some View {
+        if updater.readyVersion != nil {
+            Button("Install and Restart", action: updater.install)
+                .buttonStyle(.borderedProminent)
+                .disabled(updater.isBusy)
+        } else if updater.isBusy {
+            Button("Cancel", action: updater.cancel)
+        } else {
+            Button("Check for Updates…", action: updater.checkNow)
+        }
     }
 }

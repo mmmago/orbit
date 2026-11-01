@@ -11,53 +11,76 @@ struct AboutView: View {
     private static let coffeeURL = URL(string: "https://buymeacoffee.com/mmmago")!
 
     var body: some View {
-        VStack(spacing: 16) {
-            VStack(spacing: 4) {
-                Image(nsImage: NSApp.applicationIconImage)
-                    .resizable()
-                    .frame(width: 72, height: 72)
-                    .accessibilityHidden(true)
-                Text("Orbit")
-                    .font(.title2)
-                    .bold()
-                Text(Self.versionText)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
-                    .textSelection(.enabled)
-            }
+        VStack(alignment: .leading, spacing: 8) {
+            header
+                .frame(maxWidth: .infinity)
+                .padding(.bottom, 8)
 
+            SectionTitle(title: "Updates")
             UpdateSettingsView(updater: updater)
 
+            SectionTitle(title: "Acknowledgements")
+                .padding(.top, 8)
             SectionCard {
-                VStack(spacing: 8) {
-                    DeskflowLogo()
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        DeskflowLogo()
+                        Spacer()
+                        Link(destination: Self.deskflowURL) {
+                            HStack(spacing: 2) {
+                                Text("GitHub")
+                                Image(systemName: "arrow.up.right")
+                                    .imageScale(.small)
+                            }
+                        }
+                        .font(.callout)
+                        .help("Deskflow on GitHub")
+                    }
                     Text("Orbit is made from Deskflow, the open-source app that shares a keyboard and mouse between computers, and is released under the same GPL 2.0 license.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
-                    Link("Deskflow on GitHub", destination: Self.deskflowURL)
-                        .font(.callout)
                 }
-                .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
             }
 
-            Link(destination: Self.coffeeURL) {
-                if let button = Bundle.main.image(forResource: "BuyMeACoffee") {
-                    Image(nsImage: button)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 196)
-                } else {
-                    Label("Buy me a coffee", systemImage: "cup.and.saucer.fill")
-                }
-            }
-            .accessibilityLabel("Buy me a coffee")
-            .help("Support Orbit on Buy Me a Coffee")
+            coffee
+                .frame(maxWidth: .infinity)
+                .padding(.top, 8)
         }
-        .frame(maxWidth: .infinity)
+    }
+
+    /// The icon, the name and the version, centred at the top
+    private var header: some View {
+        VStack(spacing: 4) {
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable()
+                .frame(width: 64, height: 64)
+                .accessibilityHidden(true)
+            Text("Orbit")
+                .font(.title2)
+                .bold()
+            Text(Self.versionText)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .textSelection(.enabled)
+        }
+    }
+
+    private var coffee: some View {
+        Link(destination: Self.coffeeURL) {
+            if let button = Bundle.main.image(forResource: "BuyMeACoffee") {
+                Image(nsImage: button)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 98)
+            } else {
+                Label("Buy me a coffee", systemImage: "cup.and.saucer.fill")
+            }
+        }
+        .accessibilityLabel("Buy me a coffee")
+        .help("Support Orbit on Buy Me a Coffee")
     }
 
     /// "Version 1.27.0 (build 36)": the last part of Orbit's version counts

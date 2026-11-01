@@ -22,16 +22,21 @@
 #include "deskflow/Clipboard.h"
 #include "deskflow/DisplayInvalidException.h"
 #include "deskflow/KeyMap.h"
+#include "deskflow/OptionTypes.h"
 #include "mt/CondVar.h"
 #include "mt/Lock.h"
 #include "mt/Mutex.h"
 #include "mt/Thread.h"
 #include "platform/OSXClipboard.h"
 #include "platform/OSXEventQueueBuffer.h"
+#include "platform/OSXFileDrag.h"
 #include "platform/OSXKeyState.h"
 #include "platform/OSXMediaKeySupport.h"
 #include "platform/OSXPasteboardPeeker.h"
 #include "platform/OSXScreenSaver.h"
+#include "platform/OSXTrackpadGesture.h"
+#include "platform/OSXTrackpadZoom.h"
+#include "deskflow/TrackpadEvent.h"
 
 #include <AppKit/NSEvent.h>
 #include <AvailabilityMacros.h>
@@ -136,6 +141,10 @@ OSXComputer::OSXComputer(IEventQueue *events, bool isPrimary, bool enableLangSyn
       }
     }
 
+    // the drag helper shows incoming file drags; start it early so the
+    // first drag is not delayed by its launch
+    deskflow::osx::filedrag::prewarmReceive();
+
     // install display manager notification handler
     CGDisplayRegisterReconfigurationCallback(displayReconfigurationCallback, this);
 
@@ -190,6 +199,10 @@ OSXComputer::~OSXComputer()
 
   m_events->adoptBuffer(nullptr);
   m_events->removeHandler(EventTypes::System, m_events->getSystemTarget());
+  if (m_fileDragHandlerAdded) {
+    m_events->removeHandler(EventTypes::FileDragWindowReady, this);
+    m_events->removeHandler(EventTypes::FileDragWindowPlaced, this);
+  }
 
   if (m_pmWatchThread) {
     // make sure the thread has setup the runloop.
@@ -230,8 +243,7 @@ void *OSXComputer::getEventTarget() const
 
 bool OSXComputer::getClipboard(ClipboardID, IClipboard *dst) const
 {
-  Clipboard::copy(dst, &m_pasteboard);
-  return true;
+  return m_pasteboard.copyTo(dst);
 }
 
 void OSXComputer::getShape(int32_t &x, int32_t &y, int32_t &w, int32_t &h) const
@@ -305,12 +317,20 @@ int32_t OSXComputer::getJumpZoneSize() const
 
 bool OSXComputer::isAnyMouseButtonDown(uint32_t &buttonID) const
 {
-  if (m_buttonState.test(0)) {
+  // On the primary, m_buttonState is only a snapshot taken when the cursor
+  // leaves (updateKeyState). It goes stale when a button is released while
+  // away, as at the end of a file drag handover, and would keep the cursor
+  // locked to the other computer. Ask the system for the live state instead.
+  if (!m_isPrimary && m_buttonState.test(0)) {
     buttonID = kButtonLeft;
     return true;
   }
 
-  return (GetCurrentButtonState() != 0);
+  const uint32_t buttons = GetCurrentButtonState();
+  if ((buttons & 1) != 0) {
+    buttonID = kButtonLeft;
+  }
+  return buttons != 0;
 }
 
 void OSXComputer::getCursorCenter(int32_t &x, int32_t &y) const
@@ -503,6 +523,14 @@ void OSXComputer::postMouseEvent(CGPoint &pos) const
 
 void OSXComputer::fakeMouseButton(ButtonID id, bool press)
 {
+  if (m_pendingFileDrag != 0) {
+    giveUpPendingFileDrag("mouse button changed before the drag window appeared");
+  }
+  if (!m_isPrimary && press && id == kButtonLeft) {
+    // a file drag started from this press changes the drag pasteboard
+    m_dragChangeCountAtMouseDown = deskflow::osx::filedrag::dragPasteboardChangeCount();
+  }
+
   // Buttons are indexed from one, but the button down array is indexed from zero
   uint32_t index = mapDeskflowButtonToMac(id) - kButtonLeft;
   if (index >= NumButtonIDs) {
@@ -586,6 +614,16 @@ void OSXComputer::fakeMouseButton(ButtonID id, bool press)
 
 void OSXComputer::fakeMouseMove(int32_t x, int32_t y)
 {
+  if (m_pendingFileDrag != 0) {
+    if (Arch::time() - m_pendingFileDragSince < 1.0) {
+      m_deferredX = x;
+      m_deferredY = y;
+      m_hasDeferredMove = true;
+      return;
+    }
+    giveUpPendingFileDrag("drag window did not appear in time");
+  }
+
   // synthesize event
   CGPoint pos;
   pos.x = x;
@@ -641,8 +679,28 @@ void OSXComputer::fakeMouseWheel(ScrollDelta delta) const
   }
 }
 
+void OSXComputer::fakeTrackpadEvent(const std::string &bytes)
+{
+  if (const auto command = deskflow::osx::zoom::decode(bytes)) {
+    deskflow::osx::zoom::perform(*command);
+    return;
+  }
+  // trackpad scrolls get this client's scroll settings and modifier keys,
+  // as fakeMouseWheel() gives the others
+  constexpr int32_t kUnit = 1 << 16;
+  const auto scale = applyScrollModifier({kUnit, kUnit});
+  deskflow::osx::gesture::PostOptions options;
+  options.scrollScaleX = static_cast<double>(scale.x) / kUnit;
+  options.scrollScaleY = static_cast<double>(scale.y) / kUnit;
+  options.flags = m_keyState->getModifierStateAsOSXFlags();
+  if (!deskflow::osx::gesture::post(bytes, options)) {
+    LOG_DEBUG("ignoring trackpad event this macOS cannot read (%zu bytes)", bytes.size());
+  }
+}
+
 void OSXComputer::showCursor()
 {
+  stopCursorHideRetries();
   LOG_DEBUG("showing cursor");
 
   CFStringRef propertyString = CFStringCreateWithCString(nullptr, "SetsCursorInBackground", kCFStringEncodingMacRoman);
@@ -684,7 +742,56 @@ void OSXComputer::hideCursor()
 
   logCursorVisibility();
 
-  m_cursorHidden = true;
+  m_cursorHidden = (error == kCGErrorSuccess);
+}
+
+void OSXComputer::startCursorHideRetries(double seconds)
+{
+  stopCursorHideRetries();
+  if (!m_isPrimary || !m_cursorHidden) {
+    return;
+  }
+
+  // Revealing an auto-hidden menu bar (notably over a fullscreen app) can
+  // override the initial hide asynchronously. Reassert it during the reveal
+  // animation. CGCursorIsVisible() can report hidden even for this ghost cursor,
+  // so it cannot be used to decide whether a retry is needed.
+  m_cursorHideRetryUntil = Arch::time() + seconds;
+  m_cursorHideTimer = m_events->newTimer(0.1, nullptr);
+  m_events->addHandler(EventTypes::Timer, m_cursorHideTimer, [this](const auto &) {
+    if (m_isOnComputer || !m_cursorHidden) {
+      stopCursorHideRetries();
+      return;
+    }
+
+    // Balance every hide: repeated hides alone leave the cursor hidden after
+    // returning. Do not call showCursor()/hideCursor(): they re-associate the
+    // physical mouse, breaking the server's capture while controlling a client.
+    LOG_DEBUG("reapplying cursor hiding after departure");
+    CGError error = CGDisplayShowCursor(m_displayID);
+    if (error == kCGErrorSuccess) {
+      error = CGDisplayHideCursor(m_displayID);
+      m_cursorHidden = (error == kCGErrorSuccess);
+    }
+    if (error != kCGErrorSuccess) {
+      LOG_WARN("failed to reapply cursor hiding, error=%d", error);
+      stopCursorHideRetries();
+      return;
+    }
+
+    if (Arch::time() >= m_cursorHideRetryUntil) {
+      stopCursorHideRetries();
+    }
+  });
+}
+
+void OSXComputer::stopCursorHideRetries()
+{
+  if (m_cursorHideTimer != nullptr) {
+    m_events->removeHandler(EventTypes::Timer, m_cursorHideTimer);
+    m_events->deleteTimer(m_cursorHideTimer);
+    m_cursorHideTimer = nullptr;
+  }
 }
 
 void OSXComputer::enable()
@@ -801,7 +908,7 @@ void OSXComputer::enter()
     m_buttonState.reset();
 
     const auto result = IOPMAssertionDeclareUserActivity(
-        CFSTR("Deskflow client entry"), kIOPMUserActiveLocal, &m_userActivityAssertionID
+        CFSTR("Orbit client entry"), kIOPMUserActiveLocal, &m_userActivityAssertionID
     );
     if (result != kIOReturnSuccess) {
       LOG_WARN("failed to declare user activity: %d", result);
@@ -827,17 +934,37 @@ void OSXComputer::leave()
     // a client (onMouseMove reads raw deltas instead). must follow hideCursor(),
     // which re-associates. re-coupled in enter()/disable().
     CGAssociateMouseAndMouseCursorPosition(false);
+  } else {
+    // a zoom drag cut short by leaving keeps no magnifying glass pointer
+    deskflow::osx::zoom::cancelDrag();
   }
 
   // now off computer
   m_isOnComputer = false;
+  // Mission Control shows the cursor over any hiding: close it, then hide
+  // again until its closing animation is over
+  startCursorHideRetries(closeMissionControlHidingCursor() ? 2.0 : 1.0);
+}
+
+bool OSXComputer::closeMissionControlHidingCursor()
+{
+  // While Mission Control (the Dock) is open, it keeps the cursor visible:
+  // hiding it succeeds, yet it is still reported visible, which it never is
+  // otherwise just after hiding. It can't be used from another computer, so
+  // leaving this one closes it, as the cursor could not be hidden otherwise.
+  if (!m_isPrimary || !m_cursorHidden || !CGCursorIsVisible() || CoreDockSendNotification == nullptr) {
+    return false;
+  }
+  LOG_INFO("closing mission control, which keeps the cursor visible");
+  CoreDockSendNotification(CFSTR("com.apple.expose.awake"), nullptr);
+  return true;
 }
 
 bool OSXComputer::setClipboard(ClipboardID, const IClipboard *src)
 {
   if (src != nullptr) {
     LOG_DEBUG("setting clipboard");
-    Clipboard::copy(&m_pasteboard, src);
+    return m_pasteboard.copyFrom(src);
   }
   return true;
 }
@@ -878,12 +1005,17 @@ void OSXComputer::screensaver(bool activate)
 
 void OSXComputer::resetOptions()
 {
-  // no options
+  m_trackpadGestures = true;
 }
 
-void OSXComputer::setOptions(const OptionsList &)
+void OSXComputer::setOptions(const OptionsList &options)
 {
-  // no options
+  for (size_t i = 0; i + 1 < options.size(); i += 2) {
+    if (options[i] == kOptionTrackpadGestures) {
+      m_trackpadGestures = (options[i + 1] != 0);
+      LOG_DEBUG("trackpad gestures %s", m_trackpadGestures ? "enabled" : "disabled");
+    }
+  }
 }
 
 void OSXComputer::setSequenceNumber(uint32_t seqNum)
@@ -1032,6 +1164,10 @@ bool OSXComputer::onMouseButton(bool pressed, uint16_t macButton)
 
   if (pressed) {
     LOG_VERBOSE("event: button press button=%d", button);
+    if (button == kButtonLeft && m_isPrimary && m_isOnComputer) {
+      // a file drag started after this point changes the drag pasteboard
+      m_dragChangeCountAtMouseDown = deskflow::osx::filedrag::dragPasteboardChangeCount();
+    }
     if (button != kButtonNone) {
       KeyModifierMask mask = m_keyState->getActiveModifiers();
       sendEvent(EventTypes::PrimaryComputerButtonDown, ButtonInfo::alloc(button, mask));
@@ -1045,6 +1181,79 @@ bool OSXComputer::onMouseButton(bool pressed, uint16_t macButton)
   }
 
   return true;
+}
+
+void OSXComputer::onTrackpadGesture(CGEventType type, CGEventRef event)
+{
+  // on this computer the system handles the gesture; off it the tap swallows
+  // the event (so the local Dock does not react) and the active client
+  // posts it instead
+  if (m_isOnComputer || !m_trackpadGestures) {
+    m_zoomRecognizer.reset();
+    return;
+  }
+
+  // the Zoom gesture is recognized here: the client may have no trackpad
+  // to recognize it from (see OSXTrackpadZoom.h)
+  using namespace deskflow::osx;
+  if (static_cast<int>(type) == gesture::kEventTypeGesture) {
+    if (const auto frame = zoom::touchFrame(event)) {
+      const auto result = m_zoomRecognizer.update(*frame);
+      if (result.toggle) {
+        LOG_DEBUG("trackpad zoom toggle gesture");
+        sendTrackpadEvent(zoom::encode({zoom::Command::Kind::Toggle, 0}));
+      }
+      if (result.dragBegan) {
+        LOG_DEBUG("trackpad zoom drag began");
+        sendTrackpadEvent(zoom::encode({zoom::Command::Kind::DragBegin, 0}));
+      }
+      if (result.steps != 0) {
+        LOG_VERBOSE("trackpad zoom drag, %+d steps", result.steps);
+        sendTrackpadEvent(zoom::encode({zoom::Command::Kind::Step, result.steps}));
+      }
+      if (result.dragEnded) {
+        LOG_DEBUG("trackpad zoom drag ended");
+        sendTrackpadEvent(zoom::encode({zoom::Command::Kind::DragEnd, 0}));
+      }
+    }
+  }
+  if (m_zoomRecognizer.holdsGestures()) {
+    // like macOS, the second touch of the double-tap only drives Zoom
+    return;
+  }
+
+  for (auto &bytes : m_gestureForwarder.take(type, event)) {
+    sendTrackpadEvent(std::move(bytes));
+  }
+}
+
+bool OSXComputer::onTrackpadScroll(CGEventRef event, int32_t xDelta, int32_t yDelta)
+{
+  if (!m_trackpadGestures) {
+    return false;
+  }
+  // a trackpad scroll goes whole, so the client scrolls like a local
+  // trackpad and can swipe between pages; the server falls back to the
+  // wheel deltas for clients that cannot post it
+  auto bytes = deskflow::osx::gesture::takeScroll(event);
+  if (!bytes.has_value()) {
+    return false;
+  }
+  LOG_VERBOSE("event: trackpad scroll delta=%+d,%+d", xDelta, yDelta);
+  m_events->addEvent(Event(
+      EventTypes::PrimaryComputerTrackpadEvent, getEventTarget(),
+      new deskflow::TrackpadEventData(std::move(*bytes), deskflow::TrackpadEventData::Wheel{xDelta, yDelta})
+  ));
+  return true;
+}
+
+void OSXComputer::sendTrackpadEvent(std::string bytes)
+{
+  if (!bytes.empty()) {
+    m_events->addEvent(Event(
+        EventTypes::PrimaryComputerTrackpadEvent, getEventTarget(), new deskflow::TrackpadEventData(std::move(bytes))
+    ));
+  }
 }
 
 bool OSXComputer::onMouseWheel(int32_t xDelta, int32_t yDelta) const
@@ -1521,7 +1730,9 @@ bool OSXComputer::checkAXPermissions()
     return true;
   }
   LOG_CRIT("process is not trusted anymore, quitting");
-  disable();
+  // This can run on the event-tap thread. Let Quit drive cleanup on the event
+  // queue thread, serializing cursor retries/restoration and avoiding a join
+  // of the event-tap thread from itself in disable().
   App &app = App::instance();
   app.getEvents()->addEvent(Event(EventTypes::Quit, nullptr, new ExitEventData(s_exitFailed)));
   return false;
@@ -1678,17 +1889,42 @@ CGEventRef OSXComputer::handleCGInputEvent(CGEventTapProxy proxy, CGEventType ty
 {
   OSXComputer *computer = (OSXComputer *)refcon;
 
+  // events Deskflow posts itself for file drag handling (e.g. the Esc that
+  // cancels a local drag) must reach apps even while we are off-computer
+  if (CGEventGetIntegerValueField(event, kCGEventSourceUserData) == deskflow::osx::filedrag::kSyntheticEventTag) {
+    return event;
+  }
+
   switch (type) {
   case kCGEventLeftMouseDown:
   case kCGEventRightMouseDown:
-  case kCGEventOtherMouseDown:
-    computer->onMouseButton(true, CGEventGetIntegerValueField(event, kCGMouseEventButtonNumber) + 1);
+  case kCGEventOtherMouseDown: {
+    const auto macButton = CGEventGetIntegerValueField(event, kCGMouseEventButtonNumber);
+    computer->onMouseButton(true, macButton + 1);
+    if (computer->m_isOnComputer && macButton < 32) {
+      computer->m_buttonsPressedOnComputer |= (1u << macButton);
+    }
     break;
+  }
   case kCGEventLeftMouseUp:
   case kCGEventRightMouseUp:
-  case kCGEventOtherMouseUp:
-    computer->onMouseButton(false, CGEventGetIntegerValueField(event, kCGMouseEventButtonNumber) + 1);
+  case kCGEventOtherMouseUp: {
+    const auto macButton = CGEventGetIntegerValueField(event, kCGMouseEventButtonNumber);
+    computer->onMouseButton(false, macButton + 1);
+    if (macButton == 0) {
+      ++computer->m_leftReleases;
+    }
+    if (macButton < 32 && (computer->m_buttonsPressedOnComputer & (1u << macButton)) != 0) {
+      computer->m_buttonsPressedOnComputer &= ~(1u << macButton);
+      if (!computer->m_isOnComputer) {
+        // the press went to a local app before the cursor left; let the
+        // system see the matching release so its button state is not stuck
+        LOG_DEBUG("passing mouse button %d release to the system", static_cast<int>(macButton));
+        return event;
+      }
+    }
     break;
+  }
   case kCGEventLeftMouseDragged:
   case kCGEventRightMouseDragged:
   case kCGEventOtherMouseDragged:
@@ -1697,12 +1933,17 @@ CGEventRef OSXComputer::handleCGInputEvent(CGEventTapProxy proxy, CGEventType ty
     // the move below instead of returning (leaking) it to local apps.
     computer->onMouseMove(event);
     break;
-  case kCGEventScrollWheel:
-    computer->onMouseWheel(
-        computer->mapScrollWheelToDeskflow(CGEventGetIntegerValueField(event, kCGScrollWheelEventDeltaAxis2)),
-        computer->mapScrollWheelToDeskflow(CGEventGetIntegerValueField(event, kCGScrollWheelEventDeltaAxis1))
-    );
+  case kCGEventScrollWheel: {
+    const auto x =
+        computer->mapScrollWheelToDeskflow(CGEventGetIntegerValueField(event, kCGScrollWheelEventDeltaAxis2));
+    const auto y =
+        computer->mapScrollWheelToDeskflow(CGEventGetIntegerValueField(event, kCGScrollWheelEventDeltaAxis1));
+    if (!computer->m_isOnComputer && computer->onTrackpadScroll(event, x, y)) {
+      break;
+    }
+    computer->onMouseWheel(x, y);
     break;
+  }
   case kCGEventKeyDown:
   case kCGEventKeyUp:
   case kCGEventFlagsChanged:
@@ -1721,6 +1962,10 @@ CGEventRef OSXComputer::handleCGInputEvent(CGEventTapProxy proxy, CGEventType ty
   case NX_NULLEVENT:
     break;
   default:
+    if (deskflow::osx::gesture::isGestureEventType(type)) {
+      computer->onTrackpadGesture(type, event);
+      break;
+    }
     if (type == NX_SYSDEFINED) {
       if (isMediaKeyEvent(event)) {
         LOG_VERBOSE("detected media key event");
@@ -1933,3 +2178,218 @@ void avoidHesitatingCursor()
 }
 
 #pragma GCC diagnostic error "-Wdeprecated-declarations"
+
+//
+// file drag and drop
+//
+
+bool OSXComputer::getDraggedFiles(std::vector<std::string> &paths)
+{
+  namespace fd = deskflow::osx::filedrag;
+  if (m_isPrimary) {
+    if (!m_isOnComputer || !CGEventSourceButtonState(kCGEventSourceStateCombinedSessionState, kCGMouseButtonLeft)) {
+      return false;
+    }
+  } else if (!m_buttonState.test(0)) {
+    // on a client the button is held by us, on behalf of the server
+    return false;
+  }
+  const int64_t snapshot = m_dragChangeCountAtMouseDown;
+  if (snapshot < 0 || fd::dragPasteboardChangeCount() == snapshot) {
+    return false;
+  }
+  paths = fd::draggedFilePaths();
+  return !paths.empty();
+}
+
+void OSXComputer::cancelLocalDrag()
+{
+  LOG_DEBUG("file drag: cancelling local drag");
+  m_dragChangeCountAtMouseDown = -1;
+  deskflow::osx::filedrag::postCancelKey();
+}
+
+bool OSXComputer::beginFileDrag(uint32_t transferId, const std::vector<deskflow::filedrag::StagedItem> &files)
+{
+  namespace fd = deskflow::osx::filedrag;
+  if (files.empty()) {
+    return false;
+  }
+
+  if (!m_fileDragHandlerAdded) {
+    m_events->addHandler(EventTypes::FileDragWindowReady, this, [this](const Event &e) {
+      const auto *info = static_cast<deskflow::filedrag::FileDragEndedInfo *>(e.getDataObject());
+      onFileDragWindowReady(info->m_transferId);
+    });
+    m_events->addHandler(EventTypes::FileDragWindowPlaced, this, [this](const Event &e) {
+      const auto *info = static_cast<deskflow::filedrag::FileDragEndedInfo *>(e.getDataObject());
+      onFileDragWindowPlaced(info->m_transferId);
+    });
+    m_fileDragHandlerAdded = true;
+  }
+
+  std::vector<fd::Item> items;
+  for (const auto &f : files) {
+    items.push_back({f.name, f.size, f.path, f.isDirectory, f.entryCount});
+  }
+
+  IEventQueue *events = m_events;
+  void *self = this;
+  void *target = getEventTarget();
+  fd::Callbacks callbacks;
+  callbacks.ready = [events, self, transferId] {
+    events->addEvent(
+        Event(EventTypes::FileDragWindowReady, self, new deskflow::filedrag::FileDragEndedInfo(transferId, false))
+    );
+  };
+  callbacks.placed = [events, self, transferId] {
+    events->addEvent(
+        Event(EventTypes::FileDragWindowPlaced, self, new deskflow::filedrag::FileDragEndedInfo(transferId, false))
+    );
+  };
+  callbacks.ended = [events, target, transferId](bool accepted) {
+    events->addEvent(
+        Event(EventTypes::FileDragEnded, target, new deskflow::filedrag::FileDragEndedInfo(transferId, accepted))
+    );
+  };
+  callbacks.delivered = [events, target, transferId](size_t index, bool ok) {
+    events->addEvent(Event(
+        EventTypes::FileDragDelivered, target,
+        new deskflow::filedrag::FileDragItemInfo(transferId, static_cast<uint32_t>(index), ok)
+    ));
+  };
+  callbacks.cancelRequested = [events, target, transferId] {
+    events->addEvent(
+        Event(EventTypes::FileDragCancelRequested, target, new deskflow::filedrag::FileDragEndedInfo(transferId, false))
+    );
+  };
+
+  if (m_isPrimary) {
+    // the user moves the real cursor here: the helper keeps its panel under
+    // it, and the press is injected wherever the cursor is when it is ready
+    CGEventRef now = CGEventCreate(nullptr);
+    const CGPoint pos = CGEventGetLocation(now);
+    CFRelease(now);
+    m_pendingFileDrag = transferId;
+    m_pendingFileDragSince = Arch::time();
+    m_leftReleasesAtDragBegin = m_leftReleases;
+    LOG_DEBUG("file drag: preparing drag window at the cursor (%.0f,%.0f)", pos.x, pos.y);
+    fd::beginReceive(transferId, std::move(items), pos.x, pos.y, std::move(callbacks));
+    return true;
+  }
+
+  if (!m_cursorPosValid) {
+    int32_t x;
+    int32_t y;
+    getCursorPos(x, y);
+  }
+
+  m_pendingFileDrag = transferId;
+  m_pendingFileDragSince = Arch::time();
+  m_hasDeferredMove = false;
+  LOG_DEBUG("file drag: preparing drag window at %d,%d", m_xCursor, m_yCursor);
+  fd::beginReceive(transferId, std::move(items), m_xCursor, m_yCursor, std::move(callbacks));
+  return true;
+}
+
+void OSXComputer::onFileDragWindowReady(uint32_t transferId)
+{
+  if (transferId != m_pendingFileDrag) {
+    return;
+  }
+  // Decide where to press and park the window there first: if the window kept
+  // following the cursor, a move between the press and its delivery could pull
+  // it away and the press would hit whatever is underneath.
+  if (m_isPrimary) {
+    CGEventRef now = CGEventCreate(nullptr);
+    m_fileDragPressAt = CGEventGetLocation(now);
+    CFRelease(now);
+  } else {
+    m_fileDragPressAt = CGPointMake(m_xCursor, m_yCursor); // moves are held back meanwhile
+  }
+  deskflow::osx::filedrag::pressAt(transferId, m_fileDragPressAt.x, m_fileDragPressAt.y);
+}
+
+void OSXComputer::onFileDragWindowPlaced(uint32_t transferId)
+{
+  if (transferId != m_pendingFileDrag) {
+    return;
+  }
+  m_pendingFileDrag = 0;
+
+  if (m_isPrimary) {
+    if (!m_isOnComputer || Arch::time() - m_pendingFileDragSince > 2.0 || m_leftReleases != m_leftReleasesAtDragBegin) {
+      LOG_WARN("file drag: too late to start the drag here (button released or cursor gone)");
+      deskflow::osx::filedrag::abortReceive(transferId);
+      m_events->addEvent(Event(
+          EventTypes::FileDragEnded, getEventTarget(), new deskflow::filedrag::FileDragEndedInfo(transferId, false)
+      ));
+      return;
+    }
+    // The user still holds the physical button, but its press happened on the
+    // client, so the system did not see it. Press for them under the cursor
+    // (tagged: our event tap lets it through); their real release ends the drag.
+    LOG_DEBUG("file drag: window placed, pressing the button");
+    CGEventRef down = CGEventCreateMouseEvent(nullptr, kCGEventLeftMouseDown, m_fileDragPressAt, kCGMouseButtonLeft);
+    if (needsEventNumber()) {
+      if (m_mouseEventNumber == 0) {
+        m_mouseEventNumber =
+            CGEventSourceCounterForEventType(kCGEventSourceStateHIDSystemState, kCGEventLeftMouseDown) +
+            CGEventSourceCounterForEventType(kCGEventSourceStateHIDSystemState, kCGEventRightMouseDown) +
+            CGEventSourceCounterForEventType(kCGEventSourceStateHIDSystemState, kCGEventOtherMouseDown);
+      }
+      ++m_mouseEventNumber;
+      CGEventSetIntegerValueField(down, kCGMouseEventNumber, m_mouseEventNumber);
+    }
+    CGEventSetIntegerValueField(down, kCGMouseEventClickState, 1);
+    CGEventSetIntegerValueField(down, kCGEventSourceUserData, deskflow::osx::filedrag::kSyntheticEventTag);
+    CGEventPost(kCGHIDEventTap, down);
+    CFRelease(down);
+    return;
+  }
+
+  // the cursor has not moved since the window was placed under it
+  LOG_DEBUG("file drag: window placed, pressing the button");
+  fakeMouseButton(kButtonLeft, true);
+  if (m_hasDeferredMove) {
+    m_hasDeferredMove = false;
+    fakeMouseMove(m_deferredX, m_deferredY);
+  }
+}
+
+void OSXComputer::giveUpPendingFileDrag(const char *why)
+{
+  const uint32_t transferId = m_pendingFileDrag;
+  m_pendingFileDrag = 0;
+  LOG_WARN("file drag: %s", why);
+  deskflow::osx::filedrag::abortReceive(transferId);
+  m_events->addEvent(
+      Event(EventTypes::FileDragEnded, getEventTarget(), new deskflow::filedrag::FileDragEndedInfo(transferId, false))
+  );
+  if (m_hasDeferredMove) {
+    m_hasDeferredMove = false;
+    fakeMouseMove(m_deferredX, m_deferredY);
+  }
+}
+
+void OSXComputer::fileDragItemReady(uint32_t transferId, uint32_t item)
+{
+  deskflow::osx::filedrag::itemReady(transferId, item);
+}
+
+void OSXComputer::fileDragProgress(uint32_t transferId, uint32_t item, uint64_t bytes)
+{
+  deskflow::osx::filedrag::itemProgress(transferId, item, bytes);
+}
+
+void OSXComputer::abortFileDrag(uint32_t transferId)
+{
+  if (transferId == m_pendingFileDrag) {
+    m_pendingFileDrag = 0;
+    if (m_hasDeferredMove) {
+      m_hasDeferredMove = false;
+      fakeMouseMove(m_deferredX, m_deferredY);
+    }
+  }
+  deskflow::osx::filedrag::abortReceive(transferId);
+}

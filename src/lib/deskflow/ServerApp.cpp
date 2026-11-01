@@ -86,6 +86,8 @@ void ServerApp::reloadSignalHandler(Arch::ThreadSignal, void *)
 void ServerApp::reloadConfig()
 {
   LOG_DEBUG("reload configuration");
+  // the options come from the settings the gui saved: read them again
+  Settings::save(false);
   if (loadConfig(Settings::serverConfigFile())) {
     if (m_server != nullptr) {
       m_server->setConfig(*m_config);

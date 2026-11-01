@@ -63,3 +63,11 @@ if(BUILD_X11_SUPPORT)
   )
 endif()
 
+
+create_test(
+  NAME FileDragTests
+  DEPENDS app
+  LIBS arch base ${extra_libs}
+  SOURCE FileDragTests.cpp
+  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/src/lib/deskflow"
+)

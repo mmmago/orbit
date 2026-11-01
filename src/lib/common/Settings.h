@@ -80,6 +80,7 @@ public:
     inline static const auto CloseToTray = QStringLiteral("gui/closeToTray");
     inline static const auto LogExpanded = QStringLiteral("gui/logExpanded");
     inline static const auto SymbolicTrayIcon = QStringLiteral("gui/symbolicTrayIcon");
+    inline static const auto AnimatedMenuBarIcon = QStringLiteral("gui/animatedMenuBarIcon");
     inline static const auto WindowGeometry = QStringLiteral("gui/windowGeometry");
     inline static const auto ShownFirstConnectedMessage = QStringLiteral("gui/shownFirstConnectedMessage");
     inline static const auto ShownServerFirstStartMessage = QStringLiteral("gui/shownServerFirstStartMessage");
@@ -106,6 +107,7 @@ public:
     inline static const auto DefaultLockToComputerState = QStringLiteral("server/defaultLockToComputerState");
     inline static const auto DisableLockToComputer = QStringLiteral("server/disableLockToComputer");
     inline static const auto EnableClipboard = QStringLiteral("server/enableClipboard");
+    inline static const auto EnableFileDragDrop = QStringLiteral("server/enableFileDragDrop");
     inline static const auto EnableHeartbeat = QStringLiteral("server/enableHeartbeat");
     inline static const auto EnableSwitchDelay = QStringLiteral("server/enableSwitchDelay");
     inline static const auto EnableSwitchDoubleTap = QStringLiteral("server/enableSwitchDoubleTap");
@@ -118,6 +120,7 @@ public:
     inline static const auto RelativeMouseMoves = QStringLiteral("server/relativeMouseMoves");
     inline static const auto SwitchDelay = QStringLiteral("server/switchDelay");
     inline static const auto SwitchDoubleTap = QStringLiteral("server/switchDoubleTap");
+    inline static const auto TrackpadGestures = QStringLiteral("server/trackpadGestures");
     inline static const auto Win32KeepForeground = QStringLiteral("server/win32KeepForeground");
     inline static const auto XdpClipboardRetried = QStringLiteral("server/xdpClipboardRetried");
     inline static const auto XdpRestoreToken = QStringLiteral("server/xdpRestoreToken");
@@ -310,6 +313,7 @@ private:
     , Gui::CloseToTray
     , Gui::LogExpanded
     , Gui::SymbolicTrayIcon
+    , Gui::AnimatedMenuBarIcon
     , Gui::ShownFirstConnectedMessage
     , Gui::ShownServerFirstStartMessage
     , Gui::ShowVersionInTitle
@@ -322,6 +326,7 @@ private:
     , Server::DefaultLockToComputerState
     , Server::DisableLockToComputer
     , Server::EnableClipboard
+    , Server::EnableFileDragDrop
     , Server::EnableHeartbeat
     , Server::EnableSwitchDelay
     , Server::EnableSwitchDoubleTap
@@ -334,12 +339,14 @@ private:
     , Server::RelativeMouseMoves
     , Server::SwitchDelay
     , Server::SwitchDoubleTap
+    , Server::TrackpadGestures
     , Server::Win32KeepForeground
   };
 
   // When checking the default values this list contains the ones that default to false.
   inline static const QStringList m_defaultFalseValues = {
       Gui::Autohide
+    , Gui::AnimatedMenuBarIcon
     , Gui::AutoStartCore
     , Gui::ShownFirstConnectedMessage
     , Gui::ShownServerFirstStartMessage
@@ -375,6 +382,8 @@ private:
     , Security::TlsEnabled
     , Security::CheckPeers
     , Server::EnableClipboard
+    , Server::EnableFileDragDrop
+    , Server::TrackpadGestures
     , Server::Win32KeepForeground
   };
 

@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "deskflow/FileDrag.h"
+
 #include "deskflow/ClipboardTypes.h"
 #include "deskflow/IComputer.h"
 #include "deskflow/KeyTypes.h"
@@ -217,6 +219,19 @@ public:
   alternative on other platforms
   */
   std::string getSecureInputApp() const;
+
+  //! @name file drag and drop, see IPlatformComputer
+  //@{
+  bool getDraggedFiles(std::vector<std::string> &paths) const;
+  void cancelLocalDrag();
+  bool beginFileDrag(uint32_t transferId, const std::vector<deskflow::filedrag::StagedItem> &items);
+  void fileDragItemReady(uint32_t transferId, uint32_t item);
+  void fileDragProgress(uint32_t transferId, uint32_t item, uint64_t bytes);
+  void abortFileDrag(uint32_t transferId);
+  //@}
+
+  //! Replay a trackpad gesture event (see IPlatformComputer::fakeTrackpadEvent)
+  void trackpadEvent(const std::string &bytes);
 
   //@}
   //! @name accessors

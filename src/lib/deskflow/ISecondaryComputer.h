@@ -22,13 +22,19 @@ class ISecondaryComputer
 public:
   ISecondaryComputer()
   {
+    loadScrollSettings();
+  }
+
+  virtual ~ISecondaryComputer() = default;
+
+  //! Reads the scroll direction and scale settings again
+  void loadScrollSettings()
+  {
     m_invertYScroll = Settings::value(Settings::Client::InvertYScroll).toBool();
     m_yScrollScale = std::clamp(Settings::value(Settings::Client::YScrollScale).toDouble(), 0.1, 10.0);
     m_invertXScroll = Settings::value(Settings::Client::InvertXScroll).toBool();
     m_xScrollScale = std::clamp(Settings::value(Settings::Client::XScrollScale).toDouble(), 0.1, 10.0);
   }
-
-  virtual ~ISecondaryComputer() = default;
   //! @name accessors
   //@{
 

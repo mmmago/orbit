@@ -9,6 +9,7 @@
 #include <QStatusBar>
 
 #include "common/Enums.h"
+#include "widgets/OrbitStatusIcon.h"
 
 class QPushButton;
 class QLabel;
@@ -31,19 +32,31 @@ public:
   void setSecurityLevel(const QString &securityLevel);
   void setBtnFingerprintVisible(bool visible);
   void updateFound(const QString &version);
+  //! Client: the name of the server, shown once connected
+  void setServerName(const QString &name);
+  QString statusText() const;
+  OrbitStatusIcon::State statusIconState() const;
 
 Q_SIGNALS:
   void requestShowMyFingerprints();
   void requestUpdateVersion();
+  //! The status text or the logo state changed
+  void statusChanged();
 
 protected:
   void changeEvent(QEvent *e) override;
 
 private:
   void updateText();
+  void showConnectedToServer();
+  void setStatusText(const QString &text);
   void updateTimerLabel();
   QPushButton *m_btnFingerprint = nullptr;
-  QLabel *m_lblSecurityIcon = nullptr;
+  QLabel *m_lblSecurityIcon = nullptr; // replaced by m_statusIcon, kept hidden
+  OrbitStatusIcon *m_statusIcon = nullptr;
+  bool m_securityShown = false;
+  bool m_connectedAsClient = false;
+  QString m_serverName;
   QLabel *m_lblStatus = nullptr;
   QPushButton *m_btnUpdate = nullptr;
   bool m_encrypted = false;

@@ -23,6 +23,7 @@ class ComputerSetupModel : public QAbstractTableModel
 
   friend class ComputerSetupView;
   friend class ServerConfigDialog;
+  friend class ArrangementView;
 
 public:
   ComputerSetupModel(ComputerList &computers, int numColumns, int numRows);

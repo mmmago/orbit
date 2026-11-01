@@ -571,6 +571,28 @@ void CoreProcess::restart()
   }
 }
 
+void CoreProcess::reloadConfig()
+{
+  if (m_processState != ProcessState::Started)
+    return;
+
+  if (!m_coreIpcClient || !m_coreIpcClient->isConnected()) {
+    restart();
+    return;
+  }
+
+  if (m_mode == Settings::CoreMode::Server) {
+    const auto [hasNeededPermissions, configFilename] = persistServerConfig();
+    if (!hasNeededPermissions || configFilename.isEmpty()) {
+      restart();
+      return;
+    }
+  }
+
+  qDebug("reloading core config");
+  m_coreIpcClient->sendReload();
+}
+
 void CoreProcess::cleanup()
 {
   qInfo("cleaning up core process");

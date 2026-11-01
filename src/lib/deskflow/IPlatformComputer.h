@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "deskflow/FileDrag.h"
+
 #include "deskflow/ClipboardTypes.h"
 #include "deskflow/IComputer.h"
 #include "deskflow/IKeyState.h"
@@ -134,6 +136,60 @@ public:
   alternative on other platforms
   */
   virtual std::string getSecureInputApp() const = 0;
+
+  //! @name file drag and drop (optional, macOS only for now)
+  //@{
+
+  //! Primary: if the user is dragging files with the mouse button held,
+  //! fill \p paths and return true.
+  virtual bool getDraggedFiles(std::vector<std::string> &paths)
+  {
+    return false;
+  }
+
+  //! Primary: cancel the local drag before the cursor leaves this computer.
+  virtual void cancelLocalDrag()
+  {
+    // not supported
+  }
+
+  //! Secondary: start an incoming drag at the cursor. Sends
+  //! EventTypes::FileDragEnded to getEventTarget() when the drag ends, and
+  //! EventTypes::FileDragCancelRequested if the user cancels after the drop.
+  virtual bool beginFileDrag(uint32_t transferId, const std::vector<deskflow::filedrag::StagedItem> &items)
+  {
+    return false;
+  }
+
+  //! Secondary: a dragged item (file or whole folder) is complete.
+  virtual void fileDragItemReady(uint32_t transferId, uint32_t item)
+  {
+    // not supported
+  }
+
+  //! Secondary: bytes received so far for a dragged item (for progress).
+  virtual void fileDragProgress(uint32_t transferId, uint32_t item, uint64_t bytes)
+  {
+    // not supported
+  }
+
+  //! Secondary: the incoming transfer failed or was cancelled.
+  virtual void abortFileDrag(uint32_t transferId)
+  {
+    // not supported
+  }
+
+  //@}
+
+  //! @name trackpad gestures (optional, macOS only for now)
+  //@{
+
+  //! Secondary: post a trackpad gesture event serialized by the primary
+  //! (see deskflow::TrackpadEventData). Ignore data from another platform.
+  virtual void fakeTrackpadEvent(const std::string &bytes)
+  {
+    // not supported
+  }
 
   //@}
   //! @name accessors

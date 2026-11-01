@@ -1,0 +1,20 @@
+<svg version="1.1" viewBox="0 0 1254 1254" xmlns="http://www.w3.org/2000/svg">
+  <!-- SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux -->
+  <!-- SPDX-License-Identifier: GPL-2.0-only -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e9e9f1"/>
+    </linearGradient>
+  </defs>
+  <rect x="97" y="97" width="1060" height="1060" rx="240" fill="url(#bg)"/>
+  <g fill="none" stroke="#111a24" stroke-linecap="round">
+    <circle cx="625" cy="627" r="105" stroke-width="56"/>
+    <circle cx="812" cy="415" r="66" stroke-width="50"/>
+    <circle cx="438" cy="839" r="66" stroke-width="50"/>
+    <path d="M689 325.7 A308 308 0 0 0 363.8 790.2" stroke-width="58" stroke-linecap="butt"/>
+    <circle cx="689" cy="325.7" r="29" stroke="none" fill="#111a24"/>
+    <path d="M561 928.3 A308 308 0 0 0 886.2 463.8" stroke-width="58" stroke-linecap="butt"/>
+    <circle cx="561" cy="928.3" r="29" stroke="none" fill="#111a24"/>
+  </g>
+</svg>

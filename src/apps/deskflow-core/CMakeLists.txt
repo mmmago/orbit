@@ -6,7 +6,7 @@
 set(target ${CMAKE_PROJECT_NAME}-core)
 
 add_executable(${target}
-  "${target}.cpp"
+  deskflow-core.cpp
   CoreArgs.h
   CoreArgParser.h
   CoreArgParser.cpp

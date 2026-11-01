@@ -9,6 +9,11 @@
 
 #include "net/SecureUtils.h"
 
+#include <QTemporaryDir>
+
+#include <cstdio>
+#include <openssl/pem.h>
+
 using namespace deskflow;
 
 void SecureUtilsTests::checkHex()
@@ -44,6 +49,35 @@ void SecureUtilsTests::checkArt()
                                                      "║+o*Bo .          ║\n"
                                                      "╚═════════════════╝"
   );
+}
+
+void SecureUtilsTests::certificateCarriesComputerName()
+{
+  QTemporaryDir dir;
+  QVERIFY(dir.isValid());
+  const auto read = [&](const QString &path) {
+    FILE *file = std::fopen(path.toLocal8Bit().constData(), "r");
+    X509 *cert = file ? PEM_read_X509(file, nullptr, nullptr, nullptr) : nullptr;
+    if (file)
+      std::fclose(file);
+    return cert;
+  };
+
+  const auto named = dir.filePath(QStringLiteral("named.pem"));
+  generatePemSelfSignedCert(named, 2048, QStringLiteral("Mac mini de Alex"));
+  X509 *cert = read(named);
+  QVERIFY(cert != nullptr);
+  QCOMPARE(sslCertComputerName(cert), QStringLiteral("Mac mini de Alex"));
+  X509_free(cert);
+
+  // certificates from before carry a generic name: no computer name
+  const auto generic = dir.filePath(QStringLiteral("generic.pem"));
+  generatePemSelfSignedCert(generic, 2048);
+  cert = read(generic);
+  QVERIFY(cert != nullptr);
+  QCOMPARE(sslCertComputerName(cert), QString());
+  X509_free(cert);
+  QCOMPARE(sslCertComputerName(nullptr), QString());
 }
 
 QTEST_MAIN(SecureUtilsTests)

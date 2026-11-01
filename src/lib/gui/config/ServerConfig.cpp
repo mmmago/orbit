@@ -262,6 +262,19 @@ void ServerConfig::addClient(const QString &clientName)
   m_computers.addComputerByPriority(Computer(clientName));
 }
 
+bool ServerConfig::ensureServer()
+{
+  const auto computerName = Settings::value(Settings::Core::ComputerName).toString();
+  if (computerName.isEmpty())
+    return false;
+  int serverIndex = -1;
+  if (findComputerName(computerName, serverIndex)) {
+    m_computers[serverIndex].markAsServer();
+    return false;
+  }
+  return fixNoServer(computerName, serverIndex);
+}
+
 void ServerConfig::setConfigFile(const QString &configFile) const
 {
   Settings::setValue(Settings::Server::ExternalConfigFile, configFile);
@@ -301,4 +314,13 @@ bool ServerConfig::fixNoServer(const QString &name, int &index)
 QSettingsProxy &ServerConfig::settings()
 {
   return Settings::proxy();
+}
+
+bool ServerConfig::moveComputer(int from, int to)
+{
+  if (from < 0 || to < 0 || from >= m_computers.size() || to >= m_computers.size())
+    return false;
+  if (from != to)
+    m_computers.swapItemsAt(from, to);
+  return true;
 }

@@ -467,4 +467,43 @@ std::string Computer::getSecureInputApp() const
   return m_computer->getSecureInputApp();
 }
 
+bool Computer::getDraggedFiles(std::vector<std::string> &paths) const
+{
+  return m_computer->getDraggedFiles(paths);
+}
+
+void Computer::cancelLocalDrag()
+{
+  m_computer->cancelLocalDrag();
+}
+
+bool Computer::beginFileDrag(uint32_t transferId, const std::vector<deskflow::filedrag::StagedItem> &items)
+{
+  return m_computer->beginFileDrag(transferId, items);
+}
+
+void Computer::fileDragItemReady(uint32_t transferId, uint32_t item)
+{
+  m_computer->fileDragItemReady(transferId, item);
+}
+
+void Computer::fileDragProgress(uint32_t transferId, uint32_t item, uint64_t bytes)
+{
+  m_computer->fileDragProgress(transferId, item, bytes);
+}
+
+void Computer::abortFileDrag(uint32_t transferId)
+{
+  m_computer->abortFileDrag(transferId);
+}
+
+void Computer::trackpadEvent(const std::string &bytes)
+{
+  // like the other fake input, only while the cursor is on this computer
+  if (!m_entered) {
+    return;
+  }
+  m_computer->fakeTrackpadEvent(bytes);
+}
+
 } // namespace deskflow

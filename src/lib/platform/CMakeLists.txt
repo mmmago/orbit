@@ -76,6 +76,8 @@ elseif(APPLE)
     OSXAutoTypes.h
     OSXClipboard.cpp
     OSXClipboard.h
+    OSXClipboardMonitor.cpp
+    OSXClipboardMonitor.h
     OSXClipboardAnyBitmapConverter.cpp
     OSXClipboardAnyBitmapConverter.h
     OSXClipboardAnyTextConverter.cpp
@@ -102,6 +104,12 @@ elseif(APPLE)
     OSXKeyState.h
     OSXMediaKeySupport.h
     OSXMediaKeySupport.m
+    OSXFileDrag.h
+    OSXFileDrag.mm
+    OSXTrackpadGesture.h
+    OSXTrackpadGesture.mm
+    OSXTrackpadZoom.h
+    OSXTrackpadZoom.mm
     OSXPasteboardPeeker.h
     OSXPasteboardPeeker.m
     OSXPowerManager.cpp
@@ -196,7 +204,9 @@ if(UNIX)
 
   if(APPLE)
     find_library(COCOA_LIBRARY Cocoa)
-    target_link_libraries(platform PUBLIC ${COCOA_LIBRARY})
+    find_library(UTI_LIBRARY UniformTypeIdentifiers)
+    target_link_libraries(platform PUBLIC ${COCOA_LIBRARY} ${UTI_LIBRARY})
+    set_source_files_properties(OSXFileDrag.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
   else()
     if(${LIBXKBCOMMON_VERSION} VERSION_GREATER_EQUAL "1.10")
       target_compile_definitions(platform PRIVATE HAVE_XKB_KEYMAP_MOD_GET_MASK=1)

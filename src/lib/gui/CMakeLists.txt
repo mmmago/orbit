@@ -10,7 +10,10 @@ if(APPLE)
   set (platform_sources
     OSXHelpers.h
     OSXHelpers.mm
+    OrbitPanel.h
+    OrbitPanel.mm
   )
+  add_subdirectory(panel)
 endif()
 
 add_library(${target} STATIC
@@ -24,6 +27,8 @@ add_library(${target} STATIC
   Logger.cpp
   Logger.h
   MainWindow.cpp
+  OrbitDiscovery.cpp
+  OrbitDiscovery.h
   MainWindow.h
   MainWindow.ui
   Messages.cpp
@@ -95,6 +100,8 @@ add_library(${target} STATIC
   validators/ValidationError.h
   validators/IpAddressValidator.cpp
   validators/IpAddressValidator.h
+  widgets/ArrangementView.cpp
+  widgets/ArrangementView.h
   widgets/ComputerSetupView.cpp
   widgets/ComputerSetupView.h
   widgets/FingerprintPreview.cpp
@@ -105,6 +112,14 @@ add_library(${target} STATIC
   widgets/LogDock.h
   widgets/LogWidget.h
   widgets/LogWidget.cpp
+  widgets/ModeCard.cpp
+  widgets/OrbitIcons.cpp
+  widgets/OrbitIcons.h
+  widgets/OrbitLogo.cpp
+  widgets/OrbitLogo.h
+  widgets/OrbitStatusIcon.cpp
+  widgets/OrbitStatusIcon.h
+  widgets/ModeCard.h
   widgets/NewComputerWidget.cpp
   widgets/NewComputerWidget.h
   widgets/RemoveComputerWidget.cpp
@@ -124,3 +139,9 @@ target_link_libraries(${target}
     net
     Qt6::Widgets
 )
+
+if(APPLE)
+  target_link_libraries(${target} PRIVATE orbit_panel)
+  add_dependencies(${target} orbit_panel_header)
+  set_source_files_properties(OrbitPanel.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+endif()

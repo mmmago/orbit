@@ -19,7 +19,7 @@
 // OSXClipboard
 //
 
-OSXClipboard::OSXClipboard() : m_time(0), m_pboard(nullptr)
+OSXClipboard::OSXClipboard(CFStringRef name) : m_time(0), m_pboard(nullptr)
 {
   m_converters.push_back(new OSXClipboardHTMLConverter);
   m_converters.push_back(new OSXClipboardBMPConverter);
@@ -27,7 +27,7 @@ OSXClipboard::OSXClipboard() : m_time(0), m_pboard(nullptr)
   m_converters.push_back(new OSXClipboardUTF16Converter);
   m_converters.push_back(new OSXClipboardTextConverter);
 
-  OSStatus createErr = PasteboardCreate(kPasteboardClipboard, &m_pboard);
+  OSStatus createErr = PasteboardCreate(name, &m_pboard);
   if (createErr != noErr) {
     LOG_WARN("failed to create clipboard reference: error %i", createErr);
     LOG_ERR("unable to connect to pasteboard, clipboard sharing disabled", createErr);
@@ -35,15 +35,14 @@ OSXClipboard::OSXClipboard() : m_time(0), m_pboard(nullptr)
     return;
   }
 
-  OSStatus syncErr = PasteboardSynchronize(m_pboard);
-  if (syncErr != noErr) {
-    LOG_WARN("failed to syncronize clipboard: error %i", syncErr);
-  }
+  PasteboardSynchronize(m_pboard);
 }
 
 OSXClipboard::~OSXClipboard()
 {
   clearConverters();
+  if (m_pboard != nullptr)
+    CFRelease(m_pboard);
 }
 
 bool OSXClipboard::empty()
@@ -133,7 +132,7 @@ IClipboard::Time OSXClipboard::getTime() const
 
 bool OSXClipboard::has(Format format) const
 {
-  if (m_pboard == nullptr)
+  if (!canRead())
     return false;
 
   PasteboardItemID item;
@@ -162,7 +161,7 @@ std::string OSXClipboard::get(Format format) const
   PasteboardItemID item;
   std::string result;
 
-  if (m_pboard == nullptr)
+  if (!canRead())
     return result;
 
   PasteboardGetItemIdentifier(m_pboard, (CFIndex)1, &item);
@@ -208,6 +207,40 @@ std::string OSXClipboard::get(Format format) const
     CFRelease(buffer);
 
   return converter->toIClipboard(result);
+}
+
+bool OSXClipboard::canRead() const
+{
+  if (m_pboard == nullptr)
+    return false;
+
+  // Inspect metadata only. Requesting even a text or bitmap representation of
+  // a Finder file can materialize the file (or its preview). A remote clipboard
+  // read can also synchronously fetch data through Handoff, blocking input on
+  // the event thread before the shared clipboard size limit is checked.
+  // Files use the separate drag pasteboard and Deskflow's file transfer path.
+  const CFStringRef ignoredTypes[] = {
+      CFSTR("com.apple.is-remote-clipboard"), CFSTR("public.file-url"),          CFSTR("NSFilenamesPboardType"),
+      kPasteboardTypeFileURLPromise,          kPasteboardTypeFilePromiseContent, CFSTR("NSFilesPromisePboardType"),
+  };
+
+  ItemCount count = 0;
+  if (PasteboardGetItemCount(m_pboard, &count) != noErr || count == 0)
+    return false;
+
+  // Check every item: the file or remote marker need not be on the first one.
+  for (CFIndex index = 1; index <= count; ++index) {
+    PasteboardItemID item = nullptr;
+    if (PasteboardGetItemIdentifier(m_pboard, index, &item) != noErr)
+      return false;
+
+    for (CFStringRef type : ignoredTypes) {
+      PasteboardFlavorFlags flags;
+      if (PasteboardGetItemFlavorFlags(m_pboard, item, type, &flags) == noErr)
+        return false;
+    }
+  }
+  return true;
 }
 
 void OSXClipboard::clearConverters()

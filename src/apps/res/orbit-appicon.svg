@@ -1,0 +1,21 @@
+<!-- SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux -->
+<!-- SPDX-License-Identifier: GPL-2.0-only -->
+<!-- Source of Orbit.icns: render at 16-1024 px and pack with iconutil -->
+<svg version="1.1" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e6e6ef"/>
+    </linearGradient>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#bg)"/>
+  <g transform="translate(30.75 29.2) scale(0.77)" fill="none" stroke="#111a24" stroke-linecap="round">
+    <circle cx="625" cy="627" r="105" stroke-width="56"/>
+    <circle cx="812" cy="415" r="66" stroke-width="50"/>
+    <circle cx="438" cy="839" r="66" stroke-width="50"/>
+    <path d="M689 325.7 A308 308 0 0 0 363.8 790.2" stroke-width="58" stroke-linecap="butt"/>
+    <circle cx="689" cy="325.7" r="29" stroke="none" fill="#111a24"/>
+    <path d="M561 928.3 A308 308 0 0 0 886.2 463.8" stroke-width="58" stroke-linecap="butt"/>
+    <circle cx="561" cy="928.3" r="29" stroke="none" fill="#111a24"/>
+  </g>
+</svg>

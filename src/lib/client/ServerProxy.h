@@ -8,6 +8,11 @@
 
 #pragma once
 
+#include "deskflow/FileDragReceiver.h"
+
+#include <string>
+#include <vector>
+
 #include "common/Enums.h"
 #include "deskflow/ClipboardChunk.h"
 #include "deskflow/ClipboardTypes.h"
@@ -29,7 +34,7 @@ to the server and messages from the server to calls on the client.
 It implements 1.6, the oldest version the client supports; later
 versions subclass it and add their messages.
 */
-class ServerProxy
+class ServerProxy : public deskflow::filedrag::FileDragRemote
 {
 public:
   /*!
@@ -51,6 +56,30 @@ public:
   bool onGrabClipboard(ClipboardID);
   void onClipboardChanged(ClipboardID, const IClipboard *);
 
+  //! File drag (protocol 1.9+): acknowledge received chunks
+  void sendFileDragAck(uint32_t transferId, uint32_t chunksReceived) override
+  {
+    // not supported before 1.9
+  }
+
+  //! File drag (protocol 1.9+): ask the server to stop sending
+  void sendFileDragCancel(uint32_t transferId, uint8_t reason) override
+  {
+    // not supported before 1.9
+  }
+
+  //! File drag (protocol 1.9+): tell the server whether files are being dragged here
+  virtual void sendFileDragState(bool dragging)
+  {
+    // not supported before 1.9
+  }
+
+  //! File drag (protocol 1.9+): send files dragged from here to the server
+  virtual bool startFileDrag(const std::vector<std::string> &paths)
+  {
+    return false;
+  }
+
   //@}
 
 protected:
@@ -69,6 +98,11 @@ protected:
   deskflow::IStream *getStream() const
   {
     return m_stream;
+  }
+
+  Client *getClient() const
+  {
+    return m_client;
   }
 
 private:

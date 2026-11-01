@@ -1,0 +1,48 @@
+// SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
+// SPDX-License-Identifier: GPL-2.0-only WITH LicenseRef-OpenSSL-Exception
+
+import SwiftUI
+
+/// Server mode: the arrangement of the computers and the sharing options
+struct ServerSettingsView: View {
+    let model: PanelModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionTitle(
+                title: "Arrange computers",
+                detail: "Drag the screens to place the computers. The cursor goes across the edges they share."
+            )
+            ArrangementCanvas(arrangement: model.state.arrangement, onMove: model.moveComputer)
+                .background(.fill.quaternary, in: .rect(cornerRadius: 10))
+
+            SectionTitle(title: "Options")
+                .padding(.top, 8)
+            SectionCard {
+                OptionToggle(
+                    title: "Trackpad gestures",
+                    detail: "Swipes, pinch, rotate and smooth scrolling on the other Mac",
+                    isOn: model.option("trackpadGestures", \.server.trackpadGestures)
+                )
+                Divider()
+                OptionToggle(
+                    title: "Drag and drop",
+                    detail: "Drag files and folders from one Mac to the other",
+                    isOn: model.option("fileDragDrop", \.server.fileDragDrop)
+                )
+                Divider()
+                OptionToggle(
+                    title: "Clipboard sharing",
+                    detail: "Copy text on one Mac, paste it on the other",
+                    isOn: model.option("clipboard", \.server.clipboard)
+                )
+                Divider()
+                OptionToggle(
+                    title: "Animated menu bar icon",
+                    detail: "Shows the connection state, like the logo at the bottom",
+                    isOn: model.option("animatedMenuBarIcon", \.animatedMenuBarIcon)
+                )
+            }
+        }
+    }
+}

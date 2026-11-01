@@ -63,7 +63,27 @@ Fingerprint sslCertFingerprint(const X509 *cert, QCryptographicHash::Algorithm t
   return {type, digestArray};
 }
 
-void generatePemSelfSignedCert(const QString &path, int keyLength)
+QString sslCertComputerName(const X509 *cert)
+{
+  if (cert == nullptr)
+    return {};
+  const auto *subject = X509_get_subject_name(cert);
+  const int index = X509_NAME_get_index_by_NID(subject, NID_commonName, -1);
+  if (index < 0)
+    return {};
+  const auto *data = X509_NAME_ENTRY_get_data(X509_NAME_get_entry(subject, index));
+  unsigned char *utf8 = nullptr;
+  const int length = ASN1_STRING_to_UTF8(&utf8, data);
+  if (length < 0)
+    return {};
+  const auto name = QString::fromUtf8(reinterpret_cast<const char *>(utf8), length).trimmed();
+  OPENSSL_free(utf8);
+  if (name == QStringLiteral("Orbit") || name == QStringLiteral("Deskflow"))
+    return {};
+  return name;
+}
+
+void generatePemSelfSignedCert(const QString &path, int keyLength, const QString &commonName)
 {
   auto expirationDays = 365;
 
@@ -88,7 +108,9 @@ void generatePemSelfSignedCert(const QString &path, int keyLength)
   if (!name) {
     throw std::runtime_error("could not allocate subject name");
   }
-  X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, reinterpret_cast<const unsigned char *>("Deskflow"), -1, -1, 0);
+  // a common name is at most 64 characters
+  const auto cn = (commonName.isEmpty() ? QStringLiteral("Orbit") : commonName).left(64).toUtf8();
+  X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_UTF8, reinterpret_cast<const unsigned char *>(cn.constData()), -1, -1, 0);
   X509_set_subject_name(cert, name);
   X509_set_issuer_name(cert, name);
   X509_NAME_free(name);

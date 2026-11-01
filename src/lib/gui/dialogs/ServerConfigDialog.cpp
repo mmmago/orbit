@@ -16,9 +16,16 @@
 #include "dialogs/ActionDialog.h"
 #include "dialogs/ComputerSettingsDialog.h"
 #include "dialogs/HotkeyDialog.h"
+#include "gui/widgets/ArrangementView.h"
 #include "gui/widgets/SettingsDialogButtonBox.h"
 
+#include <QCheckBox>
 #include <QFileDialog>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QToolButton>
+#include <QVBoxLayout>
 #include <QMessageBox>
 
 using enum ComputerConfig::SwitchCorner;
@@ -38,6 +45,7 @@ ServerConfigDialog::ServerConfigDialog(QWidget *parent, ServerConfig &config)
   ui->setupUi(this);
   ui->tabWidget->setCurrentIndex(0);
   layout()->addWidget(m_buttonBox);
+  setupOrbitPage();
 
   loadFromConfig();
 
@@ -52,6 +60,124 @@ ServerConfigDialog::ServerConfigDialog(QWidget *parent, ServerConfig &config)
 }
 
 ServerConfigDialog::~ServerConfigDialog() = default;
+
+void ServerConfigDialog::setupOrbitPage()
+{
+  // Orbit shows a single page: the arrangement of the computers and a few
+  // options. The tabs, with the controls Orbit does not offer (hotkeys,
+  // switching, network, config file...), stay hidden so their settings keep
+  // their current values.
+  ui->tabWidget->hide();
+
+  auto *page = new QWidget(this);
+  auto *pageLayout = new QVBoxLayout(page);
+  pageLayout->setContentsMargins(0, 0, 0, 0);
+  pageLayout->setSpacing(6);
+
+  auto *title = new QLabel(tr("Arrange computers"), page);
+  QFont titleFont = title->font();
+  titleFont.setPointSizeF(titleFont.pointSizeF() * 1.2);
+  titleFont.setWeight(QFont::DemiBold);
+  title->setFont(titleFont);
+
+  auto *description = new QLabel(
+      tr("To rearrange the computers, drag them to the desired position. The cursor goes from one computer to "
+         "another across the edges they share. Double-click a computer to change its settings."),
+      page
+  );
+  description->setWordWrap(true);
+  QPalette dimmed = description->palette();
+  QColor dimText = dimmed.color(QPalette::WindowText);
+  dimText.setAlphaF(0.65);
+  dimmed.setColor(QPalette::WindowText, dimText);
+  description->setPalette(dimmed);
+
+  m_arrangement = new ArrangementView(&m_computerSetupModel, page);
+  m_arrangement->setMinimumHeight(260);
+
+  m_btnAddComputer = new QToolButton(page);
+  m_btnAddComputer->setIcon(QIcon::fromTheme(QStringLiteral("list-add")));
+  m_btnAddComputer->setToolTip(tr("Add a computer"));
+  m_btnRemoveComputer = new QToolButton(page);
+  m_btnRemoveComputer->setIcon(QIcon::fromTheme(QStringLiteral("list-remove")));
+  m_btnRemoveComputer->setToolTip(tr("Remove the selected computer"));
+  m_btnRemoveComputer->setEnabled(false);
+  auto *buttons = new QHBoxLayout;
+  buttons->setSpacing(2);
+  buttons->addWidget(m_btnAddComputer);
+  buttons->addWidget(m_btnRemoveComputer);
+  buttons->addStretch();
+
+  auto *options = new QGroupBox(tr("Options"), page);
+  auto *optionsLayout = new QVBoxLayout(options);
+  m_cbFileDragDrop = new QCheckBox(tr("Enable drag and drop of files and folders"), options);
+  ui->cbEnableClipboard->setText(tr("Enable clipboard sharing (text)"));
+  optionsLayout->addWidget(ui->cbTrackpadGestures);
+  optionsLayout->addWidget(m_cbFileDragDrop);
+  optionsLayout->addWidget(ui->cbEnableClipboard);
+
+  pageLayout->addWidget(title);
+  pageLayout->addWidget(description);
+  pageLayout->addSpacing(4);
+  pageLayout->addWidget(m_arrangement, 1);
+  pageLayout->addLayout(buttons);
+  pageLayout->addSpacing(8);
+  pageLayout->addWidget(options);
+  static_cast<QVBoxLayout *>(layout())->insertWidget(0, page, 1);
+
+  connect(m_arrangement, &ArrangementView::editRequested, this, [this](int column, int row) {
+    ComputerSettingsDialog dialog(this, &model().computer(column, row), &model().m_computers);
+    dialog.exec();
+    Q_EMIT model().computersChanged();
+  });
+  connect(m_arrangement, &ArrangementView::selectionChanged, this, [this] {
+    m_btnRemoveComputer->setEnabled(m_arrangement->selectedCell().x() >= 0 && !m_arrangement->isSelectedServer());
+  });
+  connect(m_btnAddComputer, &QToolButton::clicked, this, &ServerConfigDialog::addComputerNextToServer);
+  connect(m_btnRemoveComputer, &QToolButton::clicked, this, &ServerConfigDialog::removeSelectedComputer);
+  connect(m_cbFileDragDrop, &QCheckBox::toggled, this, &ServerConfigDialog::toggleFileDragDrop);
+
+  resize(640, 580);
+}
+
+void ServerConfigDialog::addComputerNextToServer()
+{
+  if (model().isFull())
+    return;
+
+  Computer newComputer;
+  if (ComputerSettingsDialog dialog(this, &newComputer, &model().m_computers); dialog.exec() != QDialog::Accepted)
+    return;
+
+  // put it next to the server: right, left, below, above; else anywhere free
+  QPoint server{m_columns / 2, m_rows / 2};
+  for (int row = 0; row < m_rows; ++row)
+    for (int column = 0; column < m_columns; ++column)
+      if (model().computer(column, row).isServer())
+        server = {column, row};
+  const QPoint around[] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+  for (const auto &offset : around) {
+    const auto cell = server + offset;
+    if (cell.x() >= 0 && cell.y() >= 0 && cell.x() < m_columns && cell.y() < m_rows &&
+        model().computer(cell.x(), cell.y()).isNull()) {
+      model().computer(cell.x(), cell.y()) = newComputer;
+      Q_EMIT model().computersChanged();
+      return;
+    }
+  }
+  model().addComputer(newComputer);
+}
+
+void ServerConfigDialog::removeSelectedComputer()
+{
+  const auto cell = m_arrangement->selectedCell();
+  if (cell.x() < 0 || m_arrangement->isSelectedServer())
+    return;
+  model().computer(cell.x(), cell.y()) = Computer();
+  m_arrangement->clearSelection();
+  Q_EMIT model().computersChanged();
+  onComputerRemoved();
+}
 
 bool ServerConfigDialog::addClient(const QString &clientName)
 {
@@ -89,6 +215,8 @@ void ServerConfigDialog::save()
   Settings::setValue(Settings::Server::EnableSwitchDoubleTap, m_enableSwitchDoubleTap);
   Settings::setValue(Settings::Server::SwitchDoubleTap, m_switchDoubleTap);
   Settings::setValue(Settings::Server::RelativeMouseMoves, m_relativeMouseMoves);
+  Settings::setValue(Settings::Server::TrackpadGestures, m_trackpadGestures);
+  Settings::setValue(Settings::Server::EnableFileDragDrop, m_fileDragDrop);
   Settings::setValue(Settings::Server::Win32KeepForeground, m_win32keepForeground);
   Settings::setValue(Settings::Server::ExternalConfig, ui->groupExternalConfig->isChecked());
   Settings::setValue(Settings::Server::ExternalConfigFile, ui->lineConfigFile->text());
@@ -278,6 +406,22 @@ void ServerConfigDialog::toggleRelativeMouseMoves(bool enabled)
   setButtonBoxEnabledButtons();
 }
 
+void ServerConfigDialog::toggleTrackpadGestures(bool enabled)
+{
+  if (m_trackpadGestures == enabled)
+    return;
+  m_trackpadGestures = enabled;
+  setButtonBoxEnabledButtons();
+}
+
+void ServerConfigDialog::toggleFileDragDrop(bool enabled)
+{
+  if (m_fileDragDrop == enabled)
+    return;
+  m_fileDragDrop = enabled;
+  setButtonBoxEnabledButtons();
+}
+
 void ServerConfigDialog::toggleProtocol()
 {
   m_protocol = ui->rbProtocolBarrier->isChecked() ? NetworkProtocol::Barrier : NetworkProtocol::Synergy;
@@ -389,6 +533,8 @@ void ServerConfigDialog::loadFromConfig()
   m_enableHeartbeat = Settings::value(Settings::Server::EnableHeartbeat).toBool();
   m_heartbeatRate = Settings::value(Settings::Server::Heartbeat).toInt();
   m_relativeMouseMoves = Settings::value(Settings::Server::RelativeMouseMoves).toBool();
+  m_trackpadGestures = Settings::value(Settings::Server::TrackpadGestures).toBool();
+  m_fileDragDrop = Settings::value(Settings::Server::EnableFileDragDrop).toBool();
   m_win32keepForeground = Settings::value(Settings::Server::Win32KeepForeground).toBool();
   m_enableSwitchDelay = Settings::value(Settings::Server::EnableSwitchDelay).toBool();
   m_switchDelay = Settings::value(Settings::Server::SwitchDelay).toInt();
@@ -431,10 +577,7 @@ void ServerConfigDialog::resetFromSettings()
   m_serverConfig.setConfigFile(m_originalServerConfigUsesExternalFile);
   m_serverConfig.setUseExternalConfig(m_originalServerConfigIsExternal);
   loadFromConfig();
-  if (ui->tabWidget->currentWidget() == ui->tabComputers) {
-    ui->computerSetupView->reset();
-    ui->computerSetupView->update();
-  }
+  m_arrangement->update();
 }
 
 void ServerConfigDialog::refreshControls()
@@ -445,6 +588,9 @@ void ServerConfigDialog::refreshControls()
   ui->sbHeartbeat->setEnabled(ui->cbHeartbeat->isChecked());
   ui->sbHeartbeat->setValue(m_heartbeatRate);
   ui->cbRelativeMouseMoves->setChecked(m_relativeMouseMoves);
+  ui->cbTrackpadGestures->setChecked(m_trackpadGestures);
+  if (m_cbFileDragDrop)
+    m_cbFileDragDrop->setChecked(m_fileDragDrop);
   ui->cbWin32KeepForeground->setChecked(m_win32keepForeground);
   ui->cbSwitchDelay->setChecked(m_enableSwitchDelay);
   ui->sbSwitchDelay->setEnabled(ui->cbSwitchDelay->isChecked());
@@ -499,6 +645,7 @@ void ServerConfigDialog::initConnections() const
   );
 
   connect(ui->cbRelativeMouseMoves, &QCheckBox::toggled, this, &ServerConfigDialog::toggleRelativeMouseMoves);
+  connect(ui->cbTrackpadGestures, &QCheckBox::toggled, this, &ServerConfigDialog::toggleTrackpadGestures);
   connect(ui->cbEnableClipboard, &QCheckBox::toggled, this, &ServerConfigDialog::toggleClipboard);
   connect(ui->btnBrowseConfigFile, &QPushButton::clicked, this, &ServerConfigDialog::browseConfigFile);
   connect(ui->groupExternalConfig, &QGroupBox::toggled, this, &ServerConfigDialog::toggleExternalConfig);
@@ -530,6 +677,8 @@ void ServerConfigDialog::updateControls() const
   ui->rbProtocolSynergy->setEnabled(writable);
   ui->cbHeartbeat->setEnabled(writable);
   ui->cbRelativeMouseMoves->setEnabled(writable);
+  ui->cbTrackpadGestures->setEnabled(writable);
+  m_cbFileDragDrop->setEnabled(writable);
   ui->cbSwitchDelay->setEnabled(writable);
   ui->cbWin32KeepForeground->setEnabled(writable);
   ui->cbSwitchDoubleTap->setEnabled(writable);
@@ -545,6 +694,8 @@ void ServerConfigDialog::restoreFromDefaults()
   m_enableHeartbeat = Settings::defaultValue(Settings::Server::EnableHeartbeat).toBool();
   m_heartbeatRate = Settings::defaultValue(Settings::Server::Heartbeat).toInt();
   m_relativeMouseMoves = Settings::defaultValue(Settings::Server::RelativeMouseMoves).toBool();
+  m_trackpadGestures = Settings::defaultValue(Settings::Server::TrackpadGestures).toBool();
+  m_fileDragDrop = Settings::defaultValue(Settings::Server::EnableFileDragDrop).toBool();
   m_win32keepForeground = Settings::defaultValue(Settings::Server::Win32KeepForeground).toBool();
   m_enableSwitchDelay = Settings::defaultValue(Settings::Server::EnableSwitchDelay).toBool();
   m_switchDelay = Settings::defaultValue(Settings::Server::SwitchDelay).toInt();
@@ -602,6 +753,8 @@ bool ServerConfigDialog::isGeneralConfigModified() const
          m_enableSwitchDoubleTap != Settings::value(Settings::Server::EnableSwitchDoubleTap).toBool() ||
          m_switchDoubleTap != Settings::value(Settings::Server::SwitchDoubleTap).toInt() ||
          m_relativeMouseMoves != Settings::value(Settings::Server::RelativeMouseMoves).toBool() ||
+         m_trackpadGestures != Settings::value(Settings::Server::TrackpadGestures).toBool() ||
+         m_fileDragDrop != Settings::value(Settings::Server::EnableFileDragDrop).toBool() ||
          m_win32keepForeground != Settings::value(Settings::Server::Win32KeepForeground).toBool() ||
          m_disableLockToComputer != Settings::value(Settings::Server::DisableLockToComputer).toBool() ||
          m_defaultLockToComputerState != Settings::value(Settings::Server::DefaultLockToComputerState).toBool();
@@ -621,6 +774,8 @@ bool ServerConfigDialog::isGeneralConfigDefault() const
          m_enableSwitchDoubleTap == Settings::defaultValue(Settings::Server::EnableSwitchDoubleTap).toBool() &&
          m_switchDoubleTap == Settings::defaultValue(Settings::Server::SwitchDoubleTap).toInt() &&
          m_relativeMouseMoves == Settings::defaultValue(Settings::Server::RelativeMouseMoves).toBool() &&
+         m_trackpadGestures == Settings::defaultValue(Settings::Server::TrackpadGestures).toBool() &&
+         m_fileDragDrop == Settings::defaultValue(Settings::Server::EnableFileDragDrop).toBool() &&
          m_win32keepForeground == Settings::defaultValue(Settings::Server::Win32KeepForeground).toBool() &&
          m_disableLockToComputer == Settings::defaultValue(Settings::Server::DisableLockToComputer).toBool() &&
          m_defaultLockToComputerState == Settings::defaultValue(Settings::Server::DefaultLockToComputerState).toBool();

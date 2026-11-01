@@ -11,13 +11,13 @@
 // important: this is used for settings paths on some platforms,
 // and must not be a url. qt automatically converts this to reverse domain
 // notation (rdn), e.g. org.deskflow
-const auto kOrgDomain = QStringLiteral("deskflow.org");
+const auto kOrgDomain = QStringLiteral("mmmago.github.io");
 
 const auto kUrlSourceQuery = QStringLiteral("source=gui");
-const auto kUrlApp = QStringLiteral("https://%1").arg(kOrgDomain);
-const auto kUrlHelp = QStringLiteral("%1/help?%2").arg(kUrlApp, kUrlSourceQuery);
-const auto kUrlDownload = QStringLiteral("%1/download?%2").arg(kUrlApp, kUrlSourceQuery);
-const auto kUrlWiki = QStringLiteral("%1/wiki?%2").arg(kUrlApp, kUrlSourceQuery);
+const auto kUrlApp = QStringLiteral("https://github.com/mmmago/orbit");
+const auto kUrlHelp = QStringLiteral("%1/issues").arg(kUrlApp);
+const auto kUrlDownload = QStringLiteral("%1/releases").arg(kUrlApp);
+const auto kUrlWiki = QStringLiteral("%1#readme").arg(kUrlApp);
 const auto kUrlUpdateCheck = QStringLiteral("https://api.%1/version").arg(kOrgDomain);
 
 #if defined(Q_OS_LINUX)

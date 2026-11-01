@@ -8,6 +8,8 @@
 
 #include "server/Server.h"
 
+#include "deskflow/TrackpadEvent.h"
+
 #include "base/IEventQueue.h"
 #include "base/Log.h"
 #include "deskflow/AppUtil.h"
@@ -50,6 +52,7 @@ Server::Server(ServerConfig &config, PrimaryClient *primaryClient, deskflow::Com
 {
   // must have a primary client and it must have a canonical name
   assert(m_primaryClient != nullptr);
+  m_fileDragReceiver = std::make_unique<deskflow::filedrag::FileDragReceiver>(m_events, m_primaryClient->getComputer());
   assert(config.isComputer(primaryClient->getName()));
   assert(m_computer != nullptr);
 
@@ -90,6 +93,10 @@ Server::Server(ServerConfig &config, PrimaryClient *primaryClient, deskflow::Com
   m_events->addHandler(EventTypes::PrimaryComputerWheel, m_primaryClient->getEventTarget(), [this](const auto &e) {
     handleWheelEvent(e);
   });
+  m_events->addHandler(
+      EventTypes::PrimaryComputerTrackpadEvent, m_primaryClient->getEventTarget(),
+      [this](const auto &e) { handleTrackpadEvent(e); }
+  );
   m_events->addHandler(
       EventTypes::PrimaryScreenSaverActivated, m_primaryClient->getEventTarget(),
       [this](const auto &) { onScreensaver(true); }
@@ -162,6 +169,7 @@ Server::~Server()
   m_events->removeHandler(PrimaryComputerMotionOnPrimary, m_primaryClient->getEventTarget());
   m_events->removeHandler(PrimaryComputerMotionOnSecondary, m_primaryClient->getEventTarget());
   m_events->removeHandler(PrimaryComputerWheel, m_primaryClient->getEventTarget());
+  m_events->removeHandler(PrimaryComputerTrackpadEvent, m_primaryClient->getEventTarget());
   m_events->removeHandler(PrimaryScreenSaverActivated, m_primaryClient->getEventTarget());
   m_events->removeHandler(PrimaryScreenSaverDeactivated, m_primaryClient->getEventTarget());
   m_events->removeHandler(PrimaryComputerFakeInputBegin, m_inputFilter);
@@ -363,6 +371,60 @@ bool Server::isLockedToComputerServer() const
   return m_lockedToComputer;
 }
 
+bool Server::canHandOverFileDrag(BaseClientProxy *dst)
+{
+  m_fileDragPaths.clear();
+  m_fileDragReturnFrom = nullptr;
+  if (!m_enableFileDrag || dst == nullptr) {
+    return false;
+  }
+
+  // client -> server: the client reported a file drag and the cursor heads back here
+  if (m_active != m_primaryClient && dst == m_primaryClient) {
+    if (isLockedToComputerServer() || !m_active->isDraggingFiles()) {
+      return false;
+    }
+    LOG_INFO("file drag: \"%s\" drags files towards this computer", getName(m_active).c_str());
+    m_fileDragReturnFrom = m_active;
+    return true;
+  }
+
+  if (m_active != m_primaryClient || dst == m_primaryClient) {
+    return false;
+  }
+  // scroll lock (or the default lock state) always wins
+  if (isLockedToComputerServer() || !dst->supportsFileDrag()) {
+    return false;
+  }
+  std::vector<std::string> paths;
+  if (!m_primaryClient->getDraggedFiles(paths)) {
+    return false;
+  }
+  LOG_INFO("file drag: %zu item(s) dragged towards \"%s\"", paths.size(), getName(dst).c_str());
+  m_fileDragPaths = std::move(paths);
+  return true;
+}
+
+void Server::fileDragIncoming(
+    deskflow::filedrag::FileDragRemote *remote, uint32_t transferId, const std::string &manifest
+)
+{
+  using deskflow::filedrag::CancelReason;
+  using deskflow::filedrag::FileDragReceiver;
+
+  // only right after a hand over, while the user still holds the button here
+  const bool expected = m_fileDragReturnExpected && m_active == m_primaryClient && m_enableFileDrag;
+  m_fileDragReturnExpected = false;
+  if (!expected || m_fileDragReturnReleased) {
+    LOG_INFO("file drag: not expecting files now, refusing transfer %u", transferId);
+    FileDragReceiver::refuse(transferId, remote, expected ? CancelReason::Dropped : CancelReason::Refused);
+    return;
+  }
+  if (m_fileDragReceiver->begin(transferId, manifest, remote)) {
+    m_fileDragReceiver->startDrag();
+  }
+}
+
 bool Server::isLockedToComputer() const
 {
   if (m_disableLockToComputer) {
@@ -453,6 +515,29 @@ void Server::switchComputer(BaseClientProxy *dst, int32_t x, int32_t y, bool for
   // since that's a waste of time we skip that and just warp the
   // mouse.
   if (m_active != dst) {
+    // a file drag is crossing over: end it here first. the cancel key is
+    // tagged so our event tap lets it through to the local app.
+    std::vector<std::string> fileDragPaths;
+    fileDragPaths.swap(m_fileDragPaths);
+    if (!fileDragPaths.empty() &&
+        (m_active != m_primaryClient || dst == m_primaryClient || !m_primaryClient->getDraggedFiles(fileDragPaths))) {
+      // stale: the drag ended since the switch was first attempted
+      fileDragPaths.clear();
+    }
+    if (!fileDragPaths.empty()) {
+      m_primaryClient->cancelLocalDrag();
+    }
+
+    // a file drag comes back from a client: ask it for the files before leaving
+    m_fileDragReturnExpected = false;
+    if (m_fileDragReturnFrom != nullptr && m_fileDragReturnFrom == m_active && dst == m_primaryClient &&
+        m_active->isDraggingFiles()) {
+      m_active->requestFileDragHandOver();
+      m_fileDragReturnExpected = true;
+      m_fileDragReturnReleased = false;
+    }
+    m_fileDragReturnFrom = nullptr;
+
     // leave active computer
     if (!m_active->leave()) {
       // cannot leave computer
@@ -488,6 +573,11 @@ void Server::switchComputer(BaseClientProxy *dst, int32_t x, int32_t y, bool for
 
     // increment enter sequence number
     ++m_seqNum;
+
+    // announce the dragged files so the client can start the drag on enter
+    if (!fileDragPaths.empty()) {
+      m_active->startFileDrag(fileDragPaths);
+    }
 
     // enter new computer
     m_active->enter(x, y, m_seqNum, m_primaryClient->getToggleMask(), forScreensaver);
@@ -853,8 +943,9 @@ bool Server::isSwitchOkay(
     }
   }
 
-  // ignore if mouse is locked to computer and don't try to switch later
-  if (!preventSwitch && isLockedToComputer()) {
+  // ignore if mouse is locked to computer and don't try to switch later,
+  // unless the user is dragging files across to a computer that takes them
+  if (!preventSwitch && !canHandOverFileDrag(newComputer) && isLockedToComputer()) {
     LOG_VERBOSE("locked to computer");
     preventSwitch = true;
     stopSwitch();
@@ -1112,6 +1203,9 @@ void Server::processOptions()
       if (!m_enableClipboard) {
         LOG_INFO("clipboard sharing is disabled");
       }
+    } else if (id == kOptionFileDragDrop) {
+      m_enableFileDrag = (value != 0);
+      LOG_INFO("file drag and drop is %s", m_enableFileDrag ? "enabled" : "disabled");
     } else if (id == kOptionClipboardSharingSize) {
       if (value <= 0) {
         m_maximumClipboardSize = 0;
@@ -1273,10 +1367,23 @@ void Server::handleWheelEvent(const Event &event)
   onMouseWheel(info->m_xDelta, info->m_yDelta);
 }
 
+void Server::handleTrackpadEvent(const Event &event)
+{
+  const auto *data = dynamic_cast<const deskflow::TrackpadEventData *>(event.getDataObject());
+  if (data == nullptr || m_active == nullptr || m_active == m_primaryClient) {
+    return;
+  }
+  if (m_active->supportsTrackpadEvents()) {
+    m_active->trackpadEvent(data->m_bytes);
+  } else if (data->m_wheel.has_value() && (data->m_wheel->x != 0 || data->m_wheel->y != 0)) {
+    onMouseWheel(data->m_wheel->x, data->m_wheel->y);
+  }
+}
+
 void Server::handleSwitchWaitTimeout()
 {
   // ignore if mouse is locked to computer
-  if (isLockedToComputer()) {
+  if (!canHandOverFileDrag(m_switchComputer) && isLockedToComputer()) {
     LOG_VERBOSE("locked to computer");
     stopSwitch();
     return;
@@ -1290,6 +1397,12 @@ void Server::handleClientDisconnected(BaseClientProxy *client)
 {
   // client has disconnected.  it might be an old client or an
   // active client.  we don't care so just handle it both ways.
+  if (auto *remote = dynamic_cast<deskflow::filedrag::FileDragRemote *>(client)) {
+    m_fileDragReceiver->remoteGone(remote);
+  }
+  if (m_fileDragReturnFrom == client) {
+    m_fileDragReturnFrom = nullptr;
+  }
   removeActiveClient(client);
   removeOldClient(client);
 
@@ -1603,6 +1716,11 @@ void Server::onMouseUp(ButtonID id)
 {
   LOG_VERBOSE("onMouseUp id=%d", id);
   assert(m_active != nullptr);
+
+  if (id == kButtonLeft && m_active == m_primaryClient) {
+    // a drag coming back from a client ends when the button is released
+    m_fileDragReturnReleased = true;
+  }
 
   // relay
   m_active->mouseUp(id);

@@ -30,6 +30,7 @@ Q_SIGNALS:
   void configFileChanged(const QString &configFile);
   void startProcessRequested();
   void stopProcessRequested();
+  void reloadConfigRequested();
   void clearSettingsRequested();
 
 protected:

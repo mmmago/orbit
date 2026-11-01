@@ -43,6 +43,12 @@ public:
   void start(std::optional<ProcessMode> processMode = std::nullopt);
   void stop(std::optional<ProcessMode> processMode = std::nullopt);
   void restart();
+  /**
+   * Applies changed options (and the server's arrangement) to the running
+   * core without disconnecting; restarts it when there is no ipc connection
+   * to the core yet.
+   */
+  void reloadConfig();
   void cleanup();
   void applyLogLevel();
   void clearSettings();

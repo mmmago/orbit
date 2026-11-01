@@ -13,10 +13,13 @@
 #include "base/Event.h"
 #include "base/EventTypes.h"
 #include "common/Enums.h"
+#include "deskflow/FileDrag.h"
+#include "deskflow/FileDragReceiver.h"
 #include "deskflow/IClipboard.h"
 #include "net/NetworkAddress.h"
 
 #include <climits>
+#include <memory>
 #include <string>
 
 class Event;
@@ -190,7 +193,21 @@ public:
   void setOptions(const OptionsList &options) override;
   std::string getName() const override;
 
+  //! Replay a serialized trackpad gesture event (called by ServerProxy1_10)
+  void trackpadEvent(const std::string &bytes);
+
+  //! @name file drag and drop (called by ServerProxy1_9)
+  //@{
+  void fileDragBegin(uint32_t transferId, const std::string &manifest);
+  void fileDragData(uint32_t transferId, uint32_t index, const std::string &data);
+  void fileDragFileEnd(uint32_t transferId, uint32_t index);
+  void fileDragCancelled(uint32_t transferId, uint8_t reason);
+  //! The server asks for the files being dragged here (the cursor goes back to it).
+  void fileDragHandOver();
+  //@}
+
 private:
+  void updateFileDragState(bool force);
   void saveRelativeRestorePosition();
   void sendClipboard(ClipboardID);
   void sendEvent(deskflow::EventTypes);
@@ -238,6 +255,15 @@ private:
   IEventQueue *m_events = nullptr;
   bool m_useSecureNetwork = false;
   bool m_enableClipboard = true;
+
+  // incoming file drag
+  // files dragged from the server to here
+  std::unique_ptr<deskflow::filedrag::FileDragReceiver> m_fileDragReceiver;
+  bool m_mouseUpSinceEnter = false;
+  // files dragged from here to the server: reported while the left button is held
+  bool m_leftButtonDown = false;
+  bool m_fileDragReported = false;
+  double m_fileDragCheckedAt = 0;
   bool m_relativeMouseMoves = false;
   bool m_hasRelativeRestorePosition = false;
   int32_t m_relativeRestoreX = 0;

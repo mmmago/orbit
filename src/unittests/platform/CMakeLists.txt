@@ -11,10 +11,31 @@ if (WIN32)
   )
 elseif(APPLE)
   create_test(
-    NAME OSXClipboardTests
+    NAME OSXClipboardMonitorTests
     DEPENDS platform
     LIBS base arch
+    SOURCE OSXClipboardMonitorTests.cpp
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/src/lib/platform"
+  )
+  create_test(
+    NAME OSXClipboardTests
+    DEPENDS platform
+    LIBS base arch Qt6::Gui
     SOURCE OSXClipboardTests.cpp
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/src/lib/platform"
+  )
+  create_test(
+    NAME OSXTrackpadGestureTests
+    DEPENDS platform
+    LIBS base arch
+    SOURCE OSXTrackpadGestureTests.cpp
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/src/lib/platform"
+  )
+  create_test(
+    NAME OSXTrackpadZoomTests
+    DEPENDS platform
+    LIBS base arch
+    SOURCE OSXTrackpadZoomTests.cpp
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/src/lib/platform"
   )
   create_test(

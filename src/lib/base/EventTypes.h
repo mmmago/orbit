@@ -184,6 +184,10 @@ enum class EventTypes : uint32_t
   /// This event is sent when mouse wheel is rotated. Event data is a pointer to WheelInfo.
   PrimaryComputerWheel,
 
+  /// A trackpad gesture event was made while a secondary is active.
+  /// Event data object is a deskflow::TrackpadEventData.
+  PrimaryComputerTrackpadEvent,
+
   /// This event is sent when screensaver is activated.
   PrimaryScreenSaverActivated,
 
@@ -232,6 +236,26 @@ enum class EventTypes : uint32_t
 
   /// This event is sent whenever a clipboard chunk is transferred.
   ClipboardSending,
+
+  /// The window for an incoming file drag is in place (macOS, internal to the platform computer).
+  FileDragWindowReady,
+
+  /// The drag window was parked at the point about to be pressed (macOS, internal).
+  FileDragWindowPlaced,
+
+  /// An incoming file drag ended. The data is a pointer to a FileDragEndedInfo.
+  FileDragEnded,
+
+  /// The file reading worker of an outgoing file drag has data (or an error) ready.
+  FileDragDataReady,
+
+  /// An item of an incoming drag was handed to the drop target (or failed to be).
+  /// The data is a pointer to a FileDragItemInfo.
+  FileDragDelivered,
+
+  /// The user cancelled an incoming transfer after the drop (Finder's cancel button).
+  /// The data is a pointer to a FileDragEndedInfo.
+  FileDragCancelRequested,
 
   /// Start libei
   EIConnected,

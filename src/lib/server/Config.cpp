@@ -551,9 +551,14 @@ void Config::readSectionOptions(ConfigReadContext &s)
   );
   addOption("", kOptionDisableLockToComputer, Settings::value(Settings::Server::DisableLockToComputer).toBool());
   addOption("", kOptionRelativeMouseMoves, Settings::value(Settings::Server::RelativeMouseMoves).toBool());
+  addOption("", kOptionTrackpadGestures, Settings::value(Settings::Server::TrackpadGestures).toBool());
   addOption("", kOptionWin32KeepForeground, Settings::value(Settings::Server::Win32KeepForeground).toBool());
   addOption("", kOptionClipboardSharing, Settings::value(Settings::Server::EnableClipboard).toBool());
-  addOption("", kOptionClipboardSharingSize, Settings::value(Settings::Server::ClipboardSize).toUInt() * 1024);
+  // Orbit shares text only through the clipboard (files go by drag and drop),
+  // so the limit is fixed at 5 MiB
+  constexpr unsigned kClipboardLimitMiB = 5;
+  addOption("", kOptionClipboardSharingSize, kClipboardLimitMiB * 1024);
+  addOption("", kOptionFileDragDrop, Settings::value(Settings::Server::EnableFileDragDrop).toBool());
 
   if (const auto address = Settings::value(Settings::Core::Interface).toString(); !address.isEmpty()) {
     m_deskflowAddress = NetworkAddress(address.toStdString(), Settings::value(Settings::Core::Port).toInt());

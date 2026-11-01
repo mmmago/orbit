@@ -1,0 +1,16 @@
+<svg version="1.1" viewBox="281 283 688 688" xmlns="http://www.w3.org/2000/svg">
+  <!-- SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux -->
+  <!-- SPDX-License-Identifier: GPL-2.0-only -->
+  <defs>
+    <style type="text/css" id="current-color-scheme">.ColorScheme-Text { color: #fcfcfc; } </style>
+  </defs>
+  <g class="ColorScheme-Text" fill="none" stroke="currentColor" stroke-linecap="round">
+    <circle cx="625" cy="627" r="105" stroke-width="56"/>
+    <circle cx="812" cy="415" r="66" stroke-width="50"/>
+    <circle cx="438" cy="839" r="66" stroke-width="50"/>
+    <path d="M689 325.7 A308 308 0 0 0 363.8 790.2" stroke-width="58" stroke-linecap="butt"/>
+    <circle cx="689" cy="325.7" r="29" stroke="none" fill="currentColor"/>
+    <path d="M561 928.3 A308 308 0 0 0 886.2 463.8" stroke-width="58" stroke-linecap="butt"/>
+    <circle cx="561" cy="928.3" r="29" stroke="none" fill="currentColor"/>
+  </g>
+</svg>

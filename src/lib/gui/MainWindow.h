@@ -16,6 +16,7 @@
 #include <QUrl>
 
 #include "VersionChecker.h"
+#include "common/Constants.h"
 #include "config/ServerConfig.h"
 #include "gui/core/CoreProcess.h"
 #include "gui/core/NetworkMonitor.h"
@@ -31,6 +32,13 @@ class QLocalServer;
 
 class DeskflowApplication;
 class LogDock;
+class ModeCard;
+class QComboBox;
+class OrbitPanel;
+namespace orbit::discovery {
+class Advertiser;
+class Browser;
+} // namespace orbit::discovery
 class StatusBar;
 
 namespace Ui {
@@ -99,6 +107,16 @@ private:
   void openGetNewVersionUrl() const;
   void openSettings();
   void startCore();
+  void updateServerPicker();
+  void serverPicked(int index);
+  void updateAdvertising();
+  void updateConfigureButtons();
+  void startCoreIfReady();
+  void tryAutoStart();
+  void updatePanel();
+  void sendPanelState();
+  void handlePanelAction(const QString &name, const QJsonObject &arguments);
+  void connectToServer(const QString &address);
   void stopCore();
   bool saveServerConfig();
   void resetCore();
@@ -119,6 +137,8 @@ private:
   void handleUnrecognisedClient(const QString &clientName);
   void handleConnectionRefused(deskflow::core::ConnectionRefusal reason);
   void handlePeerFingerprint(const QString &fingerprint);
+  //! Asks whether to trust a computer connecting for the first time
+  bool askToTrustPeer(bool isClient, const QString &peerName);
   void handleMissingKeyboardLayouts(const QString &layouts);
   void closeEvent(QCloseEvent *event) override;
   bool maybeHideToTray();
@@ -163,7 +183,7 @@ private:
 
   void serverClientsChanged(const QStringList &clients);
 
-  inline static const auto m_guiSocketName = QStringLiteral("deskflow-gui");
+  inline static const auto m_guiSocketName = QStringLiteral("%1-gui").arg(kAppId);
   inline static const auto m_nameRegEx = QRegularExpression(QStringLiteral("^[\\w\\-_\\.]{0,255}$"));
 
   VersionChecker m_versionChecker;
@@ -183,6 +203,20 @@ private:
   deskflow::gui::ipc::DaemonIpcClient *m_daemonIpcClient = nullptr;
 
   LogDock *m_logDock;
+  ModeCard *m_serverCard = nullptr;
+  ModeCard *m_clientCard = nullptr;
+
+  // Bonjour: a server advertises itself, a client lists the servers it finds
+  orbit::discovery::Advertiser *m_advertiser = nullptr;
+  orbit::discovery::Browser *m_browser = nullptr;
+  QComboBox *m_serverPicker = nullptr;
+  bool m_manualHostEntry = false;
+  bool m_startWhenStopped = false; // start the core once the previous one has stopped
+
+  // the menu bar panel holds the whole interface; this window stays hidden
+  OrbitPanel *m_panel = nullptr;
+  QStringList m_connectedClients;
+  bool m_panelUpdatePending = false;
   StatusBar *m_statusBar = nullptr;
 
   // Window Menu

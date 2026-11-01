@@ -5,6 +5,7 @@
  */
 
 #include "StatusBar.h"
+#include "OrbitStatusIcon.h"
 #include "common/Constants.h"
 #include "common/Settings.h"
 
@@ -17,6 +18,7 @@ StatusBar::StatusBar(QWidget *parent)
     : QStatusBar{parent},
       m_btnFingerprint{new QPushButton(this)},
       m_lblSecurityIcon{new QLabel(this)},
+      m_statusIcon{new OrbitStatusIcon(this)},
       m_lblStatus{new QLabel(this)},
       m_btnUpdate{new QPushButton(this)},
       m_retryTimer{new QTimer(this)}
@@ -30,14 +32,18 @@ StatusBar::StatusBar(QWidget *parent)
   m_btnFingerprint->setFixedSize(btnSize);
   m_btnFingerprint->setIconSize(iconSize);
   insertPermanentWidget(0, m_btnFingerprint);
+  m_btnFingerprint->setVisible(false); // not shown in Orbit
   connect(m_btnFingerprint, &QPushButton::clicked, this, &StatusBar::requestShowMyFingerprints);
 
   m_lblSecurityIcon->setVisible(false);
   m_lblSecurityIcon->setFixedSize(iconSize);
   m_lblSecurityIcon->setScaledContents(true);
-  insertPermanentWidget(1, m_lblSecurityIcon);
 
-  m_lblStatus->setText(tr("%1 is not running").arg(kAppName));
+  // the Orbit logo shows the connection state instead of the security shield
+  insertPermanentWidget(1, m_statusIcon);
+  connect(m_statusIcon, &OrbitStatusIcon::stateChanged, this, &StatusBar::statusChanged);
+
+  setStatusText(tr("%1 is not running").arg(kAppName));
   insertPermanentWidget(2, m_lblStatus, 1);
 
   m_btnUpdate->setVisible(false);
@@ -60,29 +66,32 @@ StatusBar::StatusBar(QWidget *parent)
 // clang-format off
 void StatusBar::setStatus(ConnectionState connectionState, ProcessState processState, bool isServer)
 {
+  using IconState = OrbitStatusIcon::State;
   if (m_retryTimer->isActive())
     m_retryTimer->stop();
   setSecurityIconVisible(false);
+  m_connectedAsClient = false;
+  m_statusIcon->setState(IconState::Idle);
   switch (processState) {
     using enum ProcessState;
     case Starting:
       m_connectionInterval = -1;
-      m_lblStatus->setText(tr("%1 is starting...").arg(kAppName));
+      setStatusText(tr("%1 is starting...").arg(kAppName));
       break;
 
     case RetryPending:
       m_connectionInterval = -1;
-      m_lblStatus->setText(tr("%1 will retry in a moment...").arg(kAppName));
+      setStatusText(tr("%1 will retry in a moment...").arg(kAppName));
       break;
 
     case Stopping:
         m_connectionInterval = -1;
-      m_lblStatus->setText(tr("%1 is stopping...").arg(kAppName));
+      setStatusText(tr("%1 is stopping...").arg(kAppName));
       break;
 
     case Stopped:
       m_connectionInterval = -1;
-      m_lblStatus->setText(tr("%1 is not running").arg(kAppName));
+      setStatusText(tr("%1 is not running").arg(kAppName));
       break;
 
     case Started: {
@@ -92,12 +101,14 @@ void StatusBar::setStatus(ConnectionState connectionState, ProcessState processS
         case Listening: {
           if (isServer) {
             setSecurityIconVisible(true);
-            m_lblStatus->setText(tr("%1 is waiting for clients").arg(kAppName));
+            m_statusIcon->setState(IconState::Waiting);
+            setStatusText(tr("%1 is waiting for clients").arg(kAppName));
           }
           break;
         }
 
         case Connecting:
+          m_statusIcon->setState(IconState::Connecting);
           updateTimerLabel();
           if (Settings::value(Settings::Client::DynamicConnectionRetry).toBool())
             m_retryTimer->start();
@@ -106,15 +117,16 @@ void StatusBar::setStatus(ConnectionState connectionState, ProcessState processS
         case Connected: {
           setSecurityIconVisible(true);
           m_connectionInterval = -1;
+          m_statusIcon->setState(IconState::Connected);
           if (!isServer) {
-            m_lblStatus->setText(tr("%1 is connected as client of %2")
-                                     .arg(kAppName, Settings::value(Settings::Client::RemoteHost).toString()));
+            m_connectedAsClient = true;
+            showConnectedToServer();
           }
           break;
         }
 
         case Disconnected:
-          m_lblStatus->setText(tr("%1 is disconnected").arg(kAppName));
+          setStatusText(tr("%1 is disconnected").arg(kAppName));
           m_connectionInterval = -1;
           break;
       }
@@ -125,19 +137,20 @@ void StatusBar::setStatus(ConnectionState connectionState, ProcessState processS
 void StatusBar::setServerClients(const QStringList &clients)
 {
   if (clients.isEmpty()) {
-    m_lblStatus->setText(tr("%1 is waiting for clients").arg(kAppName));
+    m_statusIcon->setState(OrbitStatusIcon::State::Waiting);
+    setStatusText(tr("%1 is waiting for clients").arg(kAppName));
     m_lblStatus->setToolTip("");
     return;
   }
+  m_statusIcon->setState(OrbitStatusIcon::State::Connected);
   const auto clientCount = static_cast<int>(clients.size());
   static const auto comma = QStringLiteral(", ");
   static const auto newLine = QStringLiteral("\n");
   //: Shown when in server mode and at least 1 client is connected
   //: %1 is replaced by the app name
   //: %2 will be a list of at least one client
-  //: %n will be replaced by the number of clients (n is >=1), it is not requried to be in the translation
-  const auto text = tr("%1 is connected, with %n client(s): %2", "", clientCount).arg(kAppName, clients.join(comma));
-  m_lblStatus->setText(text);
+  const auto text = tr("%1 is connected to %2").arg(kAppName, clients.join(comma));
+  setStatusText(text);
 
   const auto toolTipString = clientCount == 1 ? "" : tr("Clients:\n %1").arg(clients.join(newLine));
   m_lblStatus->setToolTip(toolTipString);
@@ -145,7 +158,39 @@ void StatusBar::setServerClients(const QStringList &clients)
 
 void StatusBar::setSecurityIconVisible(bool visible)
 {
-  m_lblSecurityIcon->setVisible(visible);
+  // the shield is not shown; the encryption state is in the logo's tooltip
+  m_securityShown = visible;
+}
+
+void StatusBar::setStatusText(const QString &text)
+{
+  m_lblStatus->setText(text);
+  Q_EMIT statusChanged();
+}
+
+QString StatusBar::statusText() const
+{
+  return m_lblStatus->text();
+}
+
+OrbitStatusIcon::State StatusBar::statusIconState() const
+{
+  return m_statusIcon->state();
+}
+
+void StatusBar::setServerName(const QString &name)
+{
+  m_serverName = name;
+  if (m_connectedAsClient)
+    showConnectedToServer();
+}
+
+void StatusBar::showConnectedToServer()
+{
+  const auto name =
+      m_serverName.isEmpty() ? Settings::value(Settings::Client::RemoteHost).toString() : m_serverName;
+  //: Shown when in client mode and connected; %1 is the app name, %2 the server
+  setStatusText(tr("%1 is connected to %2").arg(kAppName, name));
 }
 
 void StatusBar::setConnectionInterval(int newInterval)
@@ -155,12 +200,13 @@ void StatusBar::setConnectionInterval(int newInterval)
 
 bool StatusBar::securityIconVisible() const
 {
-  return m_lblSecurityIcon->isVisible();
+  return m_securityShown;
 }
 
-void StatusBar::setBtnFingerprintVisible(bool visible)
+void StatusBar::setBtnFingerprintVisible(bool)
 {
-  m_btnFingerprint->setVisible(visible);
+  // Orbit does not show the local fingerprint button
+  m_btnFingerprint->setVisible(false);
 }
 
 void StatusBar::updateFound(const QString &version)
@@ -192,7 +238,7 @@ void StatusBar::updateTimerLabel()
     text = tr("%1 is waiting %2 seconds before the next retry").arg(kAppName, QString::number(m_connectionInterval));
     m_connectionInterval--;
   }
-  m_lblStatus->setText(text);
+  setStatusText(text);
 }
 
 void StatusBar::setSecurityIcon(bool encrypted)
@@ -208,4 +254,5 @@ void StatusBar::setSecurityLevel(const QString &securityLevel)
   m_securityLevel = securityLevel;
   const auto txt = m_encrypted ? tr("%1 Encryption Enabled").arg(m_securityLevel) : tr("Encryption Disabled");
   m_lblSecurityIcon->setToolTip(txt);
+  m_statusIcon->setToolTip(txt);
 }

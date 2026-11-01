@@ -91,19 +91,19 @@ endif()
 
 #Define our project
 project(
-  deskflow
+  orbit
   VERSION "${DESKFLOW_VERSION_MAJOR}.${DESKFLOW_VERSION_MINOR}.${DESKFLOW_VERSION_PATCH}.${DESKFLOW_VERSION_TWEAK}"
-  DESCRIPTION "Keyboard and mouse sharing utility"
-  HOMEPAGE_URL "https://deskflow.org"
+  DESCRIPTION "Keyboard, mouse, trackpad and file sharing between Macs"
+  HOMEPAGE_URL "https://github.com/mmmago/orbit"
   LANGUAGES C CXX
 )
 
 # Define Additional "PROJECT" vars for packaging and metadata
-set(CMAKE_PROJECT_PROPER_NAME "Deskflow")
-set(CMAKE_PROJECT_VENDOR "${CMAKE_PROJECT_PROPER_NAME} Devs")
-set(CMAKE_PROJECT_COPYRIGHT "(C) 2024-2026 ${CMAKE_PROJECT_VENDOR}")
-set(CMAKE_PROJECT_CONTACT "${CMAKE_PROJECT_PROPER_NAME} <maintainers@deskflow.org>")
-set(CMAKE_PROJECT_REV_FQDN "org.deskflow.deskflow")
+set(CMAKE_PROJECT_PROPER_NAME "Orbit")
+set(CMAKE_PROJECT_VENDOR "Lucas Magotteaux")
+set(CMAKE_PROJECT_COPYRIGHT "(C) 2026 ${CMAKE_PROJECT_VENDOR}")
+set(CMAKE_PROJECT_CONTACT "${CMAKE_PROJECT_VENDOR} <76073612+mmmago@users.noreply.github.com>")
+set(CMAKE_PROJECT_REV_FQDN "io.github.mmmago.orbit")
 
 #Unset the vars used in the project call
 unset(DESKFLOW_VERSION_MAJOR)
@@ -112,6 +112,20 @@ unset(DESKFLOW_VERSION_PATCH)
 unset(DESKFLOW_VERSION_TWEAK)
 
 message(STATUS "Building ${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}")
+
+# the menu bar panel is SwiftUI
+if(APPLE)
+  enable_language(Swift)
+  # link with the C++ linker even where Swift code is linked in: the Swift
+  # libraries come from macOS (see gui/panel)
+  set(CMAKE_Swift_LINKER_PREFERENCE_PROPAGATES FALSE)
+endif()
+
+# Orbit is macOS only. The Windows and Linux code inherited from Deskflow is
+# kept so upstream changes still merge, but it is not built or supported.
+if(NOT APPLE)
+  message(FATAL_ERROR "${CMAKE_PROJECT_PROPER_NAME} only builds on macOS. For other platforms, use Deskflow: https://github.com/deskflow/deskflow")
+endif()
 
 # Set lib versions
 set(REQUIRED_OPENSSL_VERSION 3.0)

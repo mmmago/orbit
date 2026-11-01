@@ -343,6 +343,10 @@ QVariant Settings::defaultValue(const QString &key)
   if (key == Core::Port)
     return 24800;
 
+  // a new install joins a server; making this computer the server is a choice
+  if (key == Core::CoreMode)
+    return Settings::CoreMode::Client;
+
   if (key == Core::ProcessMode) {
 #ifdef Q_OS_WIN
     if (!Settings::isPortableMode())
@@ -373,7 +377,7 @@ QVariant Settings::defaultValue(const QString &key)
     return 250;
 
   if (key == Server::ClipboardSize)
-    return 3; // 3 MiB
+    return 5; // 5 MiB
 
   return QVariant();
 }

@@ -66,6 +66,8 @@ protected:
   void setHeartbeat(int rate);
 
   void toggleRelativeMouseMoves(bool enabled);
+  void toggleTrackpadGestures(bool enabled);
+  void toggleFileDragDrop(bool enabled);
   void toggleProtocol();
 
   void toggleExternalConfig(bool enable = false);
@@ -110,6 +112,15 @@ private:
   int m_switchDoubleTap;
   uint m_clipboardSize;
   bool m_relativeMouseMoves;
+  bool m_trackpadGestures;
+  bool m_fileDragDrop = true;
+  class ArrangementView *m_arrangement = nullptr;
+  class QCheckBox *m_cbFileDragDrop = nullptr;
+  class QToolButton *m_btnAddComputer = nullptr;
+  class QToolButton *m_btnRemoveComputer = nullptr;
+  void setupOrbitPage();
+  void addComputerNextToServer();
+  void removeSelectedComputer();
   bool m_enableSwitchDelay;
   bool m_enableSwitchDoubleTap;
   bool m_originalServerConfigIsExternal;

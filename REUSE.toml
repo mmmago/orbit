@@ -42,6 +42,8 @@ path = [
  , "src/apps/res/icons/deskflow-**/apps/64/deskflow*.svg"
  , "src/apps/res/image/welcome.png"
  , "src/apps/res/Deskflow.icns"
+ , "src/apps/res/DeskflowMark@2x.png"
+ , "src/apps/res/DeskflowWordmark@2x.png"
  , "src/apps/res/deskflow.ico"
  , "src/apps/res/deskflow.qrc"
 ]

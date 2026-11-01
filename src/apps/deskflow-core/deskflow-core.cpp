@@ -110,7 +110,7 @@ int main(int argc, char **argv)
     sharedMemory.detach();
 
   if (!sharedMemory.create(1) && parser.singleInstanceOnly()) {
-    LOG_WARN("an instance of deskflow core is already running");
+    LOG_WARN("an instance of %s core is already running", kAppName);
     return s_exitDuplicate;
   }
 
@@ -125,6 +125,10 @@ int main(int argc, char **argv)
   QObject::connect(
       ipcServer, &deskflow::core::ipc::IpcServer::stopProcessRequested, coreApp, &App::quit, Qt::DirectConnection
   );
+  // like SIGHUP: the server reloads its configuration on its own thread
+  QObject::connect(ipcServer, &deskflow::core::ipc::IpcServer::reloadConfigRequested, &app, [&events] {
+    events.addEvent(Event(EventTypes::ServerAppReloadConfig, events.getSystemTarget()));
+  });
   ipcServer->listen();
 
   QThread coreThread;

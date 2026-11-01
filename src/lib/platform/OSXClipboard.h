@@ -19,7 +19,7 @@ class IOSXClipboardConverter;
 class OSXClipboard : public IClipboard
 {
 public:
-  OSXClipboard();
+  explicit OSXClipboard(CFStringRef name = kPasteboardClipboard);
   virtual ~OSXClipboard();
 
   //! Test if clipboard is owned by deskflow
@@ -38,6 +38,7 @@ public:
 
 private:
   void clearConverters();
+  bool canRead() const;
 
 private:
   using ConverterList = std::vector<IOSXClipboardConverter *>;

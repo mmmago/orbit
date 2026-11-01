@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "deskflow/FileDragReceiver.h"
+
 #include "base/Event.h"
 #include "base/Stopwatch.h"
 #include "common/NetworkProtocol.h"
@@ -218,6 +220,21 @@ private:
   // according to this object or the primary client.
   bool isLockedToComputer() const;
 
+  // true if the only reason the cursor is locked is a file drag that can be
+  // handed over to \p dst; remembers the dragged files for switchComputer()
+  bool canHandOverFileDrag(BaseClientProxy *dst);
+
+public:
+  //! Receiver for files dragged from a client to this computer.
+  deskflow::filedrag::FileDragReceiver &fileDragReceiver()
+  {
+    return *m_fileDragReceiver;
+  }
+
+  //! A client sent the manifest of files dragged from it to this computer.
+  void fileDragIncoming(deskflow::filedrag::FileDragRemote *remote, uint32_t transferId, const std::string &manifest);
+
+private:
   // returns the jump zone of the client
   int32_t getJumpZoneSize(const BaseClientProxy *) const;
 
@@ -315,6 +332,7 @@ private:
   void handleMotionPrimaryEvent(const Event &event);
   void handleMotionSecondaryEvent(const Event &event);
   void handleWheelEvent(const Event &event);
+  void handleTrackpadEvent(const Event &event);
   void handleSwitchWaitTimeout();
   void handleClientDisconnected(BaseClientProxy *client);
   void handleClientCloseTimeout(BaseClientProxy *client);
@@ -468,4 +486,14 @@ private:
   bool m_defaultLockToComputerState = false;
   bool m_disableLockToComputer = false;
   bool m_enableClipboard = true;
+
+  // file drag and drop
+  bool m_enableFileDrag = true;
+  std::vector<std::string> m_fileDragPaths;
+  // client -> server: the client the drag comes back from (set when the
+  // switch is allowed), and whether we wait for its files after the switch
+  BaseClientProxy *m_fileDragReturnFrom = nullptr;
+  bool m_fileDragReturnExpected = false;
+  bool m_fileDragReturnReleased = false;
+  std::unique_ptr<deskflow::filedrag::FileDragReceiver> m_fileDragReceiver;
 };

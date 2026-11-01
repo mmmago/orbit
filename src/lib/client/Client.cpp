@@ -14,6 +14,8 @@
 #include "client/ServerProxy.h"
 #include "client/ServerProxy1_7.h"
 #include "client/ServerProxy1_8.h"
+#include "client/ServerProxy1_9.h"
+#include "client/ServerProxy1_10.h"
 #include "common/NetworkProtocol.h"
 #include "common/Settings.h"
 #include "deskflow/Clipboard.h"
@@ -224,8 +226,13 @@ void Client::enter(int32_t xAbs, int32_t yAbs, uint32_t, KeyModifierMask mask, b
     yAbs = m_relativeRestoreY;
     LOG_VERBOSE("using relative restore position: %d,%d", xAbs, yAbs);
   }
+  m_mouseUpSinceEnter = false;
   m_computer->mouseMove(xAbs, yAbs);
   m_computer->enter(mask);
+
+  if (m_fileDragReceiver && m_fileDragReceiver->startPending()) {
+    m_fileDragReceiver->startDrag();
+  }
 }
 
 bool Client::leave()
@@ -285,17 +292,29 @@ void Client::keyUp(KeyID id, KeyModifierMask mask, KeyButton button)
 
 void Client::mouseDown(ButtonID id)
 {
+  if (id == kButtonLeft) {
+    m_leftButtonDown = true;
+    m_fileDragCheckedAt = 0;
+  }
   m_computer->mouseDown(id);
 }
 
 void Client::mouseUp(ButtonID id)
 {
+  m_mouseUpSinceEnter = true;
   m_computer->mouseUp(id);
+  if (id == kButtonLeft) {
+    m_leftButtonDown = false;
+    updateFileDragState(true);
+  }
 }
 
 void Client::mouseMove(int32_t x, int32_t y)
 {
   m_computer->mouseMove(x, y);
+  if (m_leftButtonDown) {
+    updateFileDragState(false);
+  }
 }
 
 void Client::mouseRelativeMove(int32_t dx, int32_t dy)
@@ -483,6 +502,12 @@ bool Client::setupComputer(int16_t protocolMinor)
   case 8:
     m_server = new ServerProxy1_8(this, m_stream, m_events);
     break;
+  case 9:
+    m_server = new ServerProxy1_9(this, m_stream, m_events);
+    break;
+  case 10:
+    m_server = new ServerProxy1_10(this, m_stream, m_events);
+    break;
   default:
     break;
   }
@@ -494,6 +519,7 @@ bool Client::setupComputer(int16_t protocolMinor)
     m_events->addHandler(EventTypes::ClipboardGrabbed, getEventTarget(), [this](const auto &e) {
       handleClipboardGrabbed(e);
     });
+    m_fileDragReceiver = std::make_unique<deskflow::filedrag::FileDragReceiver>(m_events, m_computer);
   }
   return m_server != nullptr;
 }
@@ -546,6 +572,9 @@ void Client::cleanupComputer()
     }
     m_events->removeHandler(EventTypes::ComputerShapeChanged, getEventTarget());
     m_events->removeHandler(EventTypes::ClipboardGrabbed, getEventTarget());
+    m_fileDragReceiver.reset();
+    m_leftButtonDown = false;
+    m_fileDragReported = false;
     delete m_server;
     m_server = nullptr;
   }
@@ -766,4 +795,102 @@ void Client::bindNetworkInterface(IDataSocket *socket) const
   bindAddress.resolve();
 
   socket->bind(bindAddress);
+}
+
+void Client::trackpadEvent(const std::string &bytes)
+{
+  m_computer->trackpadEvent(bytes);
+}
+
+//
+// file drag and drop
+//
+
+using deskflow::filedrag::CancelReason;
+using deskflow::filedrag::FileDragReceiver;
+
+void Client::fileDragBegin(uint32_t transferId, const std::string &manifest)
+{
+  if (!m_fileDragReceiver) {
+    FileDragReceiver::refuse(transferId, m_server, CancelReason::Refused);
+    return;
+  }
+  // the manifest can arrive just after enter (the server builds it in the
+  // background); if the button was already released there is nothing to drag
+  if (m_active && m_mouseUpSinceEnter) {
+    LOG_INFO("file drag: button released before the drag could start");
+    FileDragReceiver::refuse(transferId, m_server, CancelReason::Dropped);
+    return;
+  }
+  // normally the server enters first and we start right away
+  if (m_fileDragReceiver->begin(transferId, manifest, m_server) && m_active) {
+    m_fileDragReceiver->startDrag();
+  }
+}
+
+void Client::fileDragData(uint32_t transferId, uint32_t index, const std::string &data)
+{
+  if (m_fileDragReceiver) {
+    m_fileDragReceiver->data(transferId, index, data);
+  }
+}
+
+void Client::fileDragFileEnd(uint32_t transferId, uint32_t index)
+{
+  if (m_fileDragReceiver) {
+    m_fileDragReceiver->fileEnd(transferId, index);
+  }
+}
+
+void Client::fileDragCancelled(uint32_t transferId, uint8_t reason)
+{
+  if (m_fileDragReceiver) {
+    m_fileDragReceiver->cancelled(transferId, reason);
+  }
+}
+
+void Client::updateFileDragState(bool force)
+{
+  if (m_server == nullptr) {
+    return;
+  }
+  // reading the drag pasteboard costs an IPC: at most a few times a second
+  const double now = Arch::time();
+  if (!force && now - m_fileDragCheckedAt < 0.15) {
+    return;
+  }
+  m_fileDragCheckedAt = now;
+
+  std::vector<std::string> paths;
+  const bool dragging = m_leftButtonDown && m_computer->getDraggedFiles(paths);
+  if (dragging != m_fileDragReported) {
+    m_fileDragReported = dragging;
+    if (dragging) {
+      LOG_INFO("file drag: dragging %zu item(s) here", paths.size());
+    }
+    m_server->sendFileDragState(dragging);
+  }
+}
+
+void Client::fileDragHandOver()
+{
+  std::vector<std::string> paths;
+  const bool dragging = m_leftButtonDown && m_computer->getDraggedFiles(paths);
+  m_fileDragReported = false;
+  if (!dragging) {
+    LOG_INFO("file drag: server asked for files, but no file drag is in progress");
+    if (m_server != nullptr) {
+      m_server->sendFileDragState(false);
+    }
+    return;
+  }
+
+  LOG_INFO("file drag: handing %zu item(s) over to the server", paths.size());
+  // end the drag here: cancel it, then release the button the server pressed
+  m_computer->cancelLocalDrag();
+  m_computer->mouseUp(kButtonLeft);
+  m_leftButtonDown = false;
+  if (m_server == nullptr || !m_server->startFileDrag(paths)) {
+    LOG_WARN("file drag: nothing could be sent");
+  }
 }

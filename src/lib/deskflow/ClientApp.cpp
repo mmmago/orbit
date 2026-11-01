@@ -325,12 +325,23 @@ int ClientApp::mainLoop()
   // start client, etc
   startNode();
 
+  // the gui asks for a reload (core ipc) when the client options change:
+  // apply them without disconnecting from the server
+  getEvents()->addHandler(EventTypes::ServerAppReloadConfig, getEvents()->getSystemTarget(), [this](const auto &) {
+    Settings::save(false); // read the settings the gui saved
+    if (m_clientComputer != nullptr) {
+      m_clientComputer->getPlatformComputer()->loadScrollSettings();
+    }
+    LOG_INFO("reloaded client options");
+  });
+
   // run event loop.  if startClient() failed we're supposed to retry
   // later.  the timer installed by startClient() will take care of
   // that.
   int exitCode = getEvents()->loop();
 
   // close down
+  getEvents()->removeHandler(EventTypes::ServerAppReloadConfig, getEvents()->getSystemTarget());
   LOG_DEBUG("stopping client");
   stopClient();
   LOG_INFO("stopped client");

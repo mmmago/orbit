@@ -14,6 +14,10 @@ private Q_SLOTS:
   // Test are run in order top to bottom
   void open();
   void singleFormat();
+  void localBitmap();
+  void ignoredClipboard_data();
+  void ignoredClipboard();
+  void localClipboardAfterIgnored();
   void formatConvert_UTF8();
 
 private:

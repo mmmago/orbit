@@ -56,6 +56,14 @@ public:
   QString configFile() const;
   bool useExternalConfig() const;
   void addClient(const QString &clientName);
+  //! Places this computer in the grid if it is not there yet, so the
+  //! arrangement shows it before any client connects
+  //! @return true when it was added
+  bool ensureServer();
+
+  //! Move the computer at grid index @p from to @p to, swapping it with the
+  //! computer there. @return false if an index is out of range
+  bool moveComputer(int from, int to);
 
 private:
   void recall();

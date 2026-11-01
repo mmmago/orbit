@@ -79,6 +79,43 @@ public:
   virtual void sendDragInfo(uint32_t fileCount, const char *info, size_t size) = 0;
   virtual void fileChunkSending(uint8_t mark, char *data, size_t dataSize) = 0;
   virtual std::string getSecureInputApp() const = 0;
+
+  //! True if this client can receive files dragged across the edge.
+  virtual bool supportsFileDrag() const
+  {
+    return false;
+  }
+
+  //! Announce a file drag (sent right before enter()) and start sending
+  //! the files. Returns false if nothing could be sent.
+  virtual bool startFileDrag(const std::vector<std::string> &paths)
+  {
+    return false;
+  }
+
+  //! True if the client reported that the user is dragging files on it.
+  virtual bool isDraggingFiles() const
+  {
+    return false;
+  }
+
+  //! Ask the client to cancel its local drag and send the dragged files.
+  virtual void requestFileDragHandOver()
+  {
+    // not supported
+  }
+
+  //! Relay a serialized trackpad gesture event of the primary (protocol 1.10+).
+  virtual void trackpadEvent(const std::string &bytes)
+  {
+    // not supported before 1.10
+  }
+
+  //! True if trackpadEvent() reaches the client
+  virtual bool supportsTrackpadEvents() const
+  {
+    return false;
+  }
   virtual void secureInputNotification(const std::string &app) const = 0;
   std::string getName() const override;
   virtual deskflow::IStream *getStream() const = 0;

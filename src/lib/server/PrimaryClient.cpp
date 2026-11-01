@@ -69,6 +69,16 @@ bool PrimaryClient::isLockedToComputer() const
   return m_computer->isLockedToComputer();
 }
 
+bool PrimaryClient::getDraggedFiles(std::vector<std::string> &paths) const
+{
+  return m_computer->getDraggedFiles(paths);
+}
+
+void PrimaryClient::cancelLocalDrag()
+{
+  m_computer->cancelLocalDrag();
+}
+
 void *PrimaryClient::getEventTarget() const
 {
   return m_computer->getEventTarget();

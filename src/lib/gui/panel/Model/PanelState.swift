@@ -1,0 +1,17 @@
+// SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
+// SPDX-License-Identifier: GPL-2.0-only WITH LicenseRef-OpenSSL-Exception
+
+/// Everything the panel shows, sent by Orbit as JSON whenever it changes
+struct PanelState: Codable, Equatable, Sendable {
+    var mode = CoreMode.none
+    var phase = ConnectionPhase.idle
+    var statusText = ""
+    /// The menu bar icon follows the connection state, like the status logo
+    var animatedMenuBarIcon = false
+    var server = ServerOptions()
+    var client = ClientOptions()
+    var servers: [FoundServer] = []
+    /// Address of the found server matching `client.host`, if any
+    var selectedServer: String?
+    var arrangement = Arrangement()
+}

@@ -2,6 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- menu bar app: no Dock icon, no app menu (the panel is the interface) -->
+	<key>LSUIElement</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
@@ -41,7 +44,12 @@
 
 	<!-- Local Lan Entitlements -->
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>This app uses local network permissions for communication between a Deskflow server and clients.</string>
+	<string>This app uses local network permissions for communication between an @CMAKE_PROJECT_PROPER_NAME@ server and clients.</string>
+	<!-- Bonjour: servers advertise, clients browse (see gui/OrbitDiscovery.h) -->
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_orbit._tcp</string>
+	</array>
 	<key>com.apple.security.networking.local</key>
 	<true/>
 

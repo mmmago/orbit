@@ -45,7 +45,7 @@ static const int16_t kProtocolMajorVersion = 1;
  * @note When incrementing the minor version, the Deskflow application version should also increment
  * @since Protocol version 1.0
  */
-static const int16_t kProtocolMinorVersion = 8;
+static const int16_t kProtocolMinorVersion = 10;
 
 /**
  * @brief Default TCP port for Deskflow connections
@@ -1095,7 +1095,129 @@ extern const char *const kMsgDFileTransfer;
  */
 extern const char *const kMsgDDragInfo;
 
+/**
+ * @brief File drag: begin
+ *
+ * **Message Code**: `"DGBN"`
+ * **Direction**: Primary → Secondary
+ * **Format**: `"DGBN%4i%s"`
+ * - `$1`: Transfer id
+ * - `$2`: Manifest (see deskflow::filedrag::Manifest::serialize)
+ *
+ * Sent right before kMsgCEnter when the user drags files across the edge.
+ * File contents follow in kMsgDFileDragData messages, file by file, in order.
+ *
+ * @since Protocol version 1.9
+ */
+extern const char *const kMsgDFileDragBegin;
+
+/**
+ * @brief File drag: data chunk
+ *
+ * **Message Code**: `"DGDT"`
+ * **Format**: `"DGDT%4i%4i%s"` (transfer id, file index, bytes)
+ *
+ * @since Protocol version 1.9
+ */
+extern const char *const kMsgDFileDragData;
+
+/**
+ * @brief File drag: file complete
+ *
+ * **Message Code**: `"DGFE"`
+ * **Format**: `"DGFE%4i%4i"` (transfer id, file index)
+ *
+ * @since Protocol version 1.9
+ */
+extern const char *const kMsgDFileDragFileEnd;
+
+/**
+ * @brief File drag: acknowledge received chunks
+ *
+ * **Message Code**: `"DGAK"`
+ * **Direction**: Secondary → Primary
+ * **Format**: `"DGAK%4i%4i"` (transfer id, total chunks received)
+ *
+ * The sender keeps at most deskflow::filedrag::kWindowChunks unacknowledged
+ * chunks in flight so file data never delays input events for long.
+ *
+ * @since Protocol version 1.9
+ */
+extern const char *const kMsgDFileDragAck;
+
+/**
+ * @brief File drag: cancel
+ *
+ * **Message Code**: `"DGCN"`
+ * **Direction**: Primary ↔ Secondary
+ * **Format**: `"DGCN%4i%1i"` (transfer id, deskflow::filedrag::CancelReason)
+ *
+ * @since Protocol version 1.9
+ */
+extern const char *const kMsgDFileDragCancel;
+
+/**
+ * @brief File drag: client drag state
+ *
+ * **Message Code**: `"DGST"`
+ * **Direction**: Secondary → Primary
+ * **Format**: `"DGST%1i"` (1 = the user is dragging files on the client, 0 = not any more)
+ *
+ * Lets the server allow the cursor to leave the client while the mouse
+ * button is held, so the drag can continue on the server.
+ *
+ * @since Protocol version 1.9
+ */
+extern const char *const kMsgDFileDragState;
+
+/**
+ * @brief File drag: hand over
+ *
+ * **Message Code**: `"DGHO"`
+ * **Direction**: Primary → Secondary
+ * **Format**: `"DGHO"`
+ *
+ * Sent right before leaving a client that reported a file drag: the client
+ * cancels its local drag, releases the button and sends the dragged files
+ * with kMsgDFileDragBegin and the following messages (which therefore flow
+ * in both directions; transfer ids from the client start at 0x80000000).
+ *
+ * @since Protocol version 1.9
+ */
+extern const char *const kMsgCFileDragHandOver;
+
 /** @} */ // end of protocol_files group
+
+/**
+ * @defgroup protocol_gestures Trackpad Gesture Messages
+ * @brief Forwarding of system trackpad gestures
+ * @{
+ */
+
+/**
+ * @brief Trackpad gesture event
+ *
+ * **Message Code**: `"DTPE"`
+ * **Direction**: Primary → Secondary
+ * **Format**: `"DTPE%s"`
+ * **Parameters**:
+ * - `$1`: the event as serialized by the primary's platform (macOS:
+ *   CGEventCreateData)
+ *
+ * Sent for each event of a trackpad gesture made on the primary while a
+ * secondary is active: dock swipes (Spaces, Mission Control, App Exposé,
+ * Launchpad), application pinch, rotation, smart zoom (two-finger
+ * double-tap), the Notification Center edge swipe, and trackpad scrolls with
+ * their scroll and momentum phases (smooth scrolling, rubber-banding and
+ * two-finger swipes between pages). A secondary on the same platform posts it
+ * unchanged; others ignore it. A secondary older than 1.10 gets the scrolls
+ * as ordinary wheel messages instead.
+ *
+ * @since Protocol version 1.10
+ */
+extern const char *const kMsgDTrackpadEvent;
+
+/** @} */ // end of protocol_gestures group
 
 /**
  * @defgroup protocol_system System Messages

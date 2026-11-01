@@ -1,0 +1,11 @@
+// SPDX-FileCopyrightText: (C) 2026 Lucas Magotteaux
+// SPDX-License-Identifier: GPL-2.0-only WITH LicenseRef-OpenSSL-Exception
+
+/// An Orbit server found on the network with Bonjour
+struct FoundServer: Codable, Identifiable, Equatable, Sendable {
+    var name: String
+    var address: String
+    var detail: String
+
+    var id: String { address }
+}

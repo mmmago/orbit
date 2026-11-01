@@ -22,6 +22,13 @@ private Q_SLOTS:
   void keyRepeat();
   void keyUp_data();
   void keyUp();
+  void fileDragRespectsWindowAndAcks();
+  void fileDragStopsOnCancel();
+  void fileDragUnreadableFileCancels();
+  void fileDragSendsFolders();
+  void fileDragClientStateAndHandOver();
+  void fileDragParallelTransfersTakeTurns();
+  void trackpadEventMessage();
 
 private:
   Log m_log;

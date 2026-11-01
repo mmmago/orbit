@@ -617,6 +617,7 @@ bool SecureSocket::verifyCertFingerprint(const QString &FingerprintDatabasePath)
 {
   const auto cert = SSL_get_peer_certificate(m_ssl->m_ssl);
   const auto sha256 = deskflow::sslCertFingerprint(cert, QCryptographicHash::Sha256);
+  const auto peerName = deskflow::sslCertComputerName(cert);
 
   if (cert)
     X509_free(cert);
@@ -626,7 +627,8 @@ bool SecureSocket::verifyCertFingerprint(const QString &FingerprintDatabasePath)
 
   const auto fingerprint = deskflow::formatSSLFingerprint(sha256.data, false);
   LOG_DEBUG("peer fingerprint: %s", qPrintable(fingerprint));
-  ipcSendToClient("peerFingerprint", fingerprint);
+  // the gui asks whether to trust the peer by its name: "<fingerprint> <name>"
+  ipcSendToClient("peerFingerprint", peerName.isEmpty() ? fingerprint : fingerprint + ' ' + peerName);
 
   QFile file(FingerprintDatabasePath);
 

@@ -96,6 +96,18 @@ public:
   */
   bool isLockedToComputer() const;
 
+  //! Paths of files the user is dragging on this computer, if any.
+  bool getDraggedFiles(std::vector<std::string> &paths) const;
+
+  //! Cancel the local file drag before switching to another computer.
+  void cancelLocalDrag();
+
+  //! The local computer (used to start incoming file drags).
+  deskflow::Computer *getComputer() const
+  {
+    return m_computer;
+  }
+
   //@}
 
   // FIXME -- these probably belong on IComputer

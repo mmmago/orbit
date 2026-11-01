@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: MIT
 
 if(APPLE)
-  set(target Deskflow)
+  set(target Orbit)
 else()
-  set(target deskflow)
+  set(target orbit)
 endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -31,13 +31,15 @@ elseif(BUILD_OSX_BUNDLE)
     @ONLY
   )
 
-  set(platform_extra ../res/Deskflow.icns)
+  # Orbit.icns: the app icon; Deskflow*: its logo, in the panel's About
+  set(platform_extra ../res/Orbit.icns ../res/DeskflowMark@2x.png ../res/DeskflowWordmark@2x.png
+    ../res/BuyMeACoffee.png ../res/install-update.sh)
   set_source_files_properties(${platform_extra} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 endif()
 
 add_executable(${target} WIN32 MACOSX_BUNDLE
   ${platform_extra}
-  ../res/deskflow.qrc
+  ../res/orbit.qrc
   deskflow-gui.cpp
 )
 

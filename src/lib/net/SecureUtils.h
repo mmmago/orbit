@@ -25,7 +25,13 @@ QString formatSSLFingerprintColumns(const QByteArray &fingerprint);
 
 Fingerprint sslCertFingerprint(const X509 *cert, QCryptographicHash::Algorithm type);
 
-void generatePemSelfSignedCert(const QString &path, int keyLength = 2048);
+//! @param commonName the computer's name: peers show it when asked to trust
+//! this certificate
+void generatePemSelfSignedCert(const QString &path, int keyLength = 2048, const QString &commonName = {});
+
+//! The common name of a certificate's subject, or nothing for the generic
+//! name of certificates made before it carried the computer's name
+QString sslCertComputerName(const X509 *cert);
 
 QString generateFingerprintArt(const QByteArray &rawDigest);
 } // namespace deskflow

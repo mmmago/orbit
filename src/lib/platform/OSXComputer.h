@@ -9,8 +9,10 @@
 #pragma once
 
 #include "deskflow/PlatformComputer.h"
-#include "platform/OSXClipboard.h"
+#include "platform/OSXClipboardMonitor.h"
 #include "platform/OSXPowerManager.h"
+#include "platform/OSXTrackpadGesture.h"
+#include "platform/OSXTrackpadZoom.h"
 
 #include <Carbon/Carbon.h>
 #include <IOKit/IOMessage.h>
@@ -19,6 +21,7 @@
 #include <mach/mach_interface.h>
 #include <mach/mach_port.h>
 
+#include <atomic>
 #include <bitset>
 #include <map>
 #include <memory>
@@ -30,6 +33,8 @@ extern "C"
   using CGSConnectionID = int;
   CGError CGSSetConnectionProperty(CGSConnectionID cid, CGSConnectionID targetCID, CFStringRef key, CFTypeRef value);
   int _CGSDefaultConnection();
+  // private (HIServices): asks the Dock to toggle Mission Control and the like
+  void CoreDockSendNotification(CFStringRef notification, void *unused) __attribute__((weak_import));
 }
 
 template <class T> class CondVar;
@@ -77,6 +82,7 @@ public:
   void fakeMouseMove(int32_t x, int32_t y) override;
   void fakeMouseRelativeMove(int32_t dx, int32_t dy) const override;
   void fakeMouseWheel(ScrollDelta delta) const override;
+  void fakeTrackpadEvent(const std::string &bytes) override;
 
   // IPlatformComputer overrides
   void enable() override;
@@ -94,6 +100,14 @@ public:
   void setSequenceNumber(uint32_t) override;
   bool isPrimary() const override;
   std::string getSecureInputApp() const override;
+
+  // file drag and drop
+  bool getDraggedFiles(std::vector<std::string> &paths) override;
+  void cancelLocalDrag() override;
+  bool beginFileDrag(uint32_t transferId, const std::vector<deskflow::filedrag::StagedItem> &items) override;
+  void fileDragItemReady(uint32_t transferId, uint32_t item) override;
+  void fileDragProgress(uint32_t transferId, uint32_t item, uint64_t bytes) override;
+  void abortFileDrag(uint32_t transferId) override;
 
   void waitForCarbonLoop() const;
 
@@ -125,12 +139,18 @@ private:
   bool onKey(CGEventRef event);
 
   void onMediaKey(CGEventRef event);
+  void onTrackpadGesture(CGEventType type, CGEventRef event);
+  void sendTrackpadEvent(std::string bytes);
+  bool onTrackpadScroll(CGEventRef event, int32_t xDelta, int32_t yDelta);
 
   bool onHotKey(EventRef event) const;
 
   // Added here to allow the carbon cursor hack to be called.
   void showCursor();
   void hideCursor();
+  void startCursorHideRetries(double seconds = 1.0);
+  bool closeMissionControlHidingCursor();
+  void stopCursorHideRetries();
 
   // map deskflow mouse button to mac buttons
   ButtonID mapDeskflowButtonToMac(uint16_t) const;
@@ -251,12 +271,14 @@ private:
   std::vector<MouseButtonEventMapType> MouseButtonEventMap;
 
   bool m_cursorHidden;
+  EventQueueTimer *m_cursorHideTimer = nullptr;
+  double m_cursorHideRetryUntil = 0.0;
 
   // keyboard stuff
   OSXKeyState *m_keyState;
 
   // clipboards
-  OSXClipboard m_pasteboard;
+  OSXClipboardMonitor m_pasteboard;
   uint32_t m_sequenceNumber;
 
   // screen saver stuff
@@ -313,8 +335,45 @@ private:
 
   IEventQueue *m_events;
 
-  std::unique_ptr<Thread> m_getDropTargetThread;
-  std::string m_dropTarget;
+  // file drag and drop, primary: drag pasteboard change count at the last
+  // left mouse-down (written on the event tap thread).
+  std::atomic<int64_t> m_dragChangeCountAtMouseDown{-1};
+
+  // primary: mac buttons pressed while the cursor was on this computer
+  // (event tap thread only). If the cursor leaves before the release, as
+  // in a file drag handover, the release must still reach the system or
+  // macOS keeps reporting the button as held and the cursor stays locked
+  // to the other computer.
+  uint32_t m_buttonsPressedOnComputer = 0;
+
+  // picks the trackpad gesture events forwarded to the active client
+  deskflow::osx::gesture::Forwarder m_gestureForwarder;
+
+  // primary: Accessibility Zoom trackpad gesture made for the active client
+  // (event tap thread only)
+  deskflow::osx::zoom::Recognizer m_zoomRecognizer;
+
+  // primary: forward trackpad gestures to the active client
+  // (kOptionTrackpadGestures; written by setOptions(), read by the event tap)
+  std::atomic<bool> m_trackpadGestures{true};
+
+  // primary: physical left releases seen by the tap; an incoming drag is only
+  // started if the user did not release the button since it began
+  std::atomic<uint32_t> m_leftReleases{0};
+  uint32_t m_leftReleasesAtDragBegin = 0;
+
+  // file drag and drop, secondary: an incoming drag waits for its window.
+  // Mouse moves are held back meanwhile so the mouse-down lands on it.
+  void onFileDragWindowReady(uint32_t transferId);
+  void onFileDragWindowPlaced(uint32_t transferId);
+  CGPoint m_fileDragPressAt = {0, 0};
+  void giveUpPendingFileDrag(const char *why);
+  uint32_t m_pendingFileDrag = 0;
+  double m_pendingFileDragSince = 0;
+  bool m_hasDeferredMove = false;
+  int32_t m_deferredX = 0;
+  int32_t m_deferredY = 0;
+  bool m_fileDragHandlerAdded = false;
 
   Mutex *m_carbonLoopMutex;
   CondVar<bool> *m_carbonLoopReady;

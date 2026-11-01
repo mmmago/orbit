@@ -4,9 +4,20 @@
 add_subdirectory(config)
 add_subdirectory(core)
 
+if(APPLE)
+  add_subdirectory(updates)
+endif()
+
 create_test(
   NAME LoggerTests
   DEPENDS gui
   SOURCE LoggerTests.cpp
+  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/src/lib/gui"
+)
+
+create_test(
+  NAME ArrangementViewTests
+  DEPENDS gui
+  SOURCE ArrangementViewTests.cpp
   WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/src/lib/gui"
 )

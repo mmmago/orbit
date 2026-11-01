@@ -27,8 +27,9 @@ constexpr double kMoonWidth = 50;
 constexpr double kOrbitRadius = 308;
 constexpr double kOrbitWidth = 58;
 // orbit arcs: start angle and sweep in Qt degrees (counter-clockwise);
-// each starts with a round end and ends flat inside a moon
-constexpr double kArcSweep = 134;
+// each starts with a round end and ends flat inside a moon, its end well
+// within the ring's stroke (no notch at the ring's edge, clear of the hole)
+constexpr double kArcSweep = 140;
 constexpr double kArcStarts[] = {78, 258};
 
 } // namespace

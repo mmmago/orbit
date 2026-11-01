@@ -22,14 +22,9 @@ enum LogoGeometry {
     /// Arc starts, counter-clockwise from 3 o'clock; each arc runs
     /// counter-clockwise from its round end into a ring
     private static let arcStarts: [Double] = [78, 258]
-    /// Each arc runs on to the centre of its ring (the rings sit symmetrically,
-    /// so one sweep fits both): its end then lies inside the ring, with no
-    /// notch where a flat end would cross the ring's round edge
-    private static var arcSweep: Double {
-        let ring = moonCenters[1]
-        let degrees = atan2(center.y - ring.y, ring.x - center.x) * 180 / .pi
-        return (degrees - arcStarts[0] + 360).truncatingRemainder(dividingBy: 360)
-    }
+    /// Each arc's flat end lies well within its ring's stroke: no notch where
+    /// it would cross the ring's round edge, and clear of the ring's hole
+    private static let arcSweep: Double = 140
 
     /// The centre ring (the server), to stroke with `coreWidth`
     static var core: Path {
@@ -47,20 +42,14 @@ enum LogoGeometry {
 
     /// The orbit arcs with their round free ends, to fill. Each arc is one
     /// outline (no part painted twice, so translucent colours stay even); its
-    /// end lies under its ring, the ring's hole cut out, so draw the rings over
-    /// it, or fill `orbiting` when both have the same colour
+    /// end lies under its ring, so draw the rings over it, or fill `orbiting`
+    /// when both have the same colour
     static var arcs: Path {
-        let holes = Path { path in
-            for moon in moonCenters {
-                path.addPath(circle(moon, moonRadius - moonWidth / 2))
-            }
-        }
-        return Path { path in
+        Path { path in
             for start in arcStarts {
                 path.addPath(outline(from: start))
             }
         }
-        .subtracting(holes)
     }
 
     /// The arcs and the orbiting rings as one shape, to fill when they have the

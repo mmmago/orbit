@@ -274,6 +274,11 @@ private:
   bool m_cursorHidden;
   EventQueueTimer *m_cursorHideTimer = nullptr;
   double m_cursorHideRetryUntil = 0.0;
+  // a local file drag was cancelled on the way out: Mission Control can only be
+  // detected once it is over, so the hide retries look for it again
+  bool m_fileDragCancelledOnLeave = false;
+  bool m_missionControlRecheck = false;
+  int m_missionControlVisibleTicks = 0;
 
   // keyboard stuff
   OSXKeyState *m_keyState;

@@ -780,6 +780,21 @@ void OSXComputer::startCursorHideRetries(double seconds)
       return;
     }
 
+    // after a file drag, the cancel key ends the drag a moment after leaving.
+    // Only then does Mission Control show it keeps the cursor visible. Wait
+    // until it stays visible a few ticks, so that a Mission Control already
+    // closing (the cancel key may close it too) is not toggled open again.
+    if (m_missionControlRecheck) {
+      m_missionControlVisibleTicks = CGCursorIsVisible() ? m_missionControlVisibleTicks + 1 : 0;
+      if (m_missionControlVisibleTicks >= 4) {
+        m_missionControlRecheck = false;
+        if (closeMissionControlHidingCursor()) {
+          // hide again until its closing animation is over
+          m_cursorHideRetryUntil = Arch::time() + 2.0;
+        }
+      }
+    }
+
     if (Arch::time() >= m_cursorHideRetryUntil) {
       stopCursorHideRetries();
     }
@@ -943,8 +958,13 @@ void OSXComputer::leave()
   // now off computer
   m_isOnComputer = false;
   // Mission Control shows the cursor over any hiding: close it, then hide
-  // again until its closing animation is over
-  startCursorHideRetries(closeMissionControlHidingCursor() ? 2.0 : 1.0);
+  // again until its closing animation is over. A file drag being cancelled
+  // still owns the cursor here, so look again once the drag is over.
+  const bool closed = closeMissionControlHidingCursor();
+  m_missionControlRecheck = !closed && m_fileDragCancelledOnLeave;
+  m_missionControlVisibleTicks = 0;
+  m_fileDragCancelledOnLeave = false;
+  startCursorHideRetries(closed || m_missionControlRecheck ? 2.0 : 1.0);
 }
 
 bool OSXComputer::closeMissionControlHidingCursor()
@@ -2207,6 +2227,8 @@ void OSXComputer::cancelLocalDrag()
 {
   LOG_DEBUG("file drag: cancelling local drag");
   m_dragChangeCountAtMouseDown = -1;
+  // the server leaves right after: see leave()
+  m_fileDragCancelledOnLeave = m_isPrimary;
   deskflow::osx::filedrag::postCancelKey();
 }
 

@@ -36,6 +36,10 @@ static const uint32_t s_brightnessUp = 144;
 static const uint32_t s_brightnessDown = 145;
 static const uint32_t s_missionControlVK = 160;
 static const uint32_t s_launchpadVK = 131;
+// the top row of Apple keyboards since 2021 (F4, F5, F6)
+static const uint32_t s_spotlightVK = 177;
+static const uint32_t s_dictationVK = 176;
+static const uint32_t s_doNotDisturbVK = 178;
 
 static const uint32_t s_osxNumLock = 1 << 16;
 
@@ -129,6 +133,9 @@ static const KeyEntry s_controlKeys[] = {
 
     {kKeyMissionControl, s_missionControlVK},
     {kKeyLaunchpad, s_launchpadVK},
+    {kKeySpotlight, s_spotlightVK},
+    {kKeyDictation, s_dictationVK},
+    {kKeyDoNotDisturb, s_doNotDisturbVK},
     {kKeyBrightnessUp, s_brightnessUp},
     {kKeyBrightnessDown, s_brightnessDown}
 };
@@ -724,6 +731,12 @@ void OSXKeyState::getKeyMapForSpecialKeys(deskflow::KeyMap &keyMap, int32_t grou
   deskflow::KeyMap::KeyItem item;
   for (size_t i = 0; i < sizeof(s_controlKeys) / sizeof(s_controlKeys[0]); ++i) {
     const KeyEntry &entry = s_controlKeys[i];
+    // brightness keys are replayed as the system brightness event (see
+    // fakeMediaKey): a bare key code changes nothing on most displays and
+    // display utilities only listen for the system event
+    if (entry.m_keyID == kKeyBrightnessUp || entry.m_keyID == kKeyBrightnessDown) {
+      continue;
+    }
     item.m_id = entry.m_keyID;
     item.m_group = group;
     item.m_button = mapVirtualKeyToKeyButton(entry.m_virtualKey);

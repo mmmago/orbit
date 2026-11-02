@@ -15,6 +15,13 @@
 
 static const KeyButton kButtonMask = (KeyButton)(IKeyState::s_numButtons - 1);
 
+// keys a platform may have no key code for, faked with fakeMediaKey() instead
+static bool isMediaKey(KeyID id)
+{
+  return id == kKeyAudioDown || id == kKeyAudioUp || id == kKeyAudioMute || id == kKeyAudioPlay ||
+         id == kKeyAudioPrev || id == kKeyAudioNext || id == kKeyBrightnessDown || id == kKeyBrightnessUp;
+}
+
 static const KeyID s_decomposeTable[] = {
     // spacing version of dead keys
     0x0060, 0x0300, 0x0020,
@@ -816,8 +823,7 @@ void KeyState::fakeKeyDown(KeyID id, KeyModifierMask mask, KeyButton serverID, c
   if (keyItem == nullptr) {
     // a media key won't be mapped on mac, so we need to fake it in a
     // special way
-    if (id == kKeyAudioDown || id == kKeyAudioUp || id == kKeyAudioMute || id == kKeyAudioPlay || id == kKeyAudioPrev ||
-        id == kKeyAudioNext || id == kKeyBrightnessDown || id == kKeyBrightnessUp) {
+    if (isMediaKey(id)) {
       LOG_VERBOSE("emulating media key");
       fakeMediaKey(id);
     }
@@ -844,9 +850,13 @@ bool KeyState::fakeKeyRepeat(KeyID id, KeyModifierMask mask, int32_t count, KeyB
   LOG_VERBOSE("fakeKeyRepeat");
   serverID &= kButtonMask;
 
-  // if we haven't seen this button go down then ignore it
+  // if we haven't seen this button go down then ignore it, unless it is a
+  // media key: those are faked whole on each press, so step again
   KeyButton oldLocalID = m_serverKeys[serverID];
   if (oldLocalID == 0) {
+    if (isMediaKey(id)) {
+      return fakeMediaKey(id);
+    }
     return false;
   }
 

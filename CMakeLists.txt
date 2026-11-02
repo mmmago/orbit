@@ -43,7 +43,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Orbit's version when building without git metadata.
 set(DESKFLOW_VERSION_MAJOR 1)
 set(DESKFLOW_VERSION_MINOR 1)
-set(DESKFLOW_VERSION_PATCH 0)
+set(DESKFLOW_VERSION_PATCH 1)
 set(DESKFLOW_VERSION_TWEAK 0)
 
 # Get the version from git if it's a git repository

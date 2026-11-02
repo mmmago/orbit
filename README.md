@@ -58,19 +58,6 @@ The options are in the Orbit panel (menu bar icon): trackpad gestures, drag
 and drop and clipboard on the server, scroll direction and Touch ID unlock on
 the client. They are saved in `~/Library/Orbit/Orbit.conf`.
 
-## Build from source
-
-```sh
-brew install cmake ninja qt openssl@3
-cmake -S. -Bbuild -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_INSTALLER=OFF \
-  "-DCMAKE_PREFIX_PATH=$(brew --prefix qt);$(brew --prefix openssl@3)" \
-  -DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)"
-cmake --build build
-```
-
-Packaging and releases: [docs/releases.md](docs/releases.md). Drag and drop
-design: [docs/drag-and-drop-design.md](docs/drag-and-drop-design.md).
-
 ## License
 
 GNU General Public License, version 2 only, with the OpenSSL exception, as

@@ -67,6 +67,11 @@ public:
   void data(uint32_t transferId, uint32_t entry, const std::string &bytes);
   void fileEnd(uint32_t transferId, uint32_t entry);
 
+  //! The cursor went back to the sender before the drop: stop the newest
+  //! transfer if it was not dropped yet (the sender is told). Returns true if
+  //! its local drag had started, and so must be cancelled.
+  bool abortUndropped();
+
   //! The sender stopped. Returns true if it was one of this receiver's transfers.
   bool cancelled(uint32_t transferId, uint8_t reason);
 

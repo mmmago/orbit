@@ -90,7 +90,10 @@ public:
     ensureRunning();
   }
 
-  void begin(uint32_t transferId, const std::vector<df::Item> &items, double x, double y, df::Callbacks callbacks)
+  void begin(
+      uint32_t transferId, const std::vector<df::Item> &items, double x, double y, df::Callbacks callbacks,
+      bool local = false
+  )
   {
     NSMutableArray *list = [NSMutableArray array];
     for (const auto &item : items) {
@@ -104,8 +107,11 @@ public:
     }
     std::scoped_lock lock(m_mutex);
     // earlier drags keep their callbacks: their files may still be arriving
-    m_sessions[transferId] = {std::move(callbacks), items.size(), false};
-    if (!send(@{@"cmd" : @"begin", @"id" : @(transferId), @"x" : @(x), @"y" : @(y), @"items" : list})) {
+    // a local drag delivers nothing itself: the drop target takes the files
+    m_sessions[transferId] = {std::move(callbacks), local ? 0 : items.size(), false};
+    NSDictionary *message =
+        @{@"cmd" : @"begin", @"id" : @(transferId), @"x" : @(x), @"y" : @(y), @"local" : @(local), @"items" : list};
+    if (!send(message)) {
       LOG_ERR("file drag: drag helper is not available");
       endSession(transferId, false);
     }
@@ -329,6 +335,9 @@ private:
       if (session.callbacks.ended) {
         session.callbacks.ended(true);
       }
+      if (session.undelivered == 0) {
+        m_sessions.erase(it); // nothing left to hand over
+      }
     } else if ([evt isEqualToString:@"delivered"]) {
       if (session.callbacks.delivered) {
         session.callbacks.delivered([msg[@"index"] unsignedLongValue], [msg[@"ok"] boolValue]);
@@ -360,6 +369,11 @@ void df::prewarmReceive()
 void df::beginReceive(uint32_t transferId, std::vector<Item> items, double x, double y, Callbacks callbacks)
 {
   Helper::instance().begin(transferId, items, x, y, std::move(callbacks));
+}
+
+void df::beginLocal(uint32_t dragId, std::vector<Item> items, double x, double y, Callbacks callbacks)
+{
+  Helper::instance().begin(dragId, items, x, y, std::move(callbacks), true);
 }
 
 void df::pressAt(uint32_t transferId, double x, double y)

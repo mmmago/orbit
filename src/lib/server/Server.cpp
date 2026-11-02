@@ -376,13 +376,23 @@ bool Server::canHandOverFileDrag(BaseClientProxy *dst)
 {
   m_fileDragPaths.clear();
   m_fileDragReturnFrom = nullptr;
+  m_fileDragBack = false;
   if (!m_enableFileDrag || dst == nullptr) {
     return false;
   }
 
-  // client -> server: the client reported a file drag and the cursor heads back here
   if (m_active != m_primaryClient && dst == m_primaryClient) {
-    if (isLockedToComputerServer() || !m_active->isDraggingFiles()) {
+    if (isLockedToComputerServer()) {
+      return false;
+    }
+    // our own drag, handed to this client, comes back before the drop
+    if (m_active == m_fileDragOutTo) {
+      LOG_INFO("file drag: the drag handed to \"%s\" comes back", getName(m_active).c_str());
+      m_fileDragBack = true;
+      return true;
+    }
+    // client -> server: the client reported a file drag and the cursor heads back here
+    if (!m_active->isDraggingFiles()) {
       return false;
     }
     LOG_INFO("file drag: \"%s\" drags files towards this computer", getName(m_active).c_str());
@@ -529,6 +539,17 @@ void Server::switchComputer(BaseClientProxy *dst, int32_t x, int32_t y, bool for
       m_primaryClient->cancelLocalDrag();
     }
 
+    // our drag comes back from the client it was handed to before the drop:
+    // the client ends its drag, and we drag our files again once entered
+    std::vector<std::string> fileDragBackPaths;
+    if (m_fileDragBack && m_active == m_fileDragOutTo && dst == m_primaryClient) {
+      m_active->requestFileDragHandOver();
+      fileDragBackPaths.swap(m_fileDragOutPaths);
+    }
+    m_fileDragBack = false;
+    m_fileDragOutTo = nullptr;
+    m_fileDragOutPaths.clear();
+
     // a file drag comes back from a client: ask it for the files before leaving
     m_fileDragReturnExpected = false;
     if (m_fileDragReturnFrom != nullptr && m_fileDragReturnFrom == m_active && dst == m_primaryClient &&
@@ -576,12 +597,17 @@ void Server::switchComputer(BaseClientProxy *dst, int32_t x, int32_t y, bool for
     ++m_seqNum;
 
     // announce the dragged files so the client can start the drag on enter
-    if (!fileDragPaths.empty()) {
-      m_active->startFileDrag(fileDragPaths);
+    if (!fileDragPaths.empty() && m_active->startFileDrag(fileDragPaths)) {
+      m_fileDragOutTo = m_active;
+      m_fileDragOutPaths = std::move(fileDragPaths);
     }
 
     // enter new computer
     m_active->enter(x, y, m_seqNum, m_primaryClient->getToggleMask(), forScreensaver);
+
+    if (!fileDragBackPaths.empty() && !m_primaryClient->beginLocalFileDrag(fileDragBackPaths)) {
+      LOG_WARN("file drag: could not drag the files again here");
+    }
 
     if (m_enableClipboard) {
       // send the clipboard data to new active computer
@@ -1404,6 +1430,10 @@ void Server::handleClientDisconnected(BaseClientProxy *client)
   if (m_fileDragReturnFrom == client) {
     m_fileDragReturnFrom = nullptr;
   }
+  if (m_fileDragOutTo == client) {
+    m_fileDragOutTo = nullptr;
+    m_fileDragOutPaths.clear();
+  }
   removeActiveClient(client);
   removeOldClient(client);
 
@@ -1721,6 +1751,11 @@ void Server::onMouseUp(ButtonID id)
   if (id == kButtonLeft && m_active == m_primaryClient) {
     // a drag coming back from a client ends when the button is released
     m_fileDragReturnReleased = true;
+  }
+  if (id == kButtonLeft) {
+    // a drag handed to a client is dropped there now: it can't come back
+    m_fileDragOutTo = nullptr;
+    m_fileDragOutPaths.clear();
   }
 
   // relay

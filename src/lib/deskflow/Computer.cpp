@@ -478,6 +478,11 @@ void Computer::cancelLocalDrag()
   m_computer->cancelLocalDrag();
 }
 
+bool Computer::beginLocalFileDrag(const std::vector<std::string> &paths)
+{
+  return m_computer->beginLocalFileDrag(paths);
+}
+
 bool Computer::beginFileDrag(uint32_t transferId, const std::vector<deskflow::filedrag::StagedItem> &items)
 {
   return m_computer->beginFileDrag(transferId, items);

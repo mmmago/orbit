@@ -12,6 +12,7 @@
 //
 //   core -> helper
 //     {"cmd":"begin","id":1,"x":10,"y":20,"items":[{"name":"a.txt","size":3,"path":"/staging/a.txt","isDir":false}]}
+//     {"cmd":"begin","id":1,"x":10,"y":20,"local":true,"items":[...]}  drag local files as they are
 //     {"cmd":"pressAt","id":1,"x":10,"y":20}  park the panel there, then report "placed"
 //     {"cmd":"progress","id":1,"index":0,"bytes":1024}
 //     {"cmd":"itemReady","id":1,"index":0}
@@ -33,6 +34,10 @@
 // it. Until then a placeholder sits at the destination with published file
 // progress, which Finder shows as a dimmed icon with a progress bar and a
 // cancel button. The helper exits when stdin closes.
+//
+// A "local" drag carries the items' own file URLs instead of promises, like a
+// drag started in Finder: the drop target copies or moves them itself. The
+// server uses it to give a drag back when the cursor returns before the drop.
 
 #import <Cocoa/Cocoa.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
@@ -91,6 +96,7 @@ struct Session
   NSString *destination = nil;        // display name of the drop folder
   bool failed = false;
   bool dragStarted = false;
+  bool local = false; // items are the user's own files, dragged as file URLs
   std::mutex mutex;
   std::condition_variable changed;
 };
@@ -649,16 +655,23 @@ void refreshCopyWindowSoon()
   NSMutableArray<NSDraggingItem *> *dragItems = [NSMutableArray array];
   for (size_t i = 0; i < session->items.size(); ++i) {
     NSString *name = session->items[i].name;
-    UTType *type = typeOfItem(name, session->items[i].isDirectory);
-    NSFilePromiseProvider *provider = [[NSFilePromiseProvider alloc] initWithFileType:type.identifier delegate:self];
-    DFItemRef *ref = [[DFItemRef alloc] init];
-    ref.session = session;
-    ref.index = i;
-    provider.userInfo = ref;
-
-    NSImage *icon = [[NSWorkspace sharedWorkspace] iconForContentType:type];
+    id<NSPasteboardWriting> writer = nil;
+    NSImage *icon = nil;
+    if (session->local) {
+      writer = [NSURL fileURLWithPath:session->items[i].path isDirectory:session->items[i].isDirectory];
+      icon = [[NSWorkspace sharedWorkspace] iconForFile:session->items[i].path];
+    } else {
+      UTType *type = typeOfItem(name, session->items[i].isDirectory);
+      NSFilePromiseProvider *provider = [[NSFilePromiseProvider alloc] initWithFileType:type.identifier delegate:self];
+      DFItemRef *ref = [[DFItemRef alloc] init];
+      ref.session = session;
+      ref.index = i;
+      provider.userInfo = ref;
+      writer = provider;
+      icon = [[NSWorkspace sharedWorkspace] iconForContentType:type];
+    }
     icon.size = NSMakeSize(64, 64);
-    NSDraggingItem *dragItem = [[NSDraggingItem alloc] initWithPasteboardWriter:provider];
+    NSDraggingItem *dragItem = [[NSDraggingItem alloc] initWithPasteboardWriter:writer];
     CGFloat offset = static_cast<CGFloat>(i) * 6;
     [dragItem setDraggingFrame:NSMakeRect(loc.x - 32 + offset, loc.y - 32 - offset, 64, 64) contents:icon];
     [dragItems addObject:dragItem];
@@ -676,7 +689,14 @@ void refreshCopyWindowSoon()
 
 - (NSDragOperation)draggingSession:(NSDraggingSession *)s sourceOperationMaskForDraggingContext:(NSDraggingContext)c
 {
-  return c == NSDraggingContextOutsideApplication ? NSDragOperationCopy : NSDragOperationNone;
+  if (c != NSDraggingContextOutsideApplication) {
+    return NSDragOperationNone;
+  }
+  // local files: let the drop target pick, as for a drag started in Finder
+  auto session = self.session;
+  return (session && session->local)
+             ? (NSDragOperationCopy | NSDragOperationLink | NSDragOperationGeneric | NSDragOperationMove)
+             : NSDragOperationCopy;
 }
 
 - (void)draggingSession:(NSDraggingSession *)s endedAtPoint:(NSPoint)p operation:(NSDragOperation)operation
@@ -686,7 +706,7 @@ void refreshCopyWindowSoon()
     return;
   }
   emit(@{@"evt" : @"ended", @"id" : @(session->transferId), @"accepted" : @(operation != NSDragOperationNone)});
-  if (operation == NSDragOperationNone) {
+  if (operation == NSDragOperationNone || session->local) {
     removeSession(session->transferId);
   }
 }
@@ -895,6 +915,7 @@ void begin(NSDictionary *msg)
 {
   auto session = std::make_shared<Session>();
   session->transferId = [msg[@"id"] unsignedIntValue];
+  session->local = [msg[@"local"] boolValue];
   for (NSDictionary *item in msg[@"items"]) {
     session->items.push_back(
         {item[@"name"], item[@"path"], [item[@"isDir"] boolValue], [item[@"size"] unsignedLongLongValue],

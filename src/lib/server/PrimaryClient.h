@@ -103,6 +103,9 @@ public:
   //! Cancel the local file drag before switching to another computer.
   void cancelLocalDrag();
 
+  //! Drag these local files again from the cursor (a drag that came back).
+  bool beginLocalFileDrag(const std::vector<std::string> &paths);
+
   //! The local computer (used to start incoming file drags).
   deskflow::Computer *getComputer() const
   {

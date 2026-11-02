@@ -74,6 +74,15 @@ reader thread and must only post events.
 */
 void beginReceive(uint32_t transferId, std::vector<Item> items, double x, double y, Callbacks callbacks);
 
+/*!
+Like beginReceive(), but drags local files as they are (file URLs, as a drag
+started in Finder): each Item's stagingPath is the file itself, which the drop
+target copies or moves. Nothing is delivered: Callbacks::delivered and
+cancelRequested never fire. Used on the server to give a drag back when the
+cursor returns from a client before the drop.
+*/
+void beginLocal(uint32_t dragId, std::vector<Item> items, double x, double y, Callbacks callbacks);
+
 //! Stop following the cursor and park the drag window at (x, y), where the
 //! caller is about to press; Callbacks::placed fires once it is there.
 void pressAt(uint32_t transferId, double x, double y);

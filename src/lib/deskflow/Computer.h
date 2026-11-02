@@ -225,6 +225,7 @@ public:
   //@{
   bool getDraggedFiles(std::vector<std::string> &paths) const;
   void cancelLocalDrag();
+  bool beginLocalFileDrag(const std::vector<std::string> &paths);
   bool beginFileDrag(uint32_t transferId, const std::vector<deskflow::filedrag::StagedItem> &items);
   void fileDragItemReady(uint32_t transferId, uint32_t item);
   void fileDragProgress(uint32_t transferId, uint32_t item, uint64_t bytes);

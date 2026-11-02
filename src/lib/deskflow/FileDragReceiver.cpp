@@ -209,6 +209,18 @@ void FileDragReceiver::fileEnd(uint32_t transferId, uint32_t entry)
   }
 }
 
+bool FileDragReceiver::abortUndropped()
+{
+  Transfer *t = find(m_newest);
+  if (t == nullptr || t->state == State::Dropped) {
+    return false;
+  }
+  const bool started = t->state == State::Dragging;
+  LOG_INFO("file drag: transfer %u goes back before the drop", t->id);
+  stop(t->id, true, CancelReason::Dropped);
+  return started;
+}
+
 bool FileDragReceiver::cancelled(uint32_t transferId, uint8_t reason)
 {
   if (find(transferId) == nullptr) {

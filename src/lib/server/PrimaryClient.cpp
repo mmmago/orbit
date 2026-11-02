@@ -80,6 +80,11 @@ void PrimaryClient::cancelLocalDrag()
   m_computer->cancelLocalDrag();
 }
 
+bool PrimaryClient::beginLocalFileDrag(const std::vector<std::string> &paths)
+{
+  return m_computer->beginLocalFileDrag(paths);
+}
+
 void *PrimaryClient::getEventTarget() const
 {
   return m_computer->getEventTarget();

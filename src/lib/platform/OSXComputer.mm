@@ -47,6 +47,8 @@
 #include <mach-o/dyld.h>
 #include <math.h>
 
+#include <filesystem>
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
@@ -2232,24 +2234,78 @@ void OSXComputer::cancelLocalDrag()
   deskflow::osx::filedrag::postCancelKey();
 }
 
+void OSXComputer::addFileDragHandlers()
+{
+  if (m_fileDragHandlerAdded) {
+    return;
+  }
+  m_events->addHandler(EventTypes::FileDragWindowReady, this, [this](const Event &e) {
+    const auto *info = static_cast<deskflow::filedrag::FileDragEndedInfo *>(e.getDataObject());
+    onFileDragWindowReady(info->m_transferId);
+  });
+  m_events->addHandler(EventTypes::FileDragWindowPlaced, this, [this](const Event &e) {
+    const auto *info = static_cast<deskflow::filedrag::FileDragEndedInfo *>(e.getDataObject());
+    onFileDragWindowPlaced(info->m_transferId);
+  });
+  m_fileDragHandlerAdded = true;
+}
+
+bool OSXComputer::beginLocalFileDrag(const std::vector<std::string> &paths)
+{
+  namespace fd = deskflow::osx::filedrag;
+  if (!m_isPrimary || paths.empty()) {
+    return false;
+  }
+  addFileDragHandlers();
+
+  std::vector<fd::Item> items;
+  for (const auto &path : paths) {
+    std::error_code ec;
+    const std::filesystem::path p(path);
+    if (!std::filesystem::exists(p, ec)) {
+      continue; // moved or deleted meanwhile
+    }
+    items.push_back({p.filename().string(), 0, path, std::filesystem::is_directory(p, ec), 1});
+  }
+  if (items.empty()) {
+    return false;
+  }
+
+  const uint32_t dragId = m_nextLocalDragId++;
+  IEventQueue *events = m_events;
+  void *self = this;
+  fd::Callbacks callbacks;
+  callbacks.ready = [events, self, dragId] {
+    events->addEvent(
+        Event(EventTypes::FileDragWindowReady, self, new deskflow::filedrag::FileDragEndedInfo(dragId, false))
+    );
+  };
+  callbacks.placed = [events, self, dragId] {
+    events->addEvent(
+        Event(EventTypes::FileDragWindowPlaced, self, new deskflow::filedrag::FileDragEndedInfo(dragId, false))
+    );
+  };
+
+  // as for an incoming drag: the helper keeps its panel under the real cursor
+  // and the press is injected wherever the cursor is when it is ready
+  CGEventRef now = CGEventCreate(nullptr);
+  const CGPoint pos = CGEventGetLocation(now);
+  CFRelease(now);
+  m_pendingFileDrag = dragId;
+  m_pendingFileDragSince = Arch::time();
+  m_leftReleasesAtDragBegin = m_leftReleases;
+  LOG_DEBUG("file drag: dragging %zu item(s) again from the cursor (%.0f,%.0f)", items.size(), pos.x, pos.y);
+  fd::beginLocal(dragId, std::move(items), pos.x, pos.y, std::move(callbacks));
+  return true;
+}
+
 bool OSXComputer::beginFileDrag(uint32_t transferId, const std::vector<deskflow::filedrag::StagedItem> &files)
 {
   namespace fd = deskflow::osx::filedrag;
   if (files.empty()) {
     return false;
   }
-
-  if (!m_fileDragHandlerAdded) {
-    m_events->addHandler(EventTypes::FileDragWindowReady, this, [this](const Event &e) {
-      const auto *info = static_cast<deskflow::filedrag::FileDragEndedInfo *>(e.getDataObject());
-      onFileDragWindowReady(info->m_transferId);
-    });
-    m_events->addHandler(EventTypes::FileDragWindowPlaced, this, [this](const Event &e) {
-      const auto *info = static_cast<deskflow::filedrag::FileDragEndedInfo *>(e.getDataObject());
-      onFileDragWindowPlaced(info->m_transferId);
-    });
-    m_fileDragHandlerAdded = true;
-  }
+  addFileDragHandlers();
 
   std::vector<fd::Item> items;
   for (const auto &f : files) {
@@ -2353,6 +2409,8 @@ void OSXComputer::onFileDragWindowPlaced(uint32_t transferId)
     // client, so the system did not see it. Press for them under the cursor
     // (tagged: our event tap lets it through); their real release ends the drag.
     LOG_DEBUG("file drag: window placed, pressing the button");
+    // the drag this press starts can be handed over again (getDraggedFiles)
+    m_dragChangeCountAtMouseDown = deskflow::osx::filedrag::dragPasteboardChangeCount();
     CGEventRef down = CGEventCreateMouseEvent(nullptr, kCGEventLeftMouseDown, m_fileDragPressAt, kCGMouseButtonLeft);
     if (needsEventNumber()) {
       if (m_mouseEventNumber == 0) {

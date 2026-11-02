@@ -496,5 +496,11 @@ private:
   BaseClientProxy *m_fileDragReturnFrom = nullptr;
   bool m_fileDragReturnExpected = false;
   bool m_fileDragReturnReleased = false;
+  // server -> client: the client our drag was handed to, and its files, until
+  // the button is released there (the drop). If the cursor comes back first,
+  // the drag comes back with it (m_fileDragBack set when the switch is allowed).
+  BaseClientProxy *m_fileDragOutTo = nullptr;
+  std::vector<std::string> m_fileDragOutPaths;
+  bool m_fileDragBack = false;
   std::unique_ptr<deskflow::filedrag::FileDragReceiver> m_fileDragReceiver;
 };

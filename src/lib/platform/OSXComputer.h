@@ -105,6 +105,7 @@ public:
   // file drag and drop
   bool getDraggedFiles(std::vector<std::string> &paths) override;
   void cancelLocalDrag() override;
+  bool beginLocalFileDrag(const std::vector<std::string> &paths) override;
   bool beginFileDrag(uint32_t transferId, const std::vector<deskflow::filedrag::StagedItem> &items) override;
   void fileDragItemReady(uint32_t transferId, uint32_t item) override;
   void fileDragProgress(uint32_t transferId, uint32_t item, uint64_t bytes) override;
@@ -380,6 +381,10 @@ private:
   int32_t m_deferredX = 0;
   int32_t m_deferredY = 0;
   bool m_fileDragHandlerAdded = false;
+  void addFileDragHandlers();
+  // primary: ids of local drags given back (beginLocalFileDrag), apart from
+  // transfer ids (a client's start at kClientTransferIdBase)
+  uint32_t m_nextLocalDragId = 0x40000000u;
 
   Mutex *m_carbonLoopMutex;
   CondVar<bool> *m_carbonLoopReady;

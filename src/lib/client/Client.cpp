@@ -879,6 +879,14 @@ void Client::fileDragHandOver()
   const bool dragging = m_leftButtonDown && m_computer->getDraggedFiles(paths);
   m_fileDragReported = false;
   if (!dragging) {
+    // the server handed us its drag and the cursor goes back before the drop:
+    // the server drags its own files again, so just end the drag here
+    if (m_fileDragReceiver && m_fileDragReceiver->abortUndropped()) {
+      LOG_INFO("file drag: the drag goes back to the server");
+      m_computer->cancelLocalDrag();
+      m_computer->mouseUp(kButtonLeft);
+      return;
+    }
     LOG_INFO("file drag: server asked for files, but no file drag is in progress");
     if (m_server != nullptr) {
       m_server->sendFileDragState(false);

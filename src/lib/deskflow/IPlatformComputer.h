@@ -154,6 +154,14 @@ public:
     // not supported
   }
 
+  //! Primary: drag local files again from the cursor, with the button the
+  //! user still holds; their release drops them. For a drag handed to a
+  //! client that comes back before the drop.
+  virtual bool beginLocalFileDrag(const std::vector<std::string> &paths)
+  {
+    return false;
+  }
+
   //! Secondary: start an incoming drag at the cursor. Sends
   //! EventTypes::FileDragEnded to getEventTarget() when the drag ends, and
   //! EventTypes::FileDragCancelRequested if the user cancels after the drop.

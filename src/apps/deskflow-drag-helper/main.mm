@@ -98,6 +98,9 @@ struct Session
 // Promise writes wait at most this long for data still in transit.
 constexpr auto kPromiseTimeout = std::chrono::minutes(30);
 
+// After "placed", the core's press must reach the panel within this long.
+constexpr int64_t kPressTimeout = 2 * NSEC_PER_SEC;
+
 // Finder greys out files whose type/creator is 'brok'/'MACS' (its own marker
 // for copies in progress). Folders ignore it, so a pending folder is shown as
 // a marked empty file with the folder icon until the real folder replaces it.
@@ -948,6 +951,19 @@ void pressAt(NSDictionary *msg)
     [s_panel setFrameOrigin:NSMakePoint(x - size.width / 2, mainHeight - y - size.height / 2)];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 30 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
       emit(@{@"evt" : @"placed", @"id" : @(session->transferId)});
+    });
+    // The core presses right after "placed". If that press never reaches the
+    // panel (it landed elsewhere, or was swallowed), nothing else would take
+    // the panel down: it would stay on screen as a faint floating square.
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, kPressTimeout), dispatch_get_main_queue(), ^{
+      if (s_view.session != session || session->dragStarted) {
+        return;
+      }
+      [s_panel orderOut:nil];
+      s_view.session = nullptr;
+      emitLog(@"warn", @"file drag: the press never reached the drag window, giving up");
+      emit(@{@"evt" : @"ended", @"id" : @(session->transferId), @"accepted" : @NO});
+      removeSession(session->transferId);
     });
   });
 }

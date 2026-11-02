@@ -22,24 +22,8 @@ problems here.
   smooth scrolling and swiping between pages work on the other Mac, as does
   the Accessibility Zoom gesture.
 - **Clipboard**: copy text, HTML or images on one Mac, paste on the other.
-- **Touch ID unlock**: unlock a locked client with Touch ID on the server
-  (see below).
+- **Touch ID unlock**: unlock a locked client with Touch ID on the server.
 - Everything goes over one TLS connection on your network.
-
-## Touch ID unlock
-
-1. On the client, open the Orbit panel and turn on **Unlock with the
-   server's Touch ID**, then enter that Mac's password once. Orbit checks it
-   and keeps it in that Mac's Keychain; it never leaves that Mac.
-2. When the client is locked, move the cursor onto it (or click on it) and
-   touch Touch ID on the server. The client types its password into its lock
-   screen.
-
-Touch ID shows in a small panel at the top of the server's screen, or in
-place of Orbit's menu bar icon with **Touch ID permission in menu bar** in the
-server options. It needs TLS, Orbit 1.2 on both Macs and Touch ID on the
-server (built in or on a Magic Keyboard). It works after the screen locks,
-not after a restart or logout.
 
 ## Install
 

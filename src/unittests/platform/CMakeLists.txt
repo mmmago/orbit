@@ -12,6 +12,13 @@ if (WIN32)
   )
 elseif(APPLE)
   create_test(
+    NAME OSXMouseButtonCaptureTests
+    DEPENDS platform
+    LIBS base arch
+    SOURCE OSXMouseButtonCaptureTests.cpp
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/src/lib/platform"
+  )
+  create_test(
     NAME OSXClipboardMonitorTests
     DEPENDS platform
     LIBS base arch

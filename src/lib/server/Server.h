@@ -497,6 +497,9 @@ private:
   // client -> server: the client the drag comes back from (set when the
   // switch is allowed), and whether we wait for its files after the switch
   BaseClientProxy *m_fileDragReturnFrom = nullptr;
+  // Source of the client drag currently held on the primary, including
+  // the interval before its preview/list arrives. Cleared on release.
+  BaseClientProxy *m_fileDragInFrom = nullptr;
   bool m_fileDragReturnExpected = false;
   bool m_fileDragReturnReleased = false;
   // server -> client: the client our drag was handed to, and its files, until

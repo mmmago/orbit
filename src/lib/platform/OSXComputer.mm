@@ -1911,6 +1911,11 @@ CGEventRef OSXComputer::handleCGInputEvent(CGEventTapProxy proxy, CGEventType ty
 {
   OSXComputer *computer = (OSXComputer *)refcon;
 
+  // Track every press delivered locally, including the tagged press that
+  // starts a received/resumed drag. Its eventual physical release must reach
+  // macOS even if the cursor has since gone back to the client.
+  const bool passToSystem = computer->m_mouseButtonCapture.passToSystem(type, event, computer->m_isOnComputer);
+
   // events Deskflow posts itself for file drag handling (e.g. the Esc that
   // cancels a local drag) must reach apps even while we are off-computer
   if (CGEventGetIntegerValueField(event, kCGEventSourceUserData) == deskflow::osx::filedrag::kSyntheticEventTag) {
@@ -1923,9 +1928,6 @@ CGEventRef OSXComputer::handleCGInputEvent(CGEventTapProxy proxy, CGEventType ty
   case kCGEventOtherMouseDown: {
     const auto macButton = CGEventGetIntegerValueField(event, kCGMouseEventButtonNumber);
     computer->onMouseButton(true, macButton + 1);
-    if (computer->m_isOnComputer && macButton < 32) {
-      computer->m_buttonsPressedOnComputer |= (1u << macButton);
-    }
     break;
   }
   case kCGEventLeftMouseUp:
@@ -1936,14 +1938,8 @@ CGEventRef OSXComputer::handleCGInputEvent(CGEventTapProxy proxy, CGEventType ty
     if (macButton == 0) {
       ++computer->m_leftReleases;
     }
-    if (macButton < 32 && (computer->m_buttonsPressedOnComputer & (1u << macButton)) != 0) {
-      computer->m_buttonsPressedOnComputer &= ~(1u << macButton);
-      if (!computer->m_isOnComputer) {
-        // the press went to a local app before the cursor left; let the
-        // system see the matching release so its button state is not stuck
-        LOG_DEBUG("passing mouse button %d release to the system", static_cast<int>(macButton));
-        return event;
-      }
+    if (passToSystem && !computer->m_isOnComputer) {
+      LOG_DEBUG("passing mouse button %d release to the system", static_cast<int>(macButton));
     }
     break;
   }
@@ -2002,7 +1998,7 @@ CGEventRef OSXComputer::handleCGInputEvent(CGEventTapProxy proxy, CGEventType ty
     LOG_VERBOSE("unknown quartz event type: 0x%02x", type);
   }
 
-  if (computer->m_isOnComputer) {
+  if (passToSystem) {
     return event;
   } else {
     return nullptr;
@@ -2252,7 +2248,7 @@ void OSXComputer::addFileDragHandlers()
 bool OSXComputer::beginLocalFileDrag(const std::vector<std::string> &paths)
 {
   namespace fd = deskflow::osx::filedrag;
-  if (!m_isPrimary || paths.empty()) {
+  if (paths.empty()) {
     return false;
   }
   addFileDragHandlers();
@@ -2290,6 +2286,7 @@ bool OSXComputer::beginLocalFileDrag(const std::vector<std::string> &paths)
   CGEventRef now = CGEventCreate(nullptr);
   const CGPoint pos = CGEventGetLocation(now);
   CFRelease(now);
+  m_hasDeferredMove = false;
   m_pendingFileDrag = dragId;
   m_pendingFileDragSince = Arch::time();
   m_leftReleasesAtDragBegin = m_leftReleases;

@@ -8,11 +8,18 @@
 #include "FileDragTests.h"
 
 #include "MockEventQueue.h"
+#include "deskflow/AppUtil.h"
 #include "deskflow/Computer.h"
 #include "deskflow/FileDrag.h"
 #include "deskflow/FileDragReceiver.h"
 #include "deskflow/FileDragSender.h"
 #include "deskflow/IPlatformComputer.h"
+#include "deskflow/ProtocolTypes.h"
+#include "io/IStream.h"
+#include "server/ClientProxy1_10.h"
+#include "server/PrimaryClient.h"
+#include "server/Server.h"
+#include <QStandardPaths>
 #include <map>
 
 #include <filesystem>
@@ -219,21 +226,131 @@ public:
 class DragEvents : public MockEventQueue
 {
 public:
-  std::map<EventTypes, EventHandler> handlers;
-  void addHandler(EventTypes type, void *, const EventHandler &handler) override
+  std::map<std::pair<EventTypes, void *>, EventHandler> handlers;
+  void addHandler(EventTypes type, void *target, const EventHandler &handler) override
   {
-    handlers[type] = handler;
+    handlers[{type, target}] = handler;
   }
-  void removeHandler(EventTypes type, void *) override
+  void removeHandler(EventTypes type, void *target) override
   {
-    handlers.erase(type);
+    handlers.erase({type, target});
   }
   bool dispatchEvent(const Event &event) override
   {
-    const auto it = handlers.find(event.getType());
-    if (it != handlers.end())
-      it->second(event);
-    return it != handlers.end();
+    const auto it = handlers.find({event.getType(), event.getTarget()});
+    if (it == handlers.end())
+      return false;
+    const auto handler = it->second;
+    handler(event);
+    return true;
+  }
+};
+
+class TestAppUtil : public AppUtil
+{
+public:
+  int run() override
+  {
+    return 0;
+  }
+  std::vector<std::string> getKeyboardLayoutList() override
+  {
+    return {"en"};
+  }
+  std::string getCurrentLanguageCode() override
+  {
+    return "en";
+  }
+};
+
+class EdgeDragComputer : public TestDragComputer
+{
+public:
+  using TestDragComputer::TestDragComputer;
+  bool held = true;
+  bool isPrimary() const override
+  {
+    return true;
+  }
+  bool canLeave() override
+  {
+    return true;
+  }
+  int32_t getJumpZoneSize() const override
+  {
+    return 1;
+  }
+  bool isAnyMouseButtonDown(uint32_t &button) const override
+  {
+    button = kButtonLeft;
+    return held;
+  }
+  void getShape(int32_t &x, int32_t &y, int32_t &w, int32_t &h) const override
+  {
+    x = y = 0;
+    w = h = 1000;
+  }
+  void getCursorPos(int32_t &x, int32_t &y) const override
+  {
+    x = y = 500;
+  }
+};
+
+class DragStream : public deskflow::IStream
+{
+public:
+  std::vector<std::string> codes;
+  void write(const void *data, uint32_t size) override
+  {
+    if (size >= 4)
+      codes.emplace_back(static_cast<const char *>(data), 4);
+  }
+  void close() override
+  {
+  }
+  uint32_t read(void *, uint32_t) override
+  {
+    return 0;
+  }
+  void flush() override
+  {
+  }
+  void shutdownInput() override
+  {
+  }
+  void shutdownOutput() override
+  {
+  }
+  void *getEventTarget() const override
+  {
+    return const_cast<DragStream *>(this);
+  }
+  bool isReady() const override
+  {
+    return false;
+  }
+  uint32_t getSize() const override
+  {
+    return 0;
+  }
+};
+
+class EdgeDragClient : public ClientProxy1_10
+{
+public:
+  using ClientProxy1_10::ClientProxy1_10;
+  bool isDraggingFiles() const override
+  {
+    return true;
+  }
+  void getShape(int32_t &x, int32_t &y, int32_t &w, int32_t &h) const override
+  {
+    x = y = 0;
+    w = h = 1000;
+  }
+  void getCursorPos(int32_t &x, int32_t &y) const override
+  {
+    x = y = 500;
   }
 };
 
@@ -296,6 +413,8 @@ std::vector<std::string> paths(const Manifest &m)
 
 void FileDragTests::initTestCase()
 {
+  static TestAppUtil appUtil;
+  QStandardPaths::setTestModeEnabled(true);
   QVERIFY(m_tmp.isValid());
 }
 
@@ -771,6 +890,88 @@ void FileDragTests::previewCompletesEmptyFolder()
   receiver.startDrag();
   QCOMPARE(platform->ready, 1u);
   QCOMPARE(platform->starts, 1u);
+}
+
+void FileDragTests::clientDragReturnsAcrossEdge_data()
+{
+  QTest::addColumn<bool>("previewArrived");
+  QTest::addColumn<bool>("released");
+  QTest::addColumn<bool>("supportsReturn");
+  QTest::newRow("return-before-preview") << false << false << true;
+  QTest::newRow("return-while-scanning") << true << false << true;
+  QTest::newRow("dropped-transfer-keeps-receiving") << true << true << true;
+  QTest::newRow("legacy-peer-does-not-get-new-command") << true << false << false;
+}
+
+void FileDragTests::clientDragReturnsAcrossEdge()
+{
+  QFETCH(bool, previewArrived);
+  QFETCH(bool, released);
+  QFETCH(bool, supportsReturn);
+  DragEvents events;
+  auto *platform = new EdgeDragComputer(&events);
+  deskflow::Computer computer(platform, &events);
+  PrimaryClient primary("server", &computer);
+  deskflow::server::Config config(&events);
+  QVERIFY(config.addComputer("server"));
+  QVERIFY(config.addComputer("client"));
+  QVERIFY(config.connect("server", Direction::Right, 0, 1, "client", 0, 1));
+  QVERIFY(config.connect("client", Direction::Left, 0, 1, "server", 0, 1));
+  Server server(config, &primary, &computer, &events);
+  auto *stream = new DragStream;
+  auto *client = new EdgeDragClient("client", stream, &server, &events, true, supportsReturn);
+  server.adoptClient(client);
+  auto dispatch = [&](Event &&event) {
+    events.dispatchEvent(event);
+    Event::deleteData(event);
+  };
+  Server::SwitchToComputerInfo switchInfo("client");
+  dispatch(
+      Event(EventTypes::ServerSwitchToComputer, config.getInputFilter(), &switchInfo, Event::EventFlags::DontFreeData)
+  );
+  stream->codes.clear();
+  // The held button locks normal edge crossings, but the client's file drag
+  // must still reach the server. The mock platform exposes no file URLs.
+  dispatch(Event(
+      EventTypes::PrimaryComputerMotionOnSecondary, computer.getEventTarget(),
+      IPlatformComputer::MotionInfo::alloc(-600, 0)
+  ));
+  QVERIFY(std::find(stream->codes.begin(), stream->codes.end(), "DGHO") != stream->codes.end());
+  const uint32_t id = kClientTransferIdBase + 1;
+  const Manifest preview{{dir("Album")}};
+  if (previewArrived) {
+    server.fileDragIncoming(client, id, preview.serialize(), true);
+    QCOMPARE(server.fileDragReceiver().transfers(), size_t(1));
+  }
+  if (released) {
+    dispatch(Event(EventTypes::FileDragEnded, computer.getEventTarget(), new FileDragEndedInfo(id, true)));
+    platform->held = false;
+    dispatch(Event(
+        EventTypes::PrimaryComputerButtonUp, config.getInputFilter(),
+        IPlatformComputer::ButtonInfo::alloc(kButtonLeft, 0)
+    ));
+  }
+  stream->codes.clear();
+  dispatch(Event(
+      EventTypes::PrimaryComputerMotionOnPrimary, computer.getEventTarget(),
+      IPlatformComputer::MotionInfo::alloc(1000, 500)
+  ));
+  const bool returned = supportsReturn && !released;
+  QCOMPARE(std::count(stream->codes.begin(), stream->codes.end(), "DGRT"), returned ? 1 : 0);
+  if (returned) {
+    // Cancellation and return precede enter; late previews must be refused.
+    const auto back = std::find(stream->codes.begin(), stream->codes.end(), "DGRT");
+    const auto enter = std::find(stream->codes.begin(), stream->codes.end(), "CINN");
+    QVERIFY(enter != stream->codes.end());
+    QVERIFY(back < enter);
+    QCOMPARE(server.fileDragReceiver().transfers(), size_t(0));
+    server.fileDragIncoming(client, id, preview.serialize(), true);
+    QCOMPARE(server.fileDragReceiver().transfers(), size_t(0));
+    QCOMPARE(platform->aborted, previewArrived ? 1u : 0u);
+  } else {
+    QCOMPARE(server.fileDragReceiver().transfers(), size_t(1));
+    QCOMPARE(platform->aborted, 0u);
+  }
 }
 
 QTEST_MAIN(FileDragTests)

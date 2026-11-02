@@ -36,6 +36,8 @@ private Q_SLOTS:
   void cancelledPreviewStaysCancelled();
   void previewRejectsChangedItems();
   void previewCompletesEmptyFolder();
+  void clientDragReturnsAcrossEdge_data();
+  void clientDragReturnsAcrossEdge();
   void windowGrowsWhileDelayStaysLow();
   void windowHoldsWhenNotLimited();
   void windowShrinksWhenDelayRises();

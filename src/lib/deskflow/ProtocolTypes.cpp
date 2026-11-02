@@ -57,6 +57,7 @@ const char *const kMsgDFileDragAck = "DGAK%4i%4i";
 const char *const kMsgDFileDragCancel = "DGCN%4i%1i";
 const char *const kMsgDFileDragState = "DGST%1i";
 const char *const kMsgCFileDragHandOver = "DGHO";
+const char *const kMsgCFileDragReturn = "DGRT";
 const char *const kMsgDTrackpadEvent = "DTPE%s";
 const char *const kMsgDSecureInputNotification = "SECN%s";
 const char *const kMsgDLanguageSynchronisation = "LSYN%s";

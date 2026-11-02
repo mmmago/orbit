@@ -100,6 +100,17 @@ public:
     return false;
   }
 
+  //! True if the client can resume its own drag after a return (1.12+).
+  virtual bool supportsFileDragReturn() const
+  {
+    return false;
+  }
+
+  //! Resume the client's original drag on its next enter.
+  virtual void returnFileDrag()
+  {
+  }
+
   //! Ask the client to cancel its local drag and send the dragged files.
   virtual void requestFileDragHandOver()
   {

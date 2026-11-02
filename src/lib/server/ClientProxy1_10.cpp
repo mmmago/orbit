@@ -11,10 +11,19 @@
 #include "deskflow/ProtocolUtil.h"
 
 ClientProxy1_10::ClientProxy1_10(
-    const std::string &name, deskflow::IStream *adoptedStream, Server *server, IEventQueue *events, bool largeManifests
+    const std::string &name, deskflow::IStream *adoptedStream, Server *server, IEventQueue *events, bool largeManifests,
+    bool fileDragReturn
 )
-    : ClientProxy1_9(name, adoptedStream, server, events, largeManifests)
+    : ClientProxy1_9(name, adoptedStream, server, events, largeManifests),
+      m_fileDragReturn(fileDragReturn)
 {
+}
+
+void ClientProxy1_10::returnFileDrag()
+{
+  if (m_fileDragReturn) {
+    ProtocolUtil::writef(getStream(), kMsgCFileDragReturn);
+  }
 }
 
 void ClientProxy1_10::trackpadEvent(const std::string &bytes)

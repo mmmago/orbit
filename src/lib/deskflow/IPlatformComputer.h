@@ -154,9 +154,8 @@ public:
     // not supported
   }
 
-  //! Primary: drag local files again from the cursor, with the button the
-  //! user still holds; their release drops them. For a drag handed to a
-  //! client that comes back before the drop.
+  //! Drag the original local files again from the cursor after a round
+  //! trip to the other computer, while the user still holds the button.
   virtual bool beginLocalFileDrag(const std::vector<std::string> &paths)
   {
     return false;

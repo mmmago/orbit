@@ -231,6 +231,17 @@ void Client::enter(int32_t xAbs, int32_t yAbs, uint32_t, KeyModifierMask mask, b
   m_computer->mouseMove(xAbs, yAbs);
   m_computer->enter(mask);
 
+  if (m_fileDragReturning) {
+    m_fileDragReturning = false;
+    std::vector<std::string> paths;
+    paths.swap(m_fileDragOutPaths);
+    m_leftButtonDown = true;
+    m_fileDragReported = false;
+    if (!m_computer->beginLocalFileDrag(paths)) {
+      LOG_WARN("file drag: could not resume the original drag here");
+    }
+  }
+
   if (m_fileDragReceiver && m_fileDragReceiver->startPending()) {
     m_fileDragReceiver->startDrag();
   }
@@ -294,6 +305,8 @@ void Client::keyUp(KeyID id, KeyModifierMask mask, KeyButton button)
 void Client::mouseDown(ButtonID id)
 {
   if (id == kButtonLeft) {
+    m_fileDragOutPaths.clear();
+    m_fileDragReturning = false;
     m_leftButtonDown = true;
     m_fileDragCheckedAt = 0;
   }
@@ -306,6 +319,8 @@ void Client::mouseUp(ButtonID id)
   m_computer->mouseUp(id);
   if (id == kButtonLeft) {
     m_leftButtonDown = false;
+    m_fileDragOutPaths.clear();
+    m_fileDragReturning = false;
     updateFileDragState(true);
   }
 }
@@ -506,6 +521,7 @@ bool Client::setupComputer(int16_t protocolMinor)
   case 9:
     m_server = new ServerProxy1_9(this, m_stream, m_events);
     break;
+  case 12:
   case 11:
     m_server = new ServerProxy1_10(this, m_stream, m_events, true);
     break;
@@ -576,6 +592,8 @@ void Client::cleanupComputer()
     }
     m_events->removeHandler(EventTypes::ComputerShapeChanged, getEventTarget());
     m_events->removeHandler(EventTypes::ClipboardGrabbed, getEventTarget());
+    m_fileDragOutPaths.clear();
+    m_fileDragReturning = false;
     m_fileDragReceiver.reset();
     m_leftButtonDown = false;
     m_fileDragReported = false;
@@ -883,6 +901,14 @@ void Client::updateFileDragState(bool force)
   }
 }
 
+void Client::fileDragReturn()
+{
+  // DGRT precedes enter on the same stream. Keep the paths until then so
+  // the helper starts under the new cursor position, using the real files.
+  m_fileDragReturning = !m_fileDragOutPaths.empty();
+  LOG_INFO("file drag: original drag returns from the server");
+}
+
 void Client::fileDragHandOver()
 {
   std::vector<std::string> paths;
@@ -909,7 +935,10 @@ void Client::fileDragHandOver()
   m_computer->cancelLocalDrag();
   m_computer->mouseUp(kButtonLeft);
   m_leftButtonDown = false;
+  m_fileDragOutPaths.clear();
   if (m_server == nullptr || !m_server->startFileDrag(paths)) {
     LOG_WARN("file drag: nothing could be sent");
+  } else {
+    m_fileDragOutPaths = std::move(paths);
   }
 }

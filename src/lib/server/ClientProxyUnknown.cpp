@@ -184,6 +184,10 @@ void ClientProxyUnknown::initProxy(const std::string &name, int major, int minor
       m_proxy = new ClientProxy1_9(name, m_stream, m_server, m_events);
       break;
 
+    case 12:
+      m_proxy = new ClientProxy1_10(name, m_stream, m_server, m_events, true, true);
+      break;
+
     case 11:
       m_proxy = new ClientProxy1_10(name, m_stream, m_server, m_events, true);
       break;

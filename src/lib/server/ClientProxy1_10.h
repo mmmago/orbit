@@ -15,13 +15,22 @@ class ClientProxy1_10 : public ClientProxy1_9
 public:
   ClientProxy1_10(
       const std::string &name, deskflow::IStream *adoptedStream, Server *server, IEventQueue *events,
-      bool largeManifests = false
+      bool largeManifests = false, bool fileDragReturn = false
   );
   ~ClientProxy1_10() override = default;
+
+  bool supportsFileDragReturn() const override
+  {
+    return m_fileDragReturn;
+  }
+  void returnFileDrag() override;
 
   void trackpadEvent(const std::string &bytes) override;
   bool supportsTrackpadEvents() const override
   {
     return true;
   }
+
+private:
+  bool m_fileDragReturn; // negotiated protocol >= 1.12
 };

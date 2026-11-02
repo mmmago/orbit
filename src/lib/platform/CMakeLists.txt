@@ -72,6 +72,7 @@ if(WIN32)
   )
 elseif(APPLE)
   set(PLATFORM_SOURCES
+    OSXMouseButtonCapture.h
     IOSXKeyResource.cpp
     IOSXKeyResource.h
     OSXAutoTypes.h

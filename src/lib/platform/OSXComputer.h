@@ -11,6 +11,7 @@
 
 #include "deskflow/PlatformComputer.h"
 #include "platform/OSXClipboardMonitor.h"
+#include "platform/OSXMouseButtonCapture.h"
 #include "platform/OSXPowerManager.h"
 #include "platform/OSXTrackpadGesture.h"
 #include "platform/OSXTrackpadZoom.h"
@@ -352,7 +353,7 @@ private:
   // in a file drag handover, the release must still reach the system or
   // macOS keeps reporting the button as held and the cursor stays locked
   // to the other computer.
-  uint32_t m_buttonsPressedOnComputer = 0;
+  deskflow::osx::MouseButtonCapture m_mouseButtonCapture;
 
   // picks the trackpad gesture events forwarded to the active client
   deskflow::osx::gesture::Forwarder m_gestureForwarder;

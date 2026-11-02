@@ -407,6 +407,11 @@ bool Server::canHandOverFileDrag(BaseClientProxy *dst)
   if (isLockedToComputerServer() || !dst->supportsFileDrag()) {
     return false;
   }
+  if (dst == m_fileDragInFrom && dst->supportsFileDragReturn()) {
+    LOG_INFO("file drag: returning the original drag to \"%s\"", getName(dst).c_str());
+    m_fileDragBack = true;
+    return true;
+  }
   std::vector<std::string> paths;
   if (!m_primaryClient->getDraggedFiles(paths)) {
     return false;
@@ -546,6 +551,13 @@ void Server::switchComputer(BaseClientProxy *dst, int32_t x, int32_t y, bool for
       m_active->requestFileDragHandOver();
       fileDragBackPaths.swap(m_fileDragOutPaths);
     }
+    if (m_fileDragBack && m_active == m_primaryClient && dst == m_fileDragInFrom) {
+      if (m_fileDragReceiver->abortUndropped()) {
+        m_primaryClient->cancelLocalDrag();
+      }
+      dst->returnFileDrag();
+    }
+    m_fileDragInFrom = nullptr;
     m_fileDragBack = false;
     m_fileDragOutTo = nullptr;
     m_fileDragOutPaths.clear();
@@ -555,6 +567,7 @@ void Server::switchComputer(BaseClientProxy *dst, int32_t x, int32_t y, bool for
     if (m_fileDragReturnFrom != nullptr && m_fileDragReturnFrom == m_active && dst == m_primaryClient &&
         m_active->isDraggingFiles()) {
       m_active->requestFileDragHandOver();
+      m_fileDragInFrom = m_active;
       m_fileDragReturnExpected = true;
       m_fileDragReturnReleased = false;
     }
@@ -1430,6 +1443,9 @@ void Server::handleClientDisconnected(BaseClientProxy *client)
   if (m_fileDragReturnFrom == client) {
     m_fileDragReturnFrom = nullptr;
   }
+  if (m_fileDragInFrom == client) {
+    m_fileDragInFrom = nullptr;
+  }
   if (m_fileDragOutTo == client) {
     m_fileDragOutTo = nullptr;
     m_fileDragOutPaths.clear();
@@ -1753,6 +1769,7 @@ void Server::onMouseUp(ButtonID id)
     m_fileDragReturnReleased = true;
   }
   if (id == kButtonLeft) {
+    m_fileDragInFrom = nullptr;
     // a drag handed to a client is dropped there now: it can't come back
     m_fileDragOutTo = nullptr;
     m_fileDragOutPaths.clear();

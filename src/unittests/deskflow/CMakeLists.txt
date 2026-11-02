@@ -68,7 +68,7 @@ endif()
 create_test(
   NAME FileDragTests
   DEPENDS app
-  LIBS arch base ${extra_libs}
+  LIBS server client arch base io mt net platform ${extra_libs}
   SOURCE FileDragTests.cpp
   WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/src/lib/deskflow"
 )

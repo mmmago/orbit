@@ -77,6 +77,8 @@ ServerProxy::ConnectionResult ServerProxy1_9::parseMessage(const uint8_t *code)
         getClient()->fileDragCancelled(id, reason);
       }
     }
+  } else if (memcmp(code, kMsgCFileDragReturn, 4) == 0) {
+    getClient()->fileDragReturn();
   } else if (memcmp(code, kMsgCFileDragHandOver, 4) == 0) {
     getClient()->fileDragHandOver();
   } else {

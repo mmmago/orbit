@@ -206,6 +206,7 @@ public:
   void fileDragCancelled(uint32_t transferId, uint8_t reason);
   //! The server asks for the files being dragged here (the cursor goes back to it).
   void fileDragHandOver();
+  void fileDragReturn();
   //@}
 
 private:
@@ -266,6 +267,8 @@ private:
   bool m_leftButtonDown = false;
   bool m_fileDragReported = false;
   double m_fileDragCheckedAt = 0;
+  std::vector<std::string> m_fileDragOutPaths;
+  bool m_fileDragReturning = false;
   bool m_relativeMouseMoves = false;
   bool m_hasRelativeRestorePosition = false;
   int32_t m_relativeRestoreX = 0;

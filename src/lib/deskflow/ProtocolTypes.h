@@ -46,7 +46,7 @@ static const int16_t kProtocolMajorVersion = 1;
  * @note When incrementing the minor version, the Deskflow application version should also increment
  * @since Protocol version 1.0
  */
-static const int16_t kProtocolMinorVersion = 11;
+static const int16_t kProtocolMinorVersion = 12;
 
 /**
  * @brief Default TCP port for Deskflow connections
@@ -1208,6 +1208,20 @@ extern const char *const kMsgDFileDragState;
  * @since Protocol version 1.9
  */
 extern const char *const kMsgCFileDragHandOver;
+
+/**
+ * @brief Resume the client's original file drag on the next enter.
+ *
+ * **Message Code / Format**: `"DGRT"`
+ * **Direction**: Primary → Secondary
+ *
+ * Sent before enter when a client → server drag goes back without a drop.
+ * The server cancels its incoming transfer separately. The client resumes
+ * its original file URLs, even if the file list has not arrived yet.
+ *
+ * @since Protocol version 1.12
+ */
+extern const char *const kMsgCFileDragReturn;
 
 /** @} */ // end of protocol_files group
 

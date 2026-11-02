@@ -3,8 +3,18 @@
 # SPDX-License-Identifier: MIT
 # Orbit file added: 2026-11-01 by Lucas Magotteaux; see NOTICE.md.
 # Build a self-contained, development-signed Orbit.app (Qt bundled) and zip it.
-# usage: package-macos.sh <build-dir> <out-dir> "<codesign identity>" [source-cache]
+# usage: package-macos.sh [--dev] <build-dir> <out-dir> "<codesign identity>" [source-cache]
+#
+# Without --dev this packages a release: the tree must be clean and HEAD tagged
+# v*, and the legal documents and matching source archive are bundled.
+# --dev packages any build for testing on your own Macs: no legal documents, no
+# source archive, nothing to publish.
 set -euo pipefail
+DEV=0
+if [ "${1:-}" = "--dev" ]; then
+  DEV=1
+  shift
+fi
 BUILD=$1
 OUT=$2
 ID=$3
@@ -34,7 +44,11 @@ done
 
 # Verify every shipped library and install legal/source-access documents before
 # sealing the app. The matching source archive is emitted alongside Orbit.zip.
-python3 "$COMPLIANCE" bundle --app "$APP" --cache "$SOURCE_CACHE" --output "$OUT"
+if [ "$DEV" = 1 ]; then
+  echo "dev package: no legal documents or source archive, not for release" >&2
+else
+  python3 "$COMPLIANCE" bundle --app "$APP" --cache "$SOURCE_CACHE" --output "$OUT"
+fi
 
 codesign --force --sign "$ID" --options runtime --timestamp=none "$SVG"
 codesign --force --sign "$ID" --options runtime --timestamp=none --preserve-metadata=entitlements "$APP/Contents/MacOS/orbit-core"
@@ -50,5 +64,9 @@ fi
 (cd "$OUT" && ditto -c -k --keepParent Orbit.app Orbit-macos-arm64.zip)
 # Keep the historical local installer name, with the release name in checksums.
 cp "$OUT/Orbit-macos-arm64.zip" "$OUT/Orbit.zip"
-(cd "$OUT" && shasum -a 256 Orbit-macos-arm64.zip Orbit-sources-macos-arm64.tar.gz > SHA256SUMS)
+if [ "$DEV" = 1 ]; then
+  (cd "$OUT" && shasum -a 256 Orbit-macos-arm64.zip > SHA256SUMS)
+else
+  (cd "$OUT" && shasum -a 256 Orbit-macos-arm64.zip Orbit-sources-macos-arm64.tar.gz > SHA256SUMS)
+fi
 echo "$OUT/Orbit.zip"

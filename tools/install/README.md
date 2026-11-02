@@ -9,6 +9,8 @@
    Prepare the verified dependency source cache using
    [source distribution](../../docs/source-distribution.md); packaging also
    emits the matching source archive for the release.
+   For a test build that is not a tagged release, use
+   `package-macos.sh --dev build ../dist-orbit "<codesign identity>"` instead.
 2. `install-orbit.sh <Orbit.zip> <sha256 of Orbit.app/Contents/MacOS/orbit-core>`
    puts Orbit.app in /Applications and, the first time, copies the Deskflow
    settings and certificates from ~/Library/Deskflow to ~/Library/Orbit.

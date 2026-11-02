@@ -16,6 +16,10 @@ QtSvg added by hand because Homebrew ships it in its own keg), signs it and
 zips it. With an *Apple Development* identity the app runs on your own Macs;
 public releases need a *Developer ID Application* identity and notarization.
 
+Packaging a release needs a clean, `v*`-tagged tree and the dependency source
+cache, and bundles the legal documents and source archive. To package any build
+for testing on your own Macs, put `--dev` first: it skips that step.
+
 ## End-to-end tests on one Mac
 
 `fake_server.py` speaks enough of the Deskflow protocol (1.9, no TLS) to drive

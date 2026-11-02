@@ -236,6 +236,16 @@ public:
   //! Replay a trackpad gesture event (see IPlatformComputer::fakeTrackpadEvent)
   void trackpadEvent(const std::string &bytes);
 
+  //! @name screen unlock (see IPlatformComputer)
+  //@{
+  uint32_t requestUserAuthentication(const std::string &reason);
+  void cancelUserAuthentication();
+  bool isScreenLocked() const;
+  bool hasScreenUnlockPassword() const;
+  bool loadScreenUnlockPassword(std::string &password) const;
+  void wakeDisplay();
+  //@}
+
   //@}
   //! @name accessors
   //@{

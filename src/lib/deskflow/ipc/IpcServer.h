@@ -10,6 +10,8 @@
 #include <QObject>
 #include <QSet>
 
+#include <atomic>
+
 class QLocalServer;
 class QLocalSocket;
 
@@ -25,6 +27,11 @@ public:
 
   void listen();
   void broadcastCommand(const QString &command, const QString &args = "");
+  //! True if a client (the gui) is connected; any thread
+  bool hasClients() const
+  {
+    return m_clientCount.load() > 0;
+  }
 
 Q_SIGNALS:
   void logLevelChanged(const QString &logLevel);
@@ -53,6 +60,8 @@ private:
 
   QLocalServer *m_server;
   QSet<QLocalSocket *> m_clients;
+  // m_clients.size(), readable from other threads
+  std::atomic<int> m_clientCount{0};
   QString m_serverName;
   QStringList m_pendingMessages;
   QByteArray m_typeName;

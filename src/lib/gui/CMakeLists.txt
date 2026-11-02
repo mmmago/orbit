@@ -13,6 +13,8 @@ if(APPLE)
     OSXHelpers.mm
     OrbitPanel.h
     OrbitPanel.mm
+    OSXScreenUnlockPassword.h
+    OSXScreenUnlockPassword.mm
   )
   add_subdirectory(panel)
 endif()
@@ -144,5 +146,8 @@ target_link_libraries(${target}
 if(APPLE)
   target_link_libraries(${target} PRIVATE orbit_panel)
   add_dependencies(${target} orbit_panel_header)
-  set_source_files_properties(OrbitPanel.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+  set_source_files_properties(OrbitPanel.mm OSXScreenUnlockPassword.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+  find_library(OPEN_DIRECTORY_LIBRARY OpenDirectory)
+  find_library(SECURITY_LIBRARY Security)
+  target_link_libraries(${target} PRIVATE ${OPEN_DIRECTORY_LIBRARY} ${SECURITY_LIBRARY})
 endif()

@@ -22,7 +22,8 @@ target_compile_options(orbit_panel PRIVATE
   "$<$<COMPILE_LANGUAGE:Swift>:SHELL:-emit-objc-header-path ${panel_header_dir}/OrbitPanel-Swift.h>"
 )
 target_include_directories(orbit_panel INTERFACE "${panel_header_dir}")
-target_link_libraries(orbit_panel INTERFACE "-framework AppKit" "-framework SwiftUI" "-framework Security")
+target_link_libraries(orbit_panel INTERFACE "-framework AppKit" "-framework SwiftUI" "-framework Security"
+  "-framework LocalAuthentication" "-framework LocalAuthenticationEmbeddedUI")
 
 # C++ targets link this with clang: tell the linker where the Swift runtime
 # is (it ships with macOS; the objects ask for it with autolink entries)

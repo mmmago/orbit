@@ -50,6 +50,8 @@ public:
    * to the core yet.
    */
   void reloadConfig();
+  //! Answer touchIdRequested()
+  void sendTouchIdResult(const QString &nonce, bool success);
   void cleanup();
   void applyLogLevel();
   void clearSettings();
@@ -101,6 +103,9 @@ Q_SIGNALS:
   void retryIn(int seconds);
   void peerFingerprint(const QString &fingerprint);
   void missingKeyboardLayouts(const QString &layouts);
+  //! The server asks for Touch ID in the menu bar icon to unlock a client
+  void touchIdRequested(const QString &nonce, const QString &reason);
+  void touchIdCancelled(const QString &nonce);
 
 private Q_SLOTS:
   void onProcessFinished(int exitCode, QProcess::ExitStatus);

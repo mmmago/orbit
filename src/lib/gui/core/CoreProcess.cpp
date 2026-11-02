@@ -572,6 +572,12 @@ void CoreProcess::restart()
   }
 }
 
+void CoreProcess::sendTouchIdResult(const QString &nonce, bool success)
+{
+  if (m_coreIpcClient && m_coreIpcClient->isConnected())
+    m_coreIpcClient->sendTouchIdResult(nonce, success);
+}
+
 void CoreProcess::reloadConfig()
 {
   if (m_processState != ProcessState::Started)
@@ -685,6 +691,13 @@ void CoreProcess::onCoreIpcMessageReceived(const QString &command, const QString
     Q_EMIT peerFingerprint(args);
   } else if (command == "missingKeyboardLayouts") {
     Q_EMIT missingKeyboardLayouts(args);
+  } else if (command == "touchIdRequest") {
+    // "<nonce>:<reason>"
+    const auto colon = args.indexOf(':');
+    if (colon > 0)
+      Q_EMIT touchIdRequested(args.left(colon), args.mid(colon + 1));
+  } else if (command == "touchIdCancel") {
+    Q_EMIT touchIdCancelled(args);
   }
 }
 

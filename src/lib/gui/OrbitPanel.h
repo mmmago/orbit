@@ -33,9 +33,15 @@ public:
   void show();
   void hide();
 
+  //! Show Touch ID in the menu bar icon to unlock a client; answered with
+  //! touchIdFinished()
+  void beginTouchId(const QString &nonce, const QString &reason);
+  void cancelTouchId(const QString &nonce);
+
 Q_SIGNALS:
   //! @p name: selectMode, setOption, pickServer, moveComputer, restart, quit
   void actionRequested(const QString &name, const QJsonObject &arguments);
+  void touchIdFinished(const QString &nonce, bool success);
 
 private:
   struct Impl;

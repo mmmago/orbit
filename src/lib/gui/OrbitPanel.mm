@@ -28,11 +28,16 @@ OrbitPanel::OrbitPanel(QObject *parent) : QObject(parent), m_impl(std::make_uniq
     const auto json = QJsonDocument::fromJson(QByteArray::fromNSData([arguments dataUsingEncoding:NSUTF8StringEncoding]));
     Q_EMIT self->actionRequested(QString::fromNSString(name), json.object());
   };
+  m_impl->controller.onTouchIdResult = ^(NSString *nonce, BOOL success) {
+    if (self)
+      Q_EMIT self->touchIdFinished(QString::fromNSString(nonce), success);
+  };
 }
 
 OrbitPanel::~OrbitPanel()
 {
   m_impl->controller.onAction = nil;
+  m_impl->controller.onTouchIdResult = nil;
   [m_impl->controller hide];
 }
 
@@ -60,4 +65,14 @@ void OrbitPanel::show()
 void OrbitPanel::hide()
 {
   [m_impl->controller hide];
+}
+
+void OrbitPanel::beginTouchId(const QString &nonce, const QString &reason)
+{
+  [m_impl->controller beginTouchId:nonce.toNSString() reason:reason.toNSString()];
+}
+
+void OrbitPanel::cancelTouchId(const QString &nonce)
+{
+  [m_impl->controller cancelTouchId:nonce.toNSString()];
 }

@@ -26,6 +26,7 @@
 #include "deskflow/PacketStreamFilter.h"
 #include "deskflow/ProtocolTypes.h"
 #include "deskflow/ProtocolUtil.h"
+#include "deskflow/ScreenUnlock.h"
 #include "deskflow/StreamChunker.h"
 #include "deskflow/ipc/CoreIpc.h"
 #include "net/IDataSocket.h"
@@ -37,6 +38,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <random>
 
 //
 // Client
@@ -173,6 +175,7 @@ void Client::handshakeComplete()
 {
   m_ready = true;
   m_computer->enable();
+  setupScreenLock();
   if (m_relativeMouseMoves && !m_hasRelativeRestorePosition) {
     saveRelativeRestorePosition();
   }
@@ -521,6 +524,9 @@ bool Client::setupComputer(int16_t protocolMinor)
   case 9:
     m_server = new ServerProxy1_9(this, m_stream, m_events);
     break;
+  case 13:
+    m_server = new ServerProxy1_10(this, m_stream, m_events, true, true);
+    break;
   case 12:
   case 11:
     m_server = new ServerProxy1_10(this, m_stream, m_events, true);
@@ -592,6 +598,7 @@ void Client::cleanupComputer()
     }
     m_events->removeHandler(EventTypes::ComputerShapeChanged, getEventTarget());
     m_events->removeHandler(EventTypes::ClipboardGrabbed, getEventTarget());
+    cleanupScreenLock();
     m_fileDragOutPaths.clear();
     m_fileDragReturning = false;
     m_fileDragReceiver.reset();
@@ -941,4 +948,155 @@ void Client::fileDragHandOver()
   } else {
     m_fileDragOutPaths = std::move(paths);
   }
+}
+
+//
+// screen unlock with Touch ID on the server (see deskflow/ScreenUnlock.h)
+//
+
+namespace {
+
+// a server key id no keyboard sends, for the typed password
+const KeyButton kUnlockKeyButton = 0x1FE;
+
+// the lock screen needs a moment after the display wakes
+const double kUnlockWakeDelay = 1.0;
+const double kUnlockKeyInterval = 0.02;
+
+std::string newScreenUnlockToken()
+{
+  std::random_device random;
+  std::string token;
+  static const char *const kHex = "0123456789abcdef";
+  for (int i = 0; i < 32; ++i) {
+    token += kHex[random() & 0xF];
+  }
+  return token;
+}
+
+} // namespace
+
+void Client::setupScreenLock()
+{
+  const auto *proxy = dynamic_cast<ServerProxy1_10 *>(m_server);
+  if (proxy == nullptr || !proxy->supportsScreenUnlock() || m_screenLockTimer != nullptr) {
+    return;
+  }
+  m_screenLockState = -1;
+  m_screenUnlockRetryAt = 0;
+  m_screenLockTimer = m_events->newTimer(1.0, nullptr);
+  m_events->addHandler(EventTypes::Timer, m_screenLockTimer, [this](const auto &) { checkScreenLock(); });
+  checkScreenLock();
+}
+
+void Client::cleanupScreenLock()
+{
+  stopUnlockTyping();
+  if (m_screenLockTimer != nullptr) {
+    m_events->removeHandler(EventTypes::Timer, m_screenLockTimer);
+    m_events->deleteTimer(m_screenLockTimer);
+    m_screenLockTimer = nullptr;
+  }
+  m_screenUnlockToken.clear();
+  m_screenLockState = -1;
+}
+
+void Client::checkScreenLock()
+{
+  auto *proxy = dynamic_cast<ServerProxy1_10 *>(m_server);
+  if (proxy == nullptr || m_unlockTypeTimer != nullptr) {
+    return;
+  }
+
+  using namespace deskflow::screenunlock;
+  int state = Unlocked;
+  if (m_computer->isScreenLocked()) {
+    // only over TLS, and once the user stored the password here
+    const bool unlockable =
+        m_useSecureNetwork && Arch::time() >= m_screenUnlockRetryAt && m_computer->hasScreenUnlockPassword();
+    state = unlockable ? Unlockable : Locked;
+  }
+  if (state == m_screenLockState) {
+    return;
+  }
+
+  m_screenLockState = state;
+  m_screenUnlockToken = state == Unlockable ? newScreenUnlockToken() : std::string();
+  LOG_INFO(
+      "screen unlock: screen %s", state == Unlocked ? "unlocked" : (state == Unlockable ? "locked, unlockable" : "locked")
+  );
+  proxy->sendScreenLockState(static_cast<uint8_t>(state), m_screenUnlockToken);
+}
+
+void Client::unlockScreen(const std::string &token)
+{
+  using namespace deskflow::screenunlock;
+  if (token.empty() || token != m_screenUnlockToken || m_screenLockState != Unlockable) {
+    LOG_WARN("screen unlock: ignored an unlock request with a stale token");
+    return;
+  }
+  // a token is used once; offer a new one a little later if still locked
+  m_screenUnlockToken.clear();
+  m_screenUnlockRetryAt = Arch::time() + 5.0;
+
+  if (!m_computer->isScreenLocked()) {
+    LOG_INFO("screen unlock: already unlocked");
+    return;
+  }
+
+  std::string password;
+  if (!m_computer->loadScreenUnlockPassword(password)) {
+    return;
+  }
+  stopUnlockTyping();
+  for (const auto c : QString::fromStdString(password).toUcs4()) {
+    m_unlockKeys.push_back(static_cast<KeyID>(c));
+  }
+  std::fill(password.begin(), password.end(), '\0');
+  m_unlockKeys.push_back(kKeyReturn);
+  m_unlockKeyIndex = 0;
+
+  LOG_INFO("screen unlock: Touch ID confirmed on the server, unlocking");
+  m_computer->wakeDisplay();
+  m_unlockTypeFrom = Arch::time() + kUnlockWakeDelay;
+  m_unlockTypeTimer = m_events->newTimer(kUnlockKeyInterval, nullptr);
+  m_events->addHandler(EventTypes::Timer, m_unlockTypeTimer, [this](const auto &) { typeUnlockKey(); });
+}
+
+void Client::typeUnlockKey()
+{
+  if (Arch::time() < m_unlockTypeFrom) {
+    // the lock screen is not showing its password field yet
+    return;
+  }
+  if (m_unlockKeyIndex >= m_unlockKeys.size()) {
+    stopUnlockTyping();
+    LOG_DEBUG("screen unlock: password typed");
+    return;
+  }
+  const KeyID id = m_unlockKeys[m_unlockKeyIndex];
+  m_unlockKeys[m_unlockKeyIndex] = 0;
+  ++m_unlockKeyIndex;
+  // the key path logs key ids at debug levels: none of the password's
+  const auto level = CLOG->getFilter();
+  if (level > LogLevel::Level::Info) {
+    CLOG->setFilter(LogLevel::Level::Info);
+  }
+  m_computer->keyDown(id, 0, kUnlockKeyButton, "");
+  m_computer->keyUp(id, 0, kUnlockKeyButton);
+  if (level > LogLevel::Level::Info) {
+    CLOG->setFilter(level);
+  }
+}
+
+void Client::stopUnlockTyping()
+{
+  if (m_unlockTypeTimer != nullptr) {
+    m_events->removeHandler(EventTypes::Timer, m_unlockTypeTimer);
+    m_events->deleteTimer(m_unlockTypeTimer);
+    m_unlockTypeTimer = nullptr;
+  }
+  std::fill(m_unlockKeys.begin(), m_unlockKeys.end(), 0);
+  m_unlockKeys.clear();
+  m_unlockKeyIndex = 0;
 }

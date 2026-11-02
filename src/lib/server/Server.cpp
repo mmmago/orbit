@@ -9,6 +9,7 @@
 
 #include "server/Server.h"
 
+#include "deskflow/ScreenUnlock.h"
 #include "deskflow/TrackpadEvent.h"
 
 #include "base/IEventQueue.h"
@@ -99,6 +100,10 @@ Server::Server(ServerConfig &config, PrimaryClient *primaryClient, deskflow::Com
       [this](const auto &e) { handleTrackpadEvent(e); }
   );
   m_events->addHandler(
+      EventTypes::PrimaryComputerUserAuthenticated, m_primaryClient->getEventTarget(),
+      [this](const auto &e) { handleUserAuthenticated(e); }
+  );
+  m_events->addHandler(
       EventTypes::PrimaryScreenSaverActivated, m_primaryClient->getEventTarget(),
       [this](const auto &) { onScreensaver(true); }
   );
@@ -171,6 +176,7 @@ Server::~Server()
   m_events->removeHandler(PrimaryComputerMotionOnSecondary, m_primaryClient->getEventTarget());
   m_events->removeHandler(PrimaryComputerWheel, m_primaryClient->getEventTarget());
   m_events->removeHandler(PrimaryComputerTrackpadEvent, m_primaryClient->getEventTarget());
+  m_events->removeHandler(PrimaryComputerUserAuthenticated, m_primaryClient->getEventTarget());
   m_events->removeHandler(PrimaryScreenSaverActivated, m_primaryClient->getEventTarget());
   m_events->removeHandler(PrimaryScreenSaverDeactivated, m_primaryClient->getEventTarget());
   m_events->removeHandler(PrimaryComputerFakeInputBegin, m_inputFilter);
@@ -620,6 +626,19 @@ void Server::switchComputer(BaseClientProxy *dst, int32_t x, int32_t y, bool for
 
     if (!fileDragBackPaths.empty() && !m_primaryClient->beginLocalFileDrag(fileDragBackPaths)) {
       LOG_WARN("file drag: could not drag the files again here");
+    }
+
+    // leaving the locked client: the prompt is for it only (and keeps the
+    // key focus here otherwise)
+    if (m_screenUnlockFor != nullptr && m_screenUnlockFor != m_active) {
+      m_screenUnlockFor = nullptr;
+      m_screenUnlockToken.clear();
+      m_primaryClient->getComputer()->cancelUserAuthentication();
+    }
+
+    // entering a locked client: offer to unlock it with Touch ID here
+    if (m_active != m_primaryClient) {
+      requestScreenUnlock(m_active);
     }
 
     if (m_enableClipboard) {
@@ -1420,6 +1439,58 @@ void Server::handleTrackpadEvent(const Event &event)
   }
 }
 
+void Server::clientScreenLockChanged(BaseClientProxy *client)
+{
+  if (m_screenUnlockFor == client && client->screenUnlockToken() != m_screenUnlockToken) {
+    // unlocked meanwhile (typed there), or locked again: the prompt is stale
+    LOG_DEBUG("screen unlock: \"%s\" changed, dismissing Touch ID", getName(client).c_str());
+    m_screenUnlockFor = nullptr;
+    m_screenUnlockToken.clear();
+    m_primaryClient->getComputer()->cancelUserAuthentication();
+  }
+}
+
+void Server::requestScreenUnlock(BaseClientProxy *client)
+{
+  const auto token = client->screenUnlockToken();
+  if (token.empty() || (m_screenUnlockFor == client && m_screenUnlockToken == token)) {
+    return;
+  }
+  const auto name = getName(client);
+  // macOS shows: "<app> is trying to unlock <name>."
+  const auto request = m_primaryClient->getComputer()->requestUserAuthentication("unlock " + name);
+  if (request == 0) {
+    LOG_INFO("screen unlock: \"%s\" is locked, but Touch ID is not available here", name.c_str());
+    return;
+  }
+  LOG_INFO("screen unlock: asking for Touch ID to unlock \"%s\"", name.c_str());
+  m_screenUnlockFor = client;
+  m_screenUnlockToken = token;
+  m_screenUnlockRequest = request;
+}
+
+void Server::handleUserAuthenticated(const Event &event)
+{
+  const auto *data = dynamic_cast<const deskflow::screenunlock::UserAuthenticationData *>(event.getDataObject());
+  if (data == nullptr || data->m_request != m_screenUnlockRequest || m_screenUnlockFor == nullptr) {
+    return;
+  }
+  auto *client = m_screenUnlockFor;
+  const auto token = m_screenUnlockToken;
+  m_screenUnlockFor = nullptr;
+  m_screenUnlockToken.clear();
+  if (!data->m_success) {
+    LOG_INFO("screen unlock: Touch ID was not confirmed");
+    return;
+  }
+  if (client->screenUnlockToken() != token) {
+    LOG_INFO("screen unlock: \"%s\" is no longer locked", getName(client).c_str());
+    return;
+  }
+  LOG_INFO("screen unlock: unlocking \"%s\"", getName(client).c_str());
+  client->unlockScreen(token);
+}
+
 void Server::handleSwitchWaitTimeout()
 {
   // ignore if mouse is locked to computer
@@ -1445,6 +1516,11 @@ void Server::handleClientDisconnected(BaseClientProxy *client)
   }
   if (m_fileDragInFrom == client) {
     m_fileDragInFrom = nullptr;
+  }
+  if (m_screenUnlockFor == client) {
+    m_screenUnlockFor = nullptr;
+    m_screenUnlockToken.clear();
+    m_primaryClient->getComputer()->cancelUserAuthentication();
   }
   if (m_fileDragOutTo == client) {
     m_fileDragOutTo = nullptr;
@@ -1757,6 +1833,12 @@ void Server::onMouseDown(ButtonID id)
 
   // relay
   m_active->mouseDown(id);
+
+  // a click on a locked client asks for Touch ID again, in case the prompt
+  // from entering it was dismissed or missed (no-op while one is up)
+  if (m_active != m_primaryClient) {
+    requestScreenUnlock(m_active);
+  }
 }
 
 void Server::onMouseUp(ButtonID id)

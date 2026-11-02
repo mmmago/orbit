@@ -59,6 +59,8 @@ static const OptionID kOptionDisableLockToComputer = OPTION_CODE("DLTS");
 static const OptionID kOptionClipboardSharing = OPTION_CODE("CLPS");
 static const OptionID kOptionClipboardSharingSize = OPTION_CODE("CLSZ");
 static const OptionID kOptionTrackpadGestures = OPTION_CODE("TPGS");
+//! Touch ID for a screen unlock in the menu bar icon instead of a panel
+static const OptionID kOptionTouchIdInMenuBar = OPTION_CODE("TIMB");
 static const OptionID kOptionFileDragDrop = OPTION_CODE("FDRG");
 //@}
 

@@ -189,6 +189,10 @@ enum class EventTypes : uint32_t
   /// Event data object is a deskflow::TrackpadEventData.
   PrimaryComputerTrackpadEvent,
 
+  /// The user answered the Touch ID prompt asked for by the server.
+  /// Event data object is a deskflow::screenunlock::UserAuthenticationData.
+  PrimaryComputerUserAuthenticated,
+
   /// This event is sent when screensaver is activated.
   PrimaryScreenSaverActivated,
 

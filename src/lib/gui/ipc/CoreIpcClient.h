@@ -22,6 +22,8 @@ public:
 
   void sendStop();
   void sendReload();
+  //! Answer a "touchIdRequest" from the core (menu bar Touch ID)
+  void sendTouchIdResult(const QString &nonce, bool success);
 
 Q_SIGNALS:
   void commandReceived(const QString &command, const QString &args);

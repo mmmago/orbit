@@ -86,6 +86,14 @@ public:
   void fakeMouseWheel(ScrollDelta delta) const override;
   void fakeTrackpadEvent(const std::string &bytes) override;
 
+  // IPlatformComputer screen unlock overrides
+  uint32_t requestUserAuthentication(const std::string &reason) override;
+  void cancelUserAuthentication() override;
+  bool isScreenLocked() const override;
+  bool hasScreenUnlockPassword() const override;
+  bool loadScreenUnlockPassword(std::string &password) const override;
+  void wakeDisplay() override;
+
   // IPlatformComputer overrides
   void enable() override;
   void disable() override;
@@ -365,6 +373,10 @@ private:
   // primary: forward trackpad gestures to the active client
   // (kOptionTrackpadGestures; written by setOptions(), read by the event tap)
   std::atomic<bool> m_trackpadGestures{true};
+
+  // primary: Touch ID for a screen unlock in the gui's menu bar icon rather
+  // than in a panel of our own (kOptionTouchIdInMenuBar)
+  std::atomic<bool> m_touchIdInMenuBar{false};
 
   // primary: physical left releases seen by the tap; an incoming drag is only
   // started if the user did not release the button since it began

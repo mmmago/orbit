@@ -108,6 +108,8 @@ elseif(APPLE)
     OSXMediaKeySupport.m
     OSXFileDrag.h
     OSXFileDrag.mm
+    OSXScreenUnlock.h
+    OSXScreenUnlock.mm
     OSXTrackpadGesture.h
     OSXTrackpadGesture.mm
     OSXTrackpadZoom.h
@@ -207,8 +209,14 @@ if(UNIX)
   if(APPLE)
     find_library(COCOA_LIBRARY Cocoa)
     find_library(UTI_LIBRARY UniformTypeIdentifiers)
-    target_link_libraries(platform PUBLIC ${COCOA_LIBRARY} ${UTI_LIBRARY})
-    set_source_files_properties(OSXFileDrag.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+    find_library(LOCAL_AUTHENTICATION_LIBRARY LocalAuthentication)
+    find_library(LOCAL_AUTHENTICATION_UI_LIBRARY LocalAuthenticationEmbeddedUI)
+    find_library(SECURITY_LIBRARY Security)
+    target_link_libraries(
+      platform PUBLIC ${COCOA_LIBRARY} ${UTI_LIBRARY} ${LOCAL_AUTHENTICATION_LIBRARY}
+      ${LOCAL_AUTHENTICATION_UI_LIBRARY} ${SECURITY_LIBRARY}
+    )
+    set_source_files_properties(OSXFileDrag.mm OSXScreenUnlock.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
   else()
     if(${LIBXKBCOMMON_VERSION} VERSION_GREATER_EQUAL "1.10")
       target_compile_definitions(platform PRIVATE HAVE_XKB_KEYMAP_MOD_GET_MASK=1)

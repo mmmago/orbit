@@ -238,6 +238,9 @@ public:
       bool preparing = false
   );
 
+  //! A client's screen was locked or unlocked (see screenUnlockToken()).
+  void clientScreenLockChanged(BaseClientProxy *client);
+
 private:
   // returns the jump zone of the client
   int32_t getJumpZoneSize(const BaseClientProxy *) const;
@@ -337,6 +340,9 @@ private:
   void handleMotionSecondaryEvent(const Event &event);
   void handleWheelEvent(const Event &event);
   void handleTrackpadEvent(const Event &event);
+  void handleUserAuthenticated(const Event &event);
+  // ask for Touch ID to unlock \p client if it is locked and unlockable
+  void requestScreenUnlock(BaseClientProxy *client);
   void handleSwitchWaitTimeout();
   void handleClientDisconnected(BaseClientProxy *client);
   void handleClientCloseTimeout(BaseClientProxy *client);
@@ -500,6 +506,10 @@ private:
   // Source of the client drag currently held on the primary, including
   // the interval before its preview/list arrives. Cleared on release.
   BaseClientProxy *m_fileDragInFrom = nullptr;
+  // the client a Touch ID prompt is up for, its token and the request number
+  BaseClientProxy *m_screenUnlockFor = nullptr;
+  std::string m_screenUnlockToken;
+  uint32_t m_screenUnlockRequest = 0;
   bool m_fileDragReturnExpected = false;
   bool m_fileDragReturnReleased = false;
   // server -> client: the client our drag was handed to, and its files, until

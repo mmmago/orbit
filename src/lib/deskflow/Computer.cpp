@@ -517,4 +517,35 @@ void Computer::trackpadEvent(const std::string &bytes)
   m_computer->fakeTrackpadEvent(bytes);
 }
 
+
+uint32_t Computer::requestUserAuthentication(const std::string &reason)
+{
+  return m_computer->requestUserAuthentication(reason);
+}
+
+void Computer::cancelUserAuthentication()
+{
+  m_computer->cancelUserAuthentication();
+}
+
+bool Computer::isScreenLocked() const
+{
+  return m_computer->isScreenLocked();
+}
+
+bool Computer::hasScreenUnlockPassword() const
+{
+  return m_computer->hasScreenUnlockPassword();
+}
+
+bool Computer::loadScreenUnlockPassword(std::string &password) const
+{
+  return m_computer->loadScreenUnlockPassword(password);
+}
+
+void Computer::wakeDisplay()
+{
+  m_computer->wakeDisplay();
+}
+
 } // namespace deskflow

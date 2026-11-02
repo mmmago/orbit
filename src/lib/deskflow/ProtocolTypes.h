@@ -46,7 +46,7 @@ static const int16_t kProtocolMajorVersion = 1;
  * @note When incrementing the minor version, the Deskflow application version should also increment
  * @since Protocol version 1.0
  */
-static const int16_t kProtocolMinorVersion = 12;
+static const int16_t kProtocolMinorVersion = 13;
 
 /**
  * @brief Default TCP port for Deskflow connections
@@ -1224,6 +1224,47 @@ extern const char *const kMsgCFileDragHandOver;
 extern const char *const kMsgCFileDragReturn;
 
 /** @} */ // end of protocol_files group
+
+/**
+ * @defgroup protocol_unlock Screen Unlock Messages
+ * @brief Unlocking a locked client after Touch ID on the server
+ * @{
+ */
+
+/**
+ * @brief Screen lock state of the secondary
+ *
+ * **Message Code**: `"LKST"`
+ * **Direction**: Secondary → Primary
+ * **Format**: `"LKST%1i%s"`
+ * - `$1`: 0 unlocked, 1 locked, 2 locked and unlockable from the server
+ * - `$2`: one-time token for state 2, empty otherwise
+ *
+ * Sent when the state changes. A client is unlockable only over TLS and
+ * after its user stored the login password in its own Keychain; the
+ * password never crosses the network.
+ *
+ * @since Protocol version 1.13
+ */
+extern const char *const kMsgDScreenLockState;
+
+/**
+ * @brief Unlock the secondary's screen
+ *
+ * **Message Code**: `"ULCK"`
+ * **Direction**: Primary → Secondary
+ * **Format**: `"ULCK%s"`
+ * - `$1`: the token of the last kMsgDScreenLockState
+ *
+ * Sent after the user authenticated with Touch ID on the primary. The
+ * secondary types its stored password into its lock screen if the token
+ * matches and it is still locked; a token is used once.
+ *
+ * @since Protocol version 1.13
+ */
+extern const char *const kMsgCScreenUnlock;
+
+/** @} */ // end of protocol_unlock group
 
 /**
  * @defgroup protocol_gestures Trackpad Gesture Messages

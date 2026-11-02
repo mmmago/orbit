@@ -111,6 +111,18 @@ public:
   {
   }
 
+  //! Token offered by a locked client that can be unlocked from here (1.13+),
+  //! empty when it is unlocked or cannot be.
+  virtual std::string screenUnlockToken() const
+  {
+    return {};
+  }
+
+  //! Ask the client to type its stored password into its lock screen.
+  virtual void unlockScreen(const std::string &)
+  {
+  }
+
   //! Ask the client to cancel its local drag and send the dragged files.
   virtual void requestFileDragHandOver()
   {

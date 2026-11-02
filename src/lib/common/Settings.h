@@ -122,6 +122,7 @@ public:
     inline static const auto SwitchDelay = QStringLiteral("server/switchDelay");
     inline static const auto SwitchDoubleTap = QStringLiteral("server/switchDoubleTap");
     inline static const auto TrackpadGestures = QStringLiteral("server/trackpadGestures");
+    inline static const auto TouchIdInMenuBar = QStringLiteral("server/touchIdInMenuBar");
     inline static const auto Win32KeepForeground = QStringLiteral("server/win32KeepForeground");
     inline static const auto XdpClipboardRetried = QStringLiteral("server/xdpClipboardRetried");
     inline static const auto XdpRestoreToken = QStringLiteral("server/xdpRestoreToken");
@@ -341,6 +342,7 @@ private:
     , Server::SwitchDelay
     , Server::SwitchDoubleTap
     , Server::TrackpadGestures
+    , Server::TouchIdInMenuBar
     , Server::Win32KeepForeground
   };
 
@@ -370,6 +372,7 @@ private:
     , Server::EnableSwitchDoubleTap
     , Server::ExternalConfig
     , Server::RelativeMouseMoves
+    , Server::TouchIdInMenuBar
     , Server::XdpClipboardRetried
   };
 

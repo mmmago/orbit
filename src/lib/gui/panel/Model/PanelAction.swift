@@ -10,6 +10,8 @@ enum PanelAction: Sendable {
     case setOption(String, Bool)
     case pickServer(address: String)
     case moveComputer(from: GridCell, to: GridCell)
+    case setScreenUnlockPassword(String)
+    case removeScreenUnlockPassword
     case restart
     case quit
 
@@ -19,6 +21,8 @@ enum PanelAction: Sendable {
         case .setOption: "setOption"
         case .pickServer: "pickServer"
         case .moveComputer: "moveComputer"
+        case .setScreenUnlockPassword: "setScreenUnlockPassword"
+        case .removeScreenUnlockPassword: "removeScreenUnlockPassword"
         case .restart: "restart"
         case .quit: "quit"
         }
@@ -32,7 +36,8 @@ enum PanelAction: Sendable {
         case .pickServer(let address): ["address": address]
         case .moveComputer(let from, let to):
             ["fromColumn": from.column, "fromRow": from.row, "toColumn": to.column, "toRow": to.row]
-        case .restart, .quit: [:]
+        case .setScreenUnlockPassword(let password): ["password": password]
+        case .removeScreenUnlockPassword, .restart, .quit: [:]
         }
         guard let data = try? JSONSerialization.data(withJSONObject: arguments) else { return "{}" }
         return String(decoding: data, as: UTF8.self)

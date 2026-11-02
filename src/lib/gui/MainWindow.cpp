@@ -62,6 +62,8 @@
 #include <memory>
 
 #if defined(Q_OS_MACOS)
+#include "gui/OSXScreenUnlockPassword.h"
+
 #include <ApplicationServices/ApplicationServices.h>
 #endif
 
@@ -250,6 +252,10 @@ void MainWindow::setupControls()
 #ifdef Q_OS_MACOS
   // the panel's own menu bar icon (Core Animation) replaces the Qt tray icon
   m_panel->installStatusItem();
+  // the server unlocks a locked client after Touch ID in that icon
+  connect(&m_coreProcess, &CoreProcess::touchIdRequested, m_panel, &OrbitPanel::beginTouchId);
+  connect(&m_coreProcess, &CoreProcess::touchIdCancelled, m_panel, &OrbitPanel::cancelTouchId);
+  connect(m_panel, &OrbitPanel::touchIdFinished, &m_coreProcess, &CoreProcess::sendTouchIdResult);
 #endif
   connect(m_statusBar, &StatusBar::statusChanged, this, &MainWindow::updatePanel);
 
@@ -1539,13 +1545,20 @@ void MainWindow::sendPanelState()
       {QStringLiteral("trackpadGestures"), Settings::value(Settings::Server::TrackpadGestures).toBool()},
       {QStringLiteral("fileDragDrop"), Settings::value(Settings::Server::EnableFileDragDrop).toBool()},
       {QStringLiteral("clipboard"), Settings::value(Settings::Server::EnableClipboard).toBool()},
+      {QStringLiteral("touchIdInMenuBar"), Settings::value(Settings::Server::TouchIdInMenuBar).toBool()},
   };
   const auto host = ui->lineHostname->text().trimmed();
-  state[QStringLiteral("client")] = QJsonObject{
+  QJsonObject client{
       {QStringLiteral("invertHorizontalScroll"), Settings::value(Settings::Client::InvertXScroll).toBool()},
       {QStringLiteral("invertVerticalScroll"), Settings::value(Settings::Client::InvertYScroll).toBool()},
       {QStringLiteral("host"), host},
   };
+#ifdef Q_OS_MACOS
+  client[QStringLiteral("screenUnlock")] = screenunlock::hasPassword();
+  if (!m_screenUnlockError.isEmpty())
+    client[QStringLiteral("screenUnlockError")] = m_screenUnlockError;
+#endif
+  state[QStringLiteral("client")] = client;
 
   const auto ownName = Settings::value(Settings::Core::ComputerName).toString();
   QJsonArray servers;
@@ -1604,6 +1617,7 @@ void MainWindow::handlePanelAction(const QString &name, const QJsonObject &argum
         {QStringLiteral("trackpadGestures"), Settings::Server::TrackpadGestures},
         {QStringLiteral("fileDragDrop"), Settings::Server::EnableFileDragDrop},
         {QStringLiteral("clipboard"), Settings::Server::EnableClipboard},
+        {QStringLiteral("touchIdInMenuBar"), Settings::Server::TouchIdInMenuBar},
         {QStringLiteral("invertHorizontalScroll"), Settings::Client::InvertXScroll},
         {QStringLiteral("invertVerticalScroll"), Settings::Client::InvertYScroll},
     };
@@ -1643,6 +1657,19 @@ void MainWindow::handlePanelAction(const QString &name, const QJsonObject &argum
     updatePanel();
     // the server takes the new arrangement without dropping the clients
     m_coreProcess.reloadConfig();
+#ifdef Q_OS_MACOS
+  } else if (name == QStringLiteral("setScreenUnlockPassword")) {
+    // the client types it into its lock screen after Touch ID on the server
+    QString error;
+    auto password = arguments.value(QStringLiteral("password")).toString();
+    m_screenUnlockError = screenunlock::storePassword(password, error) ? QString() : error;
+    password.fill(QChar(u'\0'));
+    updatePanel();
+  } else if (name == QStringLiteral("removeScreenUnlockPassword")) {
+    screenunlock::removePassword();
+    m_screenUnlockError.clear();
+    updatePanel();
+#endif
   } else if (name == QStringLiteral("restart")) {
     resetCore();
   } else if (name == QStringLiteral("quit")) {

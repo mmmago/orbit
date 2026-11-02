@@ -31,11 +31,13 @@
 #include "mt/Thread.h"
 #include "platform/OSXClipboard.h"
 #include "platform/OSXEventQueueBuffer.h"
+#include "deskflow/ScreenUnlock.h"
 #include "platform/OSXFileDrag.h"
 #include "platform/OSXKeyState.h"
 #include "platform/OSXMediaKeySupport.h"
 #include "platform/OSXPasteboardPeeker.h"
 #include "platform/OSXScreenSaver.h"
+#include "platform/OSXScreenUnlock.h"
 #include "platform/OSXTrackpadGesture.h"
 #include "platform/OSXTrackpadZoom.h"
 
@@ -1028,6 +1030,7 @@ void OSXComputer::screensaver(bool activate)
 void OSXComputer::resetOptions()
 {
   m_trackpadGestures = true;
+  m_touchIdInMenuBar = false;
 }
 
 void OSXComputer::setOptions(const OptionsList &options)
@@ -1036,6 +1039,9 @@ void OSXComputer::setOptions(const OptionsList &options)
     if (options[i] == kOptionTrackpadGestures) {
       m_trackpadGestures = (options[i + 1] != 0);
       LOG_DEBUG("trackpad gestures %s", m_trackpadGestures ? "enabled" : "disabled");
+    } else if (options[i] == kOptionTouchIdInMenuBar) {
+      m_touchIdInMenuBar = (options[i + 1] != 0);
+      LOG_DEBUG("touch id for screen unlock in the %s", m_touchIdInMenuBar ? "menu bar" : "panel");
     }
   }
 }
@@ -2474,4 +2480,60 @@ void OSXComputer::abortFileDrag(uint32_t transferId)
     }
   }
   deskflow::osx::filedrag::abortReceive(transferId);
+}
+
+//
+// screen unlock (see deskflow/ScreenUnlock.h)
+//
+
+uint32_t OSXComputer::requestUserAuthentication(const std::string &reason)
+{
+  auto *events = m_events;
+  void *target = getEventTarget();
+  auto post = [events, target](uint32_t request, bool success) {
+    events->addEvent(Event(
+        EventTypes::PrimaryComputerUserAuthenticated, target,
+        new deskflow::screenunlock::UserAuthenticationData(request, success)
+    ));
+  };
+
+  // in the gui's menu bar icon, if the gui is there to show it
+  if (m_touchIdInMenuBar && deskflow::screenunlock::menubar::available()) {
+    deskflow::screenunlock::osx::cancelAuthentication();
+    const auto request = deskflow::screenunlock::osx::nextRequest();
+    deskflow::screenunlock::menubar::request(reason, [post, request](bool success) { post(request, success); });
+    return request;
+  }
+  deskflow::screenunlock::menubar::cancel();
+  return deskflow::screenunlock::osx::authenticate(reason, post);
+}
+
+void OSXComputer::cancelUserAuthentication()
+{
+  deskflow::screenunlock::osx::cancelAuthentication();
+  deskflow::screenunlock::menubar::cancel();
+}
+
+bool OSXComputer::isScreenLocked() const
+{
+  return deskflow::screenunlock::osx::isScreenLocked();
+}
+
+bool OSXComputer::hasScreenUnlockPassword() const
+{
+  return deskflow::screenunlock::osx::hasPassword();
+}
+
+bool OSXComputer::loadScreenUnlockPassword(std::string &password) const
+{
+  return deskflow::screenunlock::osx::loadPassword(password);
+}
+
+void OSXComputer::wakeDisplay()
+{
+  const auto result =
+      IOPMAssertionDeclareUserActivity(CFSTR("Orbit screen unlock"), kIOPMUserActiveLocal, &m_userActivityAssertionID);
+  if (result != kIOReturnSuccess) {
+    LOG_WARN("screen unlock: failed to declare user activity: %d", result);
+  }
 }

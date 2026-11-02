@@ -8,4 +8,8 @@ struct ClientOptions: Codable, Equatable, Sendable {
     var invertVerticalScroll = false
     /// The server address this client connects to (host name or IP)
     var host = ""
+    /// This Mac's password is stored: the server's Touch ID unlocks it
+    var screenUnlock = false
+    /// Why the password was not stored
+    var screenUnlockError: String?
 }

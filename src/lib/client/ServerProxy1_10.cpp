@@ -14,8 +14,11 @@
 
 #include <cstring>
 
-ServerProxy1_10::ServerProxy1_10(Client *client, deskflow::IStream *stream, IEventQueue *events, bool largeManifests)
-    : ServerProxy1_9(client, stream, events, largeManifests)
+ServerProxy1_10::ServerProxy1_10(
+    Client *client, deskflow::IStream *stream, IEventQueue *events, bool largeManifests, bool screenUnlock
+)
+    : ServerProxy1_9(client, stream, events, largeManifests),
+      m_screenUnlock(screenUnlock)
 {
 }
 
@@ -23,6 +26,10 @@ ServerProxy::ConnectionResult ServerProxy1_10::parseMessage(const uint8_t *code)
 {
   if (memcmp(code, kMsgDTrackpadEvent, 4) == 0) {
     trackpadEvent();
+    return ConnectionResult::Okay;
+  }
+  if (m_screenUnlock && memcmp(code, kMsgCScreenUnlock, 4) == 0) {
+    screenUnlock();
     return ConnectionResult::Okay;
   }
   return ServerProxy1_9::parseMessage(code);
@@ -36,4 +43,20 @@ void ServerProxy1_10::trackpadEvent()
   }
   LOG_VERBOSE("recv trackpad event, %zu bytes", bytes.size());
   getClient()->trackpadEvent(bytes);
+}
+
+void ServerProxy1_10::screenUnlock()
+{
+  std::string token;
+  if (!ProtocolUtil::readf(getStream(), kMsgCScreenUnlock + 4, &token)) {
+    return;
+  }
+  getClient()->unlockScreen(token);
+}
+
+void ServerProxy1_10::sendScreenLockState(uint8_t state, const std::string &token)
+{
+  if (m_screenUnlock) {
+    ProtocolUtil::writef(getStream(), kMsgDScreenLockState, state, &token);
+  }
 }

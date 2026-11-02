@@ -218,6 +218,8 @@ private:
   OrbitPanel *m_panel = nullptr;
   QStringList m_connectedClients;
   bool m_panelUpdatePending = false;
+  // why the screen unlock password was not stored, shown in the panel
+  QString m_screenUnlockError;
   StatusBar *m_statusBar = nullptr;
 
   // Window Menu

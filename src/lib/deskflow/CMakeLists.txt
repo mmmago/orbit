@@ -39,6 +39,8 @@ add_library(${lib_name} STATIC ${PLATFORM_CODE}
   Clipboard.h
   ClipboardChunk.cpp
   FileDrag.cpp
+  ScreenUnlock.cpp
+  ScreenUnlock.h
   FileDrag.h
   FileDragReceiver.cpp
   FileDragReceiver.h

@@ -54,6 +54,16 @@ final class PanelModel {
         send(.moveComputer(from: from, to: to))
     }
 
+    /// Stores this Mac's password, checked first, for the server's Touch ID
+    func setScreenUnlockPassword(_ password: String) {
+        send(.setScreenUnlockPassword(password))
+    }
+
+    func removeScreenUnlockPassword() {
+        state.client.screenUnlock = false
+        send(.removeScreenUnlockPassword)
+    }
+
     func restart() {
         send(.restart)
     }

@@ -52,6 +52,7 @@ void IpcServer::handleNewConnection()
 
   LOG_DEBUG("%s ipc server got new connection", m_typeName.constData());
   m_clients.insert(clientSocket);
+  m_clientCount = static_cast<int>(m_clients.size());
 
   connect(clientSocket, &QLocalSocket::readyRead, this, &IpcServer::handleReadyRead);
   connect(clientSocket, &QLocalSocket::disconnected, this, &IpcServer::handleDisconnected);
@@ -90,6 +91,7 @@ void IpcServer::handleDisconnected()
   const auto clientSocket = qobject_cast<QLocalSocket *>(sender());
   LOG_DEBUG("%s ipc server client disconnected", m_typeName.constData());
   m_clients.remove(clientSocket);
+  m_clientCount = static_cast<int>(m_clients.size());
   clientSocket->deleteLater();
 }
 
@@ -103,6 +105,7 @@ void IpcServer::handleErrorOccurred()
   }
 
   m_clients.remove(clientSocket);
+  m_clientCount = static_cast<int>(m_clients.size());
   clientSocket->deleteLater();
 }
 

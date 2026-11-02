@@ -7,4 +7,6 @@ struct ServerOptions: Codable, Equatable, Sendable {
     var trackpadGestures = true
     var fileDragDrop = true
     var clipboard = true
+    /// Touch ID to unlock a client shows in the menu bar icon, not a panel
+    var touchIdInMenuBar = false
 }

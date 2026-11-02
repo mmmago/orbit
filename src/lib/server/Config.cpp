@@ -553,6 +553,7 @@ void Config::readSectionOptions(ConfigReadContext &s)
   addOption("", kOptionDisableLockToComputer, Settings::value(Settings::Server::DisableLockToComputer).toBool());
   addOption("", kOptionRelativeMouseMoves, Settings::value(Settings::Server::RelativeMouseMoves).toBool());
   addOption("", kOptionTrackpadGestures, Settings::value(Settings::Server::TrackpadGestures).toBool());
+  addOption("", kOptionTouchIdInMenuBar, Settings::value(Settings::Server::TouchIdInMenuBar).toBool());
   addOption("", kOptionWin32KeepForeground, Settings::value(Settings::Server::Win32KeepForeground).toBool());
   addOption("", kOptionClipboardSharing, Settings::value(Settings::Server::EnableClipboard).toBool());
   // Orbit shares text only through the clipboard (files go by drag and drop),

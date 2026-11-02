@@ -197,6 +197,10 @@ public:
   //! Replay a serialized trackpad gesture event (called by ServerProxy1_10)
   void trackpadEvent(const std::string &bytes);
 
+  //! The server confirmed Touch ID for \p token: type the stored password
+  //! into the lock screen (called by ServerProxy1_10)
+  void unlockScreen(const std::string &token);
+
   //! @name file drag and drop (called by ServerProxy1_9)
   //@{
   void fileDragBegin(uint32_t transferId, const std::string &manifest, bool preparing = false);
@@ -210,6 +214,11 @@ public:
   //@}
 
 private:
+  void setupScreenLock();
+  void cleanupScreenLock();
+  void checkScreenLock();
+  void typeUnlockKey();
+  void stopUnlockTyping();
   void updateFileDragState(bool force);
   void saveRelativeRestorePosition();
   void sendClipboard(ClipboardID);
@@ -275,4 +284,14 @@ private:
   int32_t m_relativeRestoreY = 0;
   size_t m_maximumClipboardSize = INT_MAX;
   size_t m_resolvedAddressesCount = 0;
+
+  // screen unlock with Touch ID on the server (protocol 1.13)
+  EventQueueTimer *m_screenLockTimer = nullptr;
+  int m_screenLockState = -1; // last state sent, -1 before the first
+  std::string m_screenUnlockToken;
+  double m_screenUnlockRetryAt = 0; // no new token before then (after a try)
+  EventQueueTimer *m_unlockTypeTimer = nullptr;
+  double m_unlockTypeFrom = 0; // the display wakes first
+  std::vector<KeyID> m_unlockKeys;
+  size_t m_unlockKeyIndex = 0;
 };

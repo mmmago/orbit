@@ -39,6 +39,12 @@ struct ServerSettingsView: View {
                 )
                 Divider()
                 OptionToggle(
+                    title: "Touch ID permission in menu bar",
+                    detail: "To unlock a locked client, the menu bar icon becomes the Touch ID glyph instead of showing a panel",
+                    isOn: model.option("touchIdInMenuBar", \.server.touchIdInMenuBar)
+                )
+                Divider()
+                OptionToggle(
                     title: "Animated menu bar icon",
                     detail: "Shows the connection state, like the logo at the bottom",
                     isOn: model.option("animatedMenuBarIcon", \.animatedMenuBarIcon)

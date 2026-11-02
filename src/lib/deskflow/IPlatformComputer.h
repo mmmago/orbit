@@ -205,6 +205,50 @@ public:
   }
 
   //@}
+
+  //! @name screen unlock (optional, macOS only for now)
+  //@{
+
+  //! Primary: ask the user to authenticate (Touch ID) for \p reason. Sends
+  //! EventTypes::PrimaryComputerUserAuthenticated to getEventTarget() with the
+  //! answer and the request's number, which this returns (0 if Touch ID
+  //! can't be asked here). A new request cancels the previous one.
+  virtual uint32_t requestUserAuthentication(const std::string &reason)
+  {
+    return 0;
+  }
+
+  //! Primary: dismiss the pending authentication prompt, if any.
+  virtual void cancelUserAuthentication()
+  {
+    // not supported
+  }
+
+  //! Secondary: true if the user session's screen is locked.
+  virtual bool isScreenLocked() const
+  {
+    return false;
+  }
+
+  //! Secondary: true if a password to unlock the screen is stored here.
+  virtual bool hasScreenUnlockPassword() const
+  {
+    return false;
+  }
+
+  //! Secondary: read the stored unlock password.
+  virtual bool loadScreenUnlockPassword(std::string &password) const
+  {
+    return false;
+  }
+
+  //! Secondary: wake the display, as user activity would.
+  virtual void wakeDisplay()
+  {
+    // not supported
+  }
+
+  //@}
   //! @name accessors
   //@{
 

@@ -46,7 +46,7 @@ static const int16_t kProtocolMajorVersion = 1;
  * @note When incrementing the minor version, the Deskflow application version should also increment
  * @since Protocol version 1.0
  */
-static const int16_t kProtocolMinorVersion = 10;
+static const int16_t kProtocolMinorVersion = 11;
 
 /**
  * @brief Default TCP port for Deskflow connections
@@ -1113,6 +1113,27 @@ extern const char *const kMsgDDragInfo;
 extern const char *const kMsgDFileDragBegin;
 
 /**
+ * @brief File drag: part of a large manifest
+ *
+ * **Message Code**: `"DGBP"`
+ * **Format**: `"DGBP%4i%s"` (transfer id, bytes)
+ * **Direction**: Both
+ *
+ * A manifest larger than deskflow::filedrag::kManifestPartSize is split: its
+ * leading parts come in these messages, right before kMsgDFileDragBegin
+ * or kMsgDFileDragManifest, which carries the rest.
+ * Only sent after negotiating protocol 1.11.
+ *
+ * @since Protocol version 1.11
+ */
+extern const char *const kMsgDFileDragManifestPart;
+
+//! Start folder promises with just the dragged items, before scanning them.
+extern const char *const kMsgDFileDragPreview;
+//! Full manifest after a preview (possibly preceded by DGBP parts).
+extern const char *const kMsgDFileDragManifest;
+
+/**
  * @brief File drag: data chunk
  *
  * **Message Code**: `"DGDT"`
@@ -1139,8 +1160,9 @@ extern const char *const kMsgDFileDragFileEnd;
  * **Direction**: Secondary → Primary
  * **Format**: `"DGAK%4i%4i"` (transfer id, total chunks received)
  *
- * The sender keeps at most deskflow::filedrag::kWindowChunks unacknowledged
- * chunks in flight so file data never delays input events for long.
+ * The sender bounds the unacknowledged chunks in flight (a window that adapts
+ * to how long acks take, see deskflow::filedrag::WindowControl) so file data
+ * never delays input events for long.
  *
  * @since Protocol version 1.9
  */

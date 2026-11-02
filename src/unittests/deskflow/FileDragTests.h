@@ -30,6 +30,16 @@ private Q_SLOTS:
   void writerRejectsTooMuchData();
   void writerRejectsShortFile();
   void writerDiscardRemovesStaging();
+  void manifestAssemblerJoinsParts();
+  void manifestAssemblerDropsOversized();
+  void previewCanBeDroppedBeforeManifest();
+  void cancelledPreviewStaysCancelled();
+  void previewRejectsChangedItems();
+  void previewCompletesEmptyFolder();
+  void windowGrowsWhileDelayStaysLow();
+  void windowHoldsWhenNotLimited();
+  void windowShrinksWhenDelayRises();
+  void windowStaysWithinBounds();
 
 private:
   Log m_log;

@@ -45,7 +45,9 @@ when it fails or is cancelled.
 class FileDragReceiver
 {
 public:
-  FileDragReceiver(IEventQueue *events, deskflow::Computer *computer);
+  FileDragReceiver(
+      IEventQueue *events, deskflow::Computer *computer, std::filesystem::path stagingRoot = defaultStagingRoot()
+  );
   ~FileDragReceiver();
 
   FileDragReceiver(const FileDragReceiver &) = delete;
@@ -53,7 +55,11 @@ public:
 
   //! A manifest arrived. Returns false if the transfer was refused (the
   //! remote is told). The local drag starts with startDrag().
-  bool begin(uint32_t transferId, const std::string &manifest, FileDragRemote *remote);
+  bool begin(uint32_t transferId, const std::string &manifest, FileDragRemote *remote, bool preparing = false);
+
+  //! Populate a preview's contents without restarting its native drag. Also
+  //! works after the user dropped the promises while the scan was running.
+  bool completeManifest(uint32_t transferId, const std::string &manifest, FileDragRemote *remote);
 
   //! Refuse a transfer without looking at it (e.g. the button was released).
   static void refuse(uint32_t transferId, FileDragRemote *remote, CancelReason reason);
@@ -98,6 +104,7 @@ private:
     FileDragRemote *remote = nullptr;
     std::unique_ptr<FileWriter> writer;
     State state = State::Pending;
+    bool preparing = false;
     uint32_t acked = 0;
     size_t undelivered = 0;
     std::vector<size_t> itemOfEntry;  // entry index -> item index
@@ -108,11 +115,14 @@ private:
 
   Transfer *find(uint32_t transferId);
   void stop(uint32_t transferId, bool notifySender, CancelReason reason);
+  void initializeContents(Transfer &t);
+  void reportItemInfo(Transfer &t);
   void reportProgress(Transfer &t, uint32_t item, bool force);
   void handleEnded(const Event &event);
   void handleCancelRequested(const Event &event);
   void handleDelivered(const Event &event);
 
+  std::filesystem::path m_stagingRoot;
   IEventQueue *m_events;
   deskflow::Computer *m_computer;
   void *m_target;

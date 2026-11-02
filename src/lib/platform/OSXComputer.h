@@ -107,6 +107,7 @@ public:
   void cancelLocalDrag() override;
   bool beginLocalFileDrag(const std::vector<std::string> &paths) override;
   bool beginFileDrag(uint32_t transferId, const std::vector<deskflow::filedrag::StagedItem> &items) override;
+  void fileDragItemInfo(uint32_t transferId, uint32_t item, uint64_t size, uint32_t entries) override;
   void fileDragItemReady(uint32_t transferId, uint32_t item) override;
   void fileDragProgress(uint32_t transferId, uint32_t item, uint64_t bytes) override;
   void abortFileDrag(uint32_t transferId) override;

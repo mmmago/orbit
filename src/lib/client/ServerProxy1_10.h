@@ -13,7 +13,7 @@
 class ServerProxy1_10 : public ServerProxy1_9
 {
 public:
-  ServerProxy1_10(Client *client, deskflow::IStream *stream, IEventQueue *events);
+  ServerProxy1_10(Client *client, deskflow::IStream *stream, IEventQueue *events, bool largeManifests = false);
   ~ServerProxy1_10() override = default;
 
 protected:

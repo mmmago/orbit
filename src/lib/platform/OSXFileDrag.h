@@ -88,6 +88,8 @@ void beginLocal(uint32_t dragId, std::vector<Item> items, double x, double y, Ca
 void pressAt(uint32_t transferId, double x, double y);
 
 //! The item at \p index is complete at its staging path.
+void itemInfo(uint32_t transferId, size_t index, uint64_t size, uint32_t entries);
+
 void itemReady(uint32_t transferId, size_t index);
 
 //! Bytes received so far for an item; shown as Finder progress after the drop.

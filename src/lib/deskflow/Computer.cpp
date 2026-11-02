@@ -488,6 +488,11 @@ bool Computer::beginFileDrag(uint32_t transferId, const std::vector<deskflow::fi
   return m_computer->beginFileDrag(transferId, items);
 }
 
+void Computer::fileDragItemInfo(uint32_t transferId, uint32_t item, uint64_t size, uint32_t entries)
+{
+  m_computer->fileDragItemInfo(transferId, item, size, entries);
+}
+
 void Computer::fileDragItemReady(uint32_t transferId, uint32_t item)
 {
   m_computer->fileDragItemReady(transferId, item);

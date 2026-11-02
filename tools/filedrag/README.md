@@ -27,6 +27,8 @@ a real `deskflow-core` client:
 
 - default: announce files, enter the client screen, stream the data with the
   same ack window as the real server, move the cursor and release (drop);
+- `--manifest-delay 3`: start folder promises immediately and delay the full
+  file list by three seconds (drop while the source is still scanning);
 - `--chunk-delay`: simulate a slow link (drop before the data arrived);
 - `--release-early`: release over nothing (cancel path);
 - `--key-after-drop KEYID`: press a key after the drop;

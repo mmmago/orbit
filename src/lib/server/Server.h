@@ -233,7 +233,10 @@ public:
   }
 
   //! A client sent the manifest of files dragged from it to this computer.
-  void fileDragIncoming(deskflow::filedrag::FileDragRemote *remote, uint32_t transferId, const std::string &manifest);
+  void fileDragIncoming(
+      deskflow::filedrag::FileDragRemote *remote, uint32_t transferId, const std::string &manifest,
+      bool preparing = false
+  );
 
 private:
   // returns the jump zone of the client

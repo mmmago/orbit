@@ -13,7 +13,10 @@
 class ClientProxy1_10 : public ClientProxy1_9
 {
 public:
-  ClientProxy1_10(const std::string &name, deskflow::IStream *adoptedStream, Server *server, IEventQueue *events);
+  ClientProxy1_10(
+      const std::string &name, deskflow::IStream *adoptedStream, Server *server, IEventQueue *events,
+      bool largeManifests = false
+  );
   ~ClientProxy1_10() override = default;
 
   void trackpadEvent(const std::string &bytes) override;

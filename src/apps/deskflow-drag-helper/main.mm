@@ -736,7 +736,11 @@ void refreshCopyWindowSoon()
     return;
   }
 
-  const Item &item = session->items[i];
+  Item item;
+  {
+    std::scoped_lock lock(session->mutex);
+    item = session->items[i];
+  }
   NSFileManager *fm = [NSFileManager defaultManager];
 
   // Not there yet: put a greyed-out placeholder at the destination, publish
@@ -755,7 +759,7 @@ void refreshCopyWindowSoon()
       session->destination = [fm displayNameAtPath:url.URLByDeletingLastPathComponent.path];
     }
     {
-      progress = [NSProgress progressWithTotalUnitCount:static_cast<int64_t>(std::max<uint64_t>(item.size, 1))];
+      progress = [NSProgress progressWithTotalUnitCount:static_cast<int64_t>(std::max<uint64_t>(session->items[i].size, 1))];
       progress.kind = NSProgressKindFile;
       progress.fileOperationKind = NSProgressFileOperationKindReceiving;
       [progress setUserInfoObject:url forKey:NSProgressFileURLKey];
@@ -989,6 +993,22 @@ void pressAt(NSDictionary *msg)
   });
 }
 
+void itemInfo(NSDictionary *msg)
+{
+  if (auto session = findSession([msg[@"id"] unsignedIntValue])) {
+    const size_t index = [msg[@"index"] unsignedLongValue];
+    std::scoped_lock lock(session->mutex);
+    if (index < session->items.size()) {
+      session->items[index].size = [msg[@"size"] unsignedLongLongValue];
+      session->items[index].count = [msg[@"count"] unsignedIntValue];
+      if (session->progress[index] != nil)
+        session->progress[index].totalUnitCount =
+            static_cast<int64_t>(std::max<uint64_t>(session->items[index].size, 1));
+    }
+  }
+  refreshCopyWindowSoon();
+}
+
 void itemProgress(NSDictionary *msg)
 {
   if (auto session = findSession([msg[@"id"] unsignedIntValue])) {
@@ -1052,6 +1072,8 @@ void readCommands()
         begin(msg);
       } else if ([cmd isEqualToString:@"pressAt"]) {
         pressAt(msg);
+      } else if ([cmd isEqualToString:@"itemInfo"]) {
+        itemInfo(msg);
       } else if ([cmd isEqualToString:@"progress"]) {
         itemProgress(msg);
       } else if ([cmd isEqualToString:@"itemReady"]) {

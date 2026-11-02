@@ -199,7 +199,8 @@ public:
 
   //! @name file drag and drop (called by ServerProxy1_9)
   //@{
-  void fileDragBegin(uint32_t transferId, const std::string &manifest);
+  void fileDragBegin(uint32_t transferId, const std::string &manifest, bool preparing = false);
+  void fileDragManifest(uint32_t transferId, const std::string &manifest);
   void fileDragData(uint32_t transferId, uint32_t index, const std::string &data);
   void fileDragFileEnd(uint32_t transferId, uint32_t index);
   void fileDragCancelled(uint32_t transferId, uint8_t reason);

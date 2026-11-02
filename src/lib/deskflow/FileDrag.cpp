@@ -179,6 +179,37 @@ std::string Manifest::serialize() const
   return out;
 }
 
+bool ManifestAssembler::addPart(uint32_t transferId, const std::string &part)
+{
+  if (!m_pending || m_id != transferId) {
+    m_id = transferId;
+    m_pending = true;
+    m_dropped = false;
+    m_data.clear();
+  }
+  if (m_dropped || m_data.size() + part.size() > kMaxManifestSize) {
+    m_dropped = true;
+    m_data = std::string();
+    return false;
+  }
+  m_data += part;
+  return true;
+}
+
+std::string ManifestAssembler::finish(uint32_t transferId, const std::string &last)
+{
+  std::string whole;
+  if (!m_pending || m_id != transferId) {
+    whole = last;
+  } else if (!m_dropped && m_data.size() + last.size() <= kMaxManifestSize) {
+    whole = std::move(m_data) + last;
+  }
+  m_pending = false;
+  m_dropped = false;
+  m_data = std::string();
+  return whole;
+}
+
 std::optional<Manifest> Manifest::parse(const std::string &data)
 {
   size_t pos = 0;
@@ -289,16 +320,18 @@ bool isSafeLinkTarget(const std::string &linkPath, const std::string &target)
   return up < depth;
 }
 
-Manifest buildManifest(const std::vector<std::string> &paths, std::vector<std::string> &sourcePaths)
+Manifest buildManifest(const std::vector<std::string> &paths, std::vector<std::string> &sourcePaths, bool recursive)
 {
   Manifest m;
   sourcePaths.clear();
   std::set<std::string> usedNames;
 
-  auto add = [&](std::string rel, const fs::path &source, EntryType type, uint64_t size,
-                 const fs::file_status &status, std::string target = {}) {
+  auto add = [&](std::string rel, const fs::path &source, EntryType type, uint64_t size, const fs::file_status &status,
+                 std::string target = {}) {
     const auto mode = static_cast<uint16_t>(static_cast<unsigned>(status.permissions() & fs::perms::mask) & kModeMask);
-    m.entries.push_back({std::move(rel), size, type, type == EntryType::Symlink ? uint16_t(0) : mode, std::move(target)});
+    m.entries.push_back(
+        {std::move(rel), size, type, type == EntryType::Symlink ? uint16_t(0) : mode, std::move(target)}
+    );
     sourcePaths.push_back(source.string());
   };
 
@@ -321,6 +354,8 @@ Manifest buildManifest(const std::vector<std::string> &paths, std::vector<std::s
 
     // folder: walk it, parents before children, in a stable order
     add(top, p, EntryType::Directory, 0, status);
+    if (!recursive)
+      continue;
     std::vector<fs::path> pending = {fs::path(p)};
     std::vector<std::string> pendingRel = {top};
     while (!pending.empty() && m.entries.size() < kMaxEntries) {

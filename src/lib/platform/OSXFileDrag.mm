@@ -110,7 +110,12 @@ public:
     // a local drag delivers nothing itself: the drop target takes the files
     m_sessions[transferId] = {std::move(callbacks), local ? 0 : items.size(), false};
     NSDictionary *message =
-        @{@"cmd" : @"begin", @"id" : @(transferId), @"x" : @(x), @"y" : @(y), @"local" : @(local), @"items" : list};
+        @{@"cmd" : @"begin",
+          @"id" : @(transferId),
+          @"x" : @(x),
+          @"y" : @(y),
+          @"local" : @(local),
+          @"items" : list};
     if (!send(message)) {
       LOG_ERR("file drag: drag helper is not available");
       endSession(transferId, false);
@@ -121,6 +126,12 @@ public:
   {
     std::scoped_lock lock(m_mutex);
     send(@{@"cmd" : @"pressAt", @"id" : @(transferId), @"x" : @(x), @"y" : @(y)});
+  }
+
+  void itemInfo(uint32_t transferId, size_t index, uint64_t size, uint32_t entries)
+  {
+    std::lock_guard lock(m_mutex);
+    send(@{@"cmd" : @"itemInfo", @"id" : @(transferId), @"index" : @(index), @"size" : @(size), @"count" : @(entries)});
   }
 
   void itemReady(uint32_t transferId, size_t index)
@@ -379,6 +390,11 @@ void df::beginLocal(uint32_t dragId, std::vector<Item> items, double x, double y
 void df::pressAt(uint32_t transferId, double x, double y)
 {
   Helper::instance().pressAt(transferId, x, y);
+}
+
+void df::itemInfo(uint32_t transferId, size_t index, uint64_t size, uint32_t entries)
+{
+  Helper::instance().itemInfo(transferId, index, size, entries);
 }
 
 void df::itemReady(uint32_t transferId, size_t index)

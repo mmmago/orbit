@@ -312,6 +312,64 @@ all pass. Not yet run: the server half on real hardware.
   reference to its session. The copy window shows one row per transfer
   still arriving, each with its own stop button.
 
+## Adaptive window (V6)
+
+Measured between the two Macs (mini on gigabit Ethernet, MacBook on
+802.11ax): raw TCP ~70 MB/s; the fixed 8 × 64 KB window capped transfers at
+~45 MB/s. Larger windows sped up to 1–1.5 MB, then only added queueing delay
+(ping 4 ms idle, 40+ ms with 3–4 MB in flight), which mouse and keyboard
+messages wait behind. macOS's background service type on the socket did not
+help: the queue builds at the Wi-Fi access point.
+
+- The window is in bytes, starts at 1 MB and stays within 512 KB–16 MB.
+  Each chunk counts at least `kMinChunkCost` (16 KB), so small files fill
+  the link without queueing thousands of file creations (~0.16 ms each on
+  the receiver) ahead of input.
+- `WindowControl` (sender only, no protocol change): the lowest ack time
+  seen is the base delay; once per round the round's lowest ack time is
+  compared with it: < 4 ms extra and data waiting -> +256 KB, > 10 ms extra
+  -> ×0.75. Reset when the sender goes idle.
+- A finished transfer stays in the in-flight count until its last chunk is
+  acknowledged.
+- `fully sent` log lines give the duration, MB/s, final window and base delay.
+
+Result on hardware: almost twice as fast, with acceptable mouse lag.
+
+## Large manifests (V7)
+
+A protocol string is limited to 1 MB (`PROTOCOL_MAX_STRING_LENGTH`) and a
+message to 4 MB; a manifest takes ~15 bytes plus the path per entry, so a
+folder of ~10,000 files already went over and the receiver dropped the
+connection (seen with a 67,725-file, 4.7 MB manifest). Manifests over
+`kManifestPartSize` (512 KB) now go out as `DGBP%4i%s` parts followed by
+`DGBN` with the rest; `ManifestAssembler` joins them on the receiver (up to
+`kMaxManifestSize`, 64 MB, else the drag is refused). Smaller manifests are
+still sent whole, so older peers keep working for them.
+
+## Folder handover before scanning (V8, protocol 1.11)
+
+A large folder can take several seconds to enumerate. Previously the native
+receiving drag only started after the full manifest arrived. If the user
+released during that scan, the server refused it with reason `Dropped`, so
+the folder never appeared even after fixing the protocol string limit.
+
+- For a drag containing folders, `DGPR%4i%s` announces just the selected
+  items before walking their contents. The receiver starts file promises
+  immediately; these are not marked ready until the scan and transfer finish.
+- The full manifest follows as `DGFM%4i%s`, with `DGBP` parts when needed.
+  It populates the same transfer, preserving an already accepted drop.
+  Root names, types and order must match the preview.
+- Item sizes and entry counts are sent to the helper once known, updating
+  Finder progress and the copy window even if the promises were dropped
+  while scanning. Cancelling or returning before the drop discards the
+  preview; a late full manifest cannot resurrect it.
+- These messages and manifest parts are sent only after negotiating 1.11.
+  Earlier peers retain `DGBN` for manifests up to 1 MB; larger ones are
+  refused locally without disconnecting the peer.
+- Receiver tests cover dropping before the manifest, cancellation, changed
+  roots and empty folders. `fake_server.py --manifest-delay 3` exercises a
+  native drop made before the complete file list arrives.
+
 ## Open questions
 
 - Helper inside `deskflow-gui` vs separate agent app (GUI is simpler to

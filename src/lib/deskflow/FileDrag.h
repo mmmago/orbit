@@ -34,15 +34,41 @@ namespace deskflow::filedrag {
 //! Size of one data chunk on the wire.
 inline constexpr uint32_t kChunkSize = 64 * 1024;
 
-//! Maximum number of unacknowledged chunks in flight. Keeps file data from
-//! delaying mouse and keyboard messages on the shared connection.
-inline constexpr uint32_t kWindowChunks = 8;
+//! Unacknowledged data allowed in flight when a sender starts, in bytes. The
+//! window then adapts to the link (see WindowControl) so file data never
+//! delays mouse and keyboard messages on the shared connection for long.
+//! 1 MB: on Wi-Fi (Mac mini on Ethernet, MacBook on 802.11ax) 512 KB reached
+//! 45 MB/s, 1 MB 65 MB/s for ~3 ms more latency; beyond 2 MB only latency grew.
+inline constexpr uint32_t kWindowBytes = 16 * kChunkSize;
+
+//! Bounds of the adaptive window (512 KB to 16 MB).
+inline constexpr uint32_t kMinWindowBytes = 8 * kChunkSize;
+inline constexpr uint32_t kMaxWindowBytes = 256 * kChunkSize;
 
 //! The receiver acknowledges after this many chunks (and at each file end).
 inline constexpr uint32_t kAckEveryChunks = 4;
 
+//! The adaptive window grows by this much per round.
+inline constexpr uint32_t kWindowStepBytes = kAckEveryChunks * kChunkSize;
+
+//! A chunk counts at least this much against the window. The window is in
+//! bytes so small files don't leave the link idle (a 1 KB file used to take a
+//! whole 64 KB slot), but each file also costs the receiver ~0.16 ms to
+//! create, so thousands of tiny files in flight would queue work in front of
+//! mouse and keyboard messages: a 1 MB window holds at most 64 chunks.
+inline constexpr uint32_t kMinChunkCost = 16 * 1024;
+
 //! Limits accepted in a manifest.
 inline constexpr uint32_t kMaxEntries = 200000;
+
+//! Manifests larger than this go out in several messages: parts
+//! (kMsgDFileDragManifestPart), then kMsgDFileDragBegin with the rest. A
+//! protocol string can't exceed PROTOCOL_MAX_STRING_LENGTH (1 MB), and a
+//! folder of ~10,000 files already needs more.
+inline constexpr uint32_t kManifestPartSize = 512 * 1024;
+
+//! Largest manifest a receiver puts together from parts.
+inline constexpr uint32_t kMaxManifestSize = 64 * 1024 * 1024;
 inline constexpr uint32_t kMaxPathLength = 4096;
 inline constexpr uint32_t kMaxDepth = 64;
 
@@ -112,6 +138,28 @@ struct Manifest
   static std::optional<Manifest> parse(const std::string &data);
 };
 
+/*!
+Puts together a manifest sent in parts. Parts come right before their
+kMsgDFileDragBegin, so only one transfer's parts are pending at a time.
+*/
+class ManifestAssembler
+{
+public:
+  //! Adds a part of transfer \p transferId's manifest. Returns false once
+  //! the manifest would exceed kMaxManifestSize (it is then dropped).
+  bool addPart(uint32_t transferId, const std::string &part);
+
+  //! The whole manifest of \p transferId, ending with \p last (empty if its
+  //! parts were dropped, so it fails to parse and the drag is refused).
+  std::string finish(uint32_t transferId, const std::string &last);
+
+private:
+  uint32_t m_id = 0;
+  bool m_pending = false;
+  bool m_dropped = false;
+  std::string m_data;
+};
+
 //! True if \p name can be used as a single path component in the staging
 //! folder (not empty, not "." or "..", no separators, ':' or NUL, <= 255 bytes).
 bool isSafeFileName(const std::string &name);
@@ -131,7 +179,10 @@ accepts them; other symlinks, special files and unreadable entries are
 skipped. Fills \p sourcePaths with the local path of each entry. Dragged
 items with the same name get " 2", " 3", ... appended.
 */
-Manifest buildManifest(const std::vector<std::string> &paths, std::vector<std::string> &sourcePaths);
+// With recursive=false, only the dragged items are inspected, so a folder
+// promise can start before walking its contents.
+Manifest
+buildManifest(const std::vector<std::string> &paths, std::vector<std::string> &sourcePaths, bool recursive = true);
 
 //! Reads the files of a manifest in order, one chunk at a time.
 class FileReader

@@ -17,10 +17,10 @@
 using namespace deskflow::filedrag;
 
 ClientProxy1_9::ClientProxy1_9(
-    const std::string &name, deskflow::IStream *adoptedStream, Server *server, IEventQueue *events
+    const std::string &name, deskflow::IStream *adoptedStream, Server *server, IEventQueue *events, bool largeManifests
 )
     : ClientProxy1_8(name, adoptedStream, server, events),
-      m_sender(events, getStream(), kServerTransferIdBase)
+      m_sender(events, getStream(), kServerTransferIdBase, largeManifests)
 {
 }
 
@@ -72,7 +72,25 @@ bool ClientProxy1_9::parseMessage(const uint8_t *code)
     uint32_t id = 0;
     std::string manifest;
     if (ProtocolUtil::readf(stream, kMsgDFileDragBegin + 4, &id, &manifest)) {
-      getServer()->fileDragIncoming(this, id, manifest);
+      getServer()->fileDragIncoming(this, id, m_manifestParts.finish(id, manifest));
+    }
+  } else if (memcmp(code, kMsgDFileDragPreview, 4) == 0) {
+    uint32_t id = 0;
+    std::string manifest;
+    if (ProtocolUtil::readf(stream, kMsgDFileDragPreview + 4, &id, &manifest)) {
+      getServer()->fileDragIncoming(this, id, manifest, true);
+    }
+  } else if (memcmp(code, kMsgDFileDragManifest, 4) == 0) {
+    uint32_t id = 0;
+    std::string manifest;
+    if (ProtocolUtil::readf(stream, kMsgDFileDragManifest + 4, &id, &manifest)) {
+      getServer()->fileDragReceiver().completeManifest(id, m_manifestParts.finish(id, manifest), this);
+    }
+  } else if (memcmp(code, kMsgDFileDragManifestPart, 4) == 0) {
+    uint32_t id = 0;
+    std::string part;
+    if (ProtocolUtil::readf(stream, kMsgDFileDragManifestPart + 4, &id, &part) && !m_manifestParts.addPart(id, part)) {
+      LOG_WARN("file drag: file list of transfer %u is too large", id);
     }
   } else if (memcmp(code, kMsgDFileDragCancel, 4) == 0) {
     uint32_t id = 0;

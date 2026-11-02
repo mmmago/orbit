@@ -24,6 +24,7 @@
 #include "deskflow/DisplayInvalidException.h"
 #include "deskflow/KeyMap.h"
 #include "deskflow/OptionTypes.h"
+#include "deskflow/TrackpadEvent.h"
 #include "mt/CondVar.h"
 #include "mt/Lock.h"
 #include "mt/Mutex.h"
@@ -37,7 +38,6 @@
 #include "platform/OSXScreenSaver.h"
 #include "platform/OSXTrackpadGesture.h"
 #include "platform/OSXTrackpadZoom.h"
-#include "deskflow/TrackpadEvent.h"
 
 #include <AppKit/NSEvent.h>
 #include <AvailabilityMacros.h>
@@ -925,9 +925,8 @@ void OSXComputer::enter()
     // reset buttons
     m_buttonState.reset();
 
-    const auto result = IOPMAssertionDeclareUserActivity(
-        CFSTR("Orbit client entry"), kIOPMUserActiveLocal, &m_userActivityAssertionID
-    );
+    const auto result =
+        IOPMAssertionDeclareUserActivity(CFSTR("Orbit client entry"), kIOPMUserActiveLocal, &m_userActivityAssertionID);
     if (result != kIOReturnSuccess) {
       LOG_WARN("failed to declare user activity: %d", result);
     }
@@ -2451,6 +2450,11 @@ void OSXComputer::giveUpPendingFileDrag(const char *why)
     m_hasDeferredMove = false;
     fakeMouseMove(m_deferredX, m_deferredY);
   }
+}
+
+void OSXComputer::fileDragItemInfo(uint32_t transferId, uint32_t item, uint64_t size, uint32_t entries)
+{
+  deskflow::osx::filedrag::itemInfo(transferId, item, size, entries);
 }
 
 void OSXComputer::fileDragItemReady(uint32_t transferId, uint32_t item)

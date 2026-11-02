@@ -14,8 +14,8 @@
 
 #include <cstring>
 
-ServerProxy1_10::ServerProxy1_10(Client *client, deskflow::IStream *stream, IEventQueue *events)
-    : ServerProxy1_9(client, stream, events)
+ServerProxy1_10::ServerProxy1_10(Client *client, deskflow::IStream *stream, IEventQueue *events, bool largeManifests)
+    : ServerProxy1_9(client, stream, events, largeManifests)
 {
 }
 

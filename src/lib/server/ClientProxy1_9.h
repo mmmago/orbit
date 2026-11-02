@@ -20,7 +20,10 @@ receiver.
 class ClientProxy1_9 : public ClientProxy1_8, public deskflow::filedrag::FileDragRemote
 {
 public:
-  ClientProxy1_9(const std::string &name, deskflow::IStream *adoptedStream, Server *server, IEventQueue *events);
+  ClientProxy1_9(
+      const std::string &name, deskflow::IStream *adoptedStream, Server *server, IEventQueue *events,
+      bool largeManifests = false
+  );
   ~ClientProxy1_9() override = default;
 
   // BaseClientProxy overrides
@@ -50,5 +53,6 @@ protected:
 
 private:
   deskflow::filedrag::FileDragSender m_sender;
+  deskflow::filedrag::ManifestAssembler m_manifestParts;
   bool m_clientDragging = false;
 };

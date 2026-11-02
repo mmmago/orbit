@@ -13,10 +13,10 @@
 #include "base/IEventQueue.h"
 #include "base/Log.h"
 #include "client/ServerProxy.h"
+#include "client/ServerProxy1_10.h"
 #include "client/ServerProxy1_7.h"
 #include "client/ServerProxy1_8.h"
 #include "client/ServerProxy1_9.h"
-#include "client/ServerProxy1_10.h"
 #include "common/NetworkProtocol.h"
 #include "common/Settings.h"
 #include "deskflow/Clipboard.h"
@@ -506,6 +506,9 @@ bool Client::setupComputer(int16_t protocolMinor)
   case 9:
     m_server = new ServerProxy1_9(this, m_stream, m_events);
     break;
+  case 11:
+    m_server = new ServerProxy1_10(this, m_stream, m_events, true);
+    break;
   case 10:
     m_server = new ServerProxy1_10(this, m_stream, m_events);
     break;
@@ -810,7 +813,7 @@ void Client::trackpadEvent(const std::string &bytes)
 using deskflow::filedrag::CancelReason;
 using deskflow::filedrag::FileDragReceiver;
 
-void Client::fileDragBegin(uint32_t transferId, const std::string &manifest)
+void Client::fileDragBegin(uint32_t transferId, const std::string &manifest, bool preparing)
 {
   if (!m_fileDragReceiver) {
     FileDragReceiver::refuse(transferId, m_server, CancelReason::Refused);
@@ -824,8 +827,15 @@ void Client::fileDragBegin(uint32_t transferId, const std::string &manifest)
     return;
   }
   // normally the server enters first and we start right away
-  if (m_fileDragReceiver->begin(transferId, manifest, m_server) && m_active) {
+  if (m_fileDragReceiver->begin(transferId, manifest, m_server, preparing) && m_active) {
     m_fileDragReceiver->startDrag();
+  }
+}
+
+void Client::fileDragManifest(uint32_t transferId, const std::string &manifest)
+{
+  if (m_fileDragReceiver) {
+    m_fileDragReceiver->completeManifest(transferId, manifest, m_server);
   }
 }
 

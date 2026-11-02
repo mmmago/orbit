@@ -14,8 +14,9 @@
 
 namespace deskflow::filedrag {
 
-FileDragReceiver::FileDragReceiver(IEventQueue *events, deskflow::Computer *computer)
-    : m_events(events),
+FileDragReceiver::FileDragReceiver(IEventQueue *events, deskflow::Computer *computer, std::filesystem::path stagingRoot)
+    : m_stagingRoot(std::move(stagingRoot)),
+      m_events(events),
       m_computer(computer),
       m_target(computer->getEventTarget())
 {
@@ -24,7 +25,7 @@ FileDragReceiver::FileDragReceiver(IEventQueue *events, deskflow::Computer *comp
     handleCancelRequested(e);
   });
   m_events->addHandler(EventTypes::FileDragDelivered, m_target, [this](const auto &e) { handleDelivered(e); });
-  clearStagingRoot(defaultStagingRoot());
+  clearStagingRoot(m_stagingRoot);
 }
 
 FileDragReceiver::~FileDragReceiver()
@@ -50,7 +51,9 @@ void FileDragReceiver::refuse(uint32_t transferId, FileDragRemote *remote, Cance
   }
 }
 
-bool FileDragReceiver::begin(uint32_t transferId, const std::string &manifestData, FileDragRemote *remote)
+bool FileDragReceiver::begin(
+    uint32_t transferId, const std::string &manifestData, FileDragRemote *remote, bool preparing
+)
 {
   // only one drag can be in the user's hand: a transfer whose drag was not
   // dropped yet is replaced; dropped transfers keep receiving
@@ -74,8 +77,14 @@ bool FileDragReceiver::begin(uint32_t transferId, const std::string &manifestDat
     return false;
   }
 
+  if (preparing && manifest->items().size() != manifest->entries.size()) {
+    refuse(transferId, remote, CancelReason::Refused);
+    return false;
+  }
+
   auto t = std::make_unique<Transfer>();
-  t->writer = std::make_unique<FileWriter>(defaultStagingRoot(), transferId, *manifest);
+  t->preparing = preparing;
+  t->writer = std::make_unique<FileWriter>(m_stagingRoot, transferId, *manifest);
   if (!t->writer->open()) {
     refuse(transferId, remote, CancelReason::Refused);
     return false;
@@ -90,18 +99,77 @@ bool FileDragReceiver::begin(uint32_t transferId, const std::string &manifestDat
   t->id = transferId;
   t->remote = remote;
   t->undelivered = items.size();
-  t->itemOfEntry = manifest->itemOfEntry();
-  t->filesLeft.assign(items.size(), 0);
-  t->itemBytes.assign(items.size(), 0);
-  t->progressSent.assign(items.size(), 0.0);
-  for (size_t i = 0; i < manifest->entries.size(); ++i) {
-    if (manifest->entries[i].isFile()) {
-      ++t->filesLeft[t->itemOfEntry[i]];
-    }
-  }
+  initializeContents(*t);
   m_transfers[transferId] = std::move(t);
   m_newest = transferId;
   return true;
+}
+
+void FileDragReceiver::initializeContents(Transfer &t)
+{
+  const auto &manifest = t.writer->manifest();
+  const auto count = manifest.items().size();
+  t.itemOfEntry = manifest.itemOfEntry();
+  t.filesLeft.assign(count, 0);
+  t.itemBytes.assign(count, 0);
+  t.progressSent.assign(count, 0.0);
+  for (size_t i = 0; i < manifest.entries.size(); ++i) {
+    if (manifest.entries[i].isFile())
+      ++t.filesLeft[t.itemOfEntry[i]];
+  }
+}
+
+bool FileDragReceiver::completeManifest(uint32_t transferId, const std::string &data, FileDragRemote *remote)
+{
+  Transfer *t = find(transferId);
+  if (t == nullptr || t->remote != remote || !t->preparing) {
+    refuse(transferId, remote, CancelReason::Refused);
+    return false;
+  }
+  const auto manifest = Manifest::parse(data);
+  const auto &preview = t->writer->manifest();
+  const auto items = manifest ? manifest->items() : std::vector<size_t>();
+  bool matches = items.size() == preview.entries.size();
+  for (size_t n = 0; matches && n < items.size(); ++n) {
+    const auto &entry = manifest->entries[items[n]];
+    matches = entry.path == preview.entries[n].path && entry.type == preview.entries[n].type;
+  }
+  if (!manifest || !matches) {
+    LOG_WARN("file drag: file list does not match preview (transfer %u)", transferId);
+    stop(transferId, true, CancelReason::Refused);
+    return false;
+  }
+  // The helper only reads staging after itemReady. Delete the preview's
+  // writer first, before the replacement creates the complete folder tree.
+  t->writer.reset();
+  t->writer = std::make_unique<FileWriter>(m_stagingRoot, transferId, *manifest);
+  if (!t->writer->open()) {
+    stop(transferId, true, CancelReason::Error);
+    return false;
+  }
+  t->preparing = false;
+  initializeContents(*t);
+  LOG_INFO("file drag: file list ready, %zu file(s) (transfer %u)", manifest->fileCount(), transferId);
+  if (t->state != State::Pending)
+    reportItemInfo(*t);
+  return true;
+}
+
+void FileDragReceiver::reportItemInfo(Transfer &t)
+{
+  const auto &manifest = t.writer->manifest();
+  const auto count = manifest.items().size();
+  std::vector<uint64_t> sizes(count, 0);
+  std::vector<uint32_t> entries(count, 0);
+  for (size_t i = 0; i < manifest.entries.size(); ++i) {
+    sizes[t.itemOfEntry[i]] += manifest.entries[i].size;
+    ++entries[t.itemOfEntry[i]];
+  }
+  for (uint32_t n = 0; n < count; ++n) {
+    m_computer->fileDragItemInfo(t.id, n, sizes[n], entries[n]);
+    if (t.filesLeft[n] == 0)
+      m_computer->fileDragItemReady(t.id, n);
+  }
 }
 
 bool FileDragReceiver::startPending() const
@@ -141,12 +209,10 @@ void FileDragReceiver::startDrag()
   }
   t->state = State::Dragging;
 
-  // items that are already complete (e.g. empty folders)
-  for (uint32_t n = 0; n < items.size(); ++n) {
-    if (t->filesLeft[n] == 0) {
-      m_computer->fileDragItemReady(t->id, n);
-    }
-  }
+  // A folder preview is not an empty folder: no promise may be fulfilled
+  // until its full manifest and contents have arrived.
+  if (!t->preparing)
+    reportItemInfo(*t);
 }
 
 void FileDragReceiver::reportProgress(Transfer &t, uint32_t item, bool force)
@@ -165,7 +231,7 @@ void FileDragReceiver::data(uint32_t transferId, uint32_t entry, const std::stri
   if (t == nullptr) {
     return;
   }
-  if (!t->writer->write(entry, bytes)) {
+  if (t->preparing || !t->writer->write(entry, bytes)) {
     LOG_ERR("file drag: failed to store data for entry %u", entry);
     stop(transferId, true, CancelReason::Error);
     return;
@@ -187,7 +253,7 @@ void FileDragReceiver::fileEnd(uint32_t transferId, uint32_t entry)
   if (t == nullptr) {
     return;
   }
-  if (!t->writer->finish(entry)) {
+  if (t->preparing || !t->writer->finish(entry)) {
     LOG_ERR("file drag: file %u is incomplete", entry);
     stop(transferId, true, CancelReason::Error);
     return;

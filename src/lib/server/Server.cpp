@@ -417,7 +417,7 @@ bool Server::canHandOverFileDrag(BaseClientProxy *dst)
 }
 
 void Server::fileDragIncoming(
-    deskflow::filedrag::FileDragRemote *remote, uint32_t transferId, const std::string &manifest
+    deskflow::filedrag::FileDragRemote *remote, uint32_t transferId, const std::string &manifest, bool preparing
 )
 {
   using deskflow::filedrag::CancelReason;
@@ -431,7 +431,7 @@ void Server::fileDragIncoming(
     FileDragReceiver::refuse(transferId, remote, expected ? CancelReason::Dropped : CancelReason::Refused);
     return;
   }
-  if (m_fileDragReceiver->begin(transferId, manifest, remote)) {
+  if (m_fileDragReceiver->begin(transferId, manifest, remote, preparing)) {
     m_fileDragReceiver->startDrag();
   }
 }

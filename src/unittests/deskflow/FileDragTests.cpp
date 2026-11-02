@@ -7,7 +7,13 @@
 
 #include "FileDragTests.h"
 
+#include "MockEventQueue.h"
+#include "deskflow/Computer.h"
 #include "deskflow/FileDrag.h"
+#include "deskflow/FileDragReceiver.h"
+#include "deskflow/FileDragSender.h"
+#include "deskflow/IPlatformComputer.h"
+#include <map>
 
 #include <filesystem>
 #include <fstream>
@@ -16,6 +22,234 @@ namespace fs = std::filesystem;
 using namespace deskflow::filedrag;
 
 namespace {
+
+class TestDragComputer : public IPlatformComputer
+{
+public:
+  explicit TestDragComputer(IEventQueue *events) : IPlatformComputer(events)
+  {
+  }
+  std::vector<StagedItem> dragItems;
+  uint32_t starts = 0, ready = 0, aborted = 0;
+  uint64_t size = 0;
+  uint32_t entries = 0;
+  bool beginFileDrag(uint32_t, const std::vector<StagedItem> &items) override
+  {
+    dragItems = items;
+    ++starts;
+    return true;
+  }
+  void fileDragItemReady(uint32_t, uint32_t) override
+  {
+    ++ready;
+  }
+  void abortFileDrag(uint32_t) override
+  {
+    ++aborted;
+  }
+  void fileDragItemInfo(uint32_t, uint32_t, uint64_t bytes, uint32_t count) override
+  {
+    size = bytes;
+    entries = count;
+  }
+  void *getEventTarget() const override
+  {
+    return const_cast<TestDragComputer *>(this);
+  }
+  bool getClipboard(ClipboardID id, IClipboard *) const override
+  {
+    return {};
+  }
+  void getShape(int32_t &x, int32_t &y, int32_t &width, int32_t &height) const override
+  {
+  }
+  void getCursorPos(int32_t &x, int32_t &y) const override
+  {
+  }
+  void reconfigure(uint32_t activeSides) override
+  {
+  }
+  uint32_t activeSides() override
+  {
+    return {};
+  }
+  void warpCursor(int32_t x, int32_t y) override
+  {
+  }
+  uint32_t registerHotKey(KeyID key, KeyModifierMask mask) override
+  {
+    return {};
+  }
+  void unregisterHotKey(uint32_t id) override
+  {
+  }
+  void fakeInputBegin() override
+  {
+  }
+  void fakeInputEnd() override
+  {
+  }
+  int32_t getJumpZoneSize() const override
+  {
+    return {};
+  }
+  bool isAnyMouseButtonDown(uint32_t &buttonID) const override
+  {
+    return {};
+  }
+  void getCursorCenter(int32_t &x, int32_t &y) const override
+  {
+  }
+  void fakeMouseButton(ButtonID id, bool press) override
+  {
+  }
+  void fakeMouseMove(int32_t x, int32_t y) override
+  {
+  }
+  void fakeMouseRelativeMove(int32_t dx, int32_t dy) const override
+  {
+  }
+  void fakeMouseWheel(ScrollDelta delta) const override
+  {
+  }
+  void updateKeyMap() override
+  {
+  }
+  void updateKeyState() override
+  {
+  }
+  void setHalfDuplexMask(KeyModifierMask) override
+  {
+  }
+  void fakeKeyDown(KeyID id, KeyModifierMask mask, KeyButton button, const std::string &lang) override
+  {
+  }
+  bool fakeKeyRepeat(KeyID id, KeyModifierMask mask, int32_t count, KeyButton button, const std::string &lang) override
+  {
+    return {};
+  }
+  bool fakeKeyUp(KeyButton button) override
+  {
+    return {};
+  }
+  void fakeAllKeysUp() override
+  {
+  }
+  bool fakeCtrlAltDel() override
+  {
+    return {};
+  }
+  bool fakeMediaKey(KeyID id) override
+  {
+    return {};
+  }
+  bool isKeyDown(KeyButton) const override
+  {
+    return {};
+  }
+  KeyModifierMask getActiveModifiers() const override
+  {
+    return {};
+  }
+  KeyModifierMask pollActiveModifiers() const override
+  {
+    return {};
+  }
+  int32_t pollActiveGroup() const override
+  {
+    return {};
+  }
+  void pollPressedKeys(KeyButtonSet &pressedKeys) const override
+  {
+  }
+  void enable() override
+  {
+  }
+  void disable() override
+  {
+  }
+  void enter() override
+  {
+  }
+  bool canLeave() override
+  {
+    return {};
+  }
+  void leave() override
+  {
+  }
+  bool setClipboard(ClipboardID id, const IClipboard *) override
+  {
+    return {};
+  }
+  void checkClipboards() override
+  {
+  }
+  void openScreensaver(bool notify) override
+  {
+  }
+  void closeScreensaver() override
+  {
+  }
+  void screensaver(bool activate) override
+  {
+  }
+  void resetOptions() override
+  {
+  }
+  void setOptions(const OptionsList &options) override
+  {
+  }
+  void setSequenceNumber(uint32_t) override
+  {
+  }
+  std::string getSecureInputApp() const override
+  {
+    return {};
+  }
+  bool isPrimary() const override
+  {
+    return {};
+  }
+  void handleSystemEvent(const Event &event) override
+  {
+  }
+};
+
+class DragEvents : public MockEventQueue
+{
+public:
+  std::map<EventTypes, EventHandler> handlers;
+  void addHandler(EventTypes type, void *, const EventHandler &handler) override
+  {
+    handlers[type] = handler;
+  }
+  void removeHandler(EventTypes type, void *) override
+  {
+    handlers.erase(type);
+  }
+  bool dispatchEvent(const Event &event) override
+  {
+    const auto it = handlers.find(event.getType());
+    if (it != handlers.end())
+      it->second(event);
+    return it != handlers.end();
+  }
+};
+
+class DragRemote : public FileDragRemote
+{
+public:
+  uint32_t acks = 0, cancels = 0;
+  void sendFileDragAck(uint32_t, uint32_t chunks) override
+  {
+    acks = chunks;
+  }
+  void sendFileDragCancel(uint32_t, uint8_t) override
+  {
+    ++cancels;
+  }
+};
 
 fs::path writeFile(const fs::path &path, const std::string &content)
 {
@@ -200,16 +434,16 @@ void FileDragTests::buildManifestWalksFolders()
   writeFile(root / "Album" / "Sub" / "c.txt", "ccc");
   fs::create_directories(root / "Album" / "Empty");
   fs::create_symlink(root / "Album" / "a.jpg", root / "Album" / "link.jpg"); // absolute: skipped
-  fs::create_symlink("../../outside", root / "Album" / "Sub" / "escape");     // leaves the item: skipped
-  fs::create_symlink("a.jpg", root / "Album" / "rel.jpg");                    // kept
+  fs::create_symlink("../../outside", root / "Album" / "Sub" / "escape");    // leaves the item: skipped
+  fs::create_symlink("a.jpg", root / "Album" / "rel.jpg");                   // kept
   const auto single = writeFile(root / "single.txt", "single");
 
   std::vector<std::string> sources;
   const auto m = buildManifest({(root / "Album").string(), single.string()}, sources);
   QCOMPARE(
       paths(m), (std::vector<std::string>{
-                    "Album", "Album/Empty", "Album/Sub", "Album/a.jpg", "Album/b.jpg", "Album/rel.jpg", "Album/Sub/c.txt",
-                    "single.txt"
+                    "Album", "Album/Empty", "Album/Sub", "Album/a.jpg", "Album/b.jpg", "Album/rel.jpg",
+                    "Album/Sub/c.txt", "single.txt"
                 })
   );
   QVERIFY(m.entries[5].isSymlink());
@@ -350,6 +584,193 @@ void FileDragTests::writerDiscardRemovesStaging()
     QVERIFY(fs::exists(root / "3"));
   }
   QVERIFY(!fs::exists(root / "3"));
+}
+
+void FileDragTests::manifestAssemblerJoinsParts()
+{
+  using namespace deskflow::filedrag;
+  ManifestAssembler parts;
+  // a manifest sent whole
+  QCOMPARE(parts.finish(1, "whole"), std::string("whole"));
+  // in parts
+  QVERIFY(parts.addPart(2, "ab"));
+  QVERIFY(parts.addPart(2, "cd"));
+  QCOMPARE(parts.finish(2, "ef"), std::string("abcdef"));
+  // nothing left over for the next one
+  QCOMPARE(parts.finish(3, "gh"), std::string("gh"));
+  // parts of an abandoned transfer don't leak into the next one
+  QVERIFY(parts.addPart(4, "stale"));
+  QVERIFY(parts.addPart(5, "fresh-"));
+  QCOMPARE(parts.finish(5, "end"), std::string("fresh-end"));
+  QVERIFY(parts.addPart(6, "stale"));
+  QCOMPARE(parts.finish(7, "other"), std::string("other"));
+}
+
+void FileDragTests::manifestAssemblerDropsOversized()
+{
+  using namespace deskflow::filedrag;
+  ManifestAssembler parts;
+  const std::string big(kMaxManifestSize / 2 + 1, 'x');
+  QVERIFY(parts.addPart(1, big));
+  QVERIFY(!parts.addPart(1, big));
+  QVERIFY(!parts.addPart(1, "more"));
+  // empty: fails to parse, so the drag is refused instead of truncated
+  QVERIFY(parts.finish(1, "end").empty());
+  QVERIFY(!Manifest::parse(""));
+  // and the next transfer starts clean
+  QCOMPARE(parts.finish(2, "next"), std::string("next"));
+}
+
+namespace {
+// one ack, as the receiver sends after kAckEveryChunks full chunks
+constexpr uint32_t kAckBytes = deskflow::filedrag::kAckEveryChunks * deskflow::filedrag::kChunkSize;
+
+// acks one full round of \p control's window, every ack \p delay seconds
+void ackRound(deskflow::filedrag::WindowControl &control, double delay, bool limited)
+{
+  const uint32_t window = control.window();
+  for (uint32_t acked = 0; acked < window; acked += kAckBytes)
+    control.acked(kAckBytes, delay, limited);
+}
+} // namespace
+
+void FileDragTests::windowGrowsWhileDelayStaysLow()
+{
+  using namespace deskflow::filedrag;
+  WindowControl control;
+  QCOMPARE(control.window(), kWindowBytes);
+  ackRound(control, 0.004, true); // sets the base delay
+  QCOMPARE(control.window(), kWindowBytes + kWindowStepBytes);
+  // Wi-Fi jitter: only the round's best ack counts
+  const uint32_t window = control.window();
+  for (uint32_t acked = 0; acked < window; acked += kAckBytes)
+    control.acked(kAckBytes, acked == 0 ? 0.006 : 0.030, true);
+  QCOMPARE(control.window(), window + kWindowStepBytes);
+}
+
+void FileDragTests::windowHoldsWhenNotLimited()
+{
+  using namespace deskflow::filedrag;
+  WindowControl control;
+  // the reader (disk, privacy prompt) is the limit, not the window
+  ackRound(control, 0.004, false);
+  ackRound(control, 0.004, false);
+  QCOMPARE(control.window(), kWindowBytes);
+  // between the thresholds: hold
+  ackRound(control, 0.004 + (WindowControl::kGrowBelow + WindowControl::kShrinkAbove) / 2, true);
+  QCOMPARE(control.window(), kWindowBytes);
+}
+
+void FileDragTests::windowShrinksWhenDelayRises()
+{
+  using namespace deskflow::filedrag;
+  WindowControl control;
+  for (int i = 0; i < 10; ++i)
+    ackRound(control, 0.004, true);
+  const uint32_t grown = control.window();
+  QCOMPARE(grown, kWindowBytes + 10 * kWindowStepBytes);
+  ackRound(control, 0.004 + WindowControl::kShrinkAbove * 2, true);
+  QCOMPARE(control.window(), grown * 3 / 4);
+
+  control.reset();
+  QCOMPARE(control.window(), kWindowBytes);
+  QVERIFY(control.baseDelay() < 0);
+}
+
+void FileDragTests::windowStaysWithinBounds()
+{
+  using namespace deskflow::filedrag;
+  WindowControl control;
+  for (int i = 0; i < 1000; ++i)
+    ackRound(control, 0.001, true);
+  QCOMPARE(control.window(), kMaxWindowBytes);
+  for (int i = 0; i < 100; ++i)
+    ackRound(control, 0.5, true);
+  QCOMPARE(control.window(), kMinWindowBytes);
+  // acks without a timing sample (stale or out-of-order) change nothing
+  ackRound(control, -1, true);
+  QCOMPARE(control.window(), kMinWindowBytes);
+}
+
+void FileDragTests::previewCanBeDroppedBeforeManifest()
+{
+  DragEvents events;
+  auto *platform = new TestDragComputer(&events);
+  deskflow::Computer computer(platform, &events);
+  FileDragReceiver receiver(&events, &computer, m_tmp.filePath("Drops").toStdString());
+  DragRemote remote;
+  Manifest preview{{dir("Album")}};
+  Manifest full{{dir("Album"), file("Album/a.txt", 3)}};
+  QVERIFY(receiver.begin(101, preview.serialize(), &remote, true));
+  receiver.startDrag();
+  QCOMPARE(platform->starts, 1u);
+  QCOMPARE(platform->ready, 0u); // a preview must never deliver an empty folder
+  events.dispatchEvent(Event(EventTypes::FileDragEnded, computer.getEventTarget(), new FileDragEndedInfo(101, true)));
+  QVERIFY(!receiver.abortUndropped()); // accepted drop survives moving away
+  QVERIFY(receiver.completeManifest(101, full.serialize(), &remote));
+  QCOMPARE(platform->starts, 1u); // keep the existing promises, even after mouse-up
+  QCOMPARE(platform->size, uint64_t(3));
+  QCOMPARE(platform->entries, 2u);
+  QCOMPARE(platform->ready, 0u);
+  receiver.data(101, 1, "abc");
+  receiver.fileEnd(101, 1);
+  QCOMPARE(platform->ready, 1u);
+  QCOMPARE(remote.acks, 1u);
+  QCOMPARE(remote.cancels, 0u);
+  QCOMPARE(readFile(platform->dragItems.front().path + "/a.txt"), std::string("abc"));
+}
+
+void FileDragTests::cancelledPreviewStaysCancelled()
+{
+  DragEvents events;
+  auto *platform = new TestDragComputer(&events);
+  deskflow::Computer computer(platform, &events);
+  FileDragReceiver receiver(&events, &computer, m_tmp.filePath("Drops").toStdString());
+  DragRemote remote;
+  Manifest preview{{dir("Album")}};
+  QVERIFY(receiver.begin(102, preview.serialize(), &remote, true));
+  receiver.startDrag();
+  QVERIFY(receiver.abortUndropped());
+  QCOMPARE(receiver.transfers(), size_t(0));
+  QVERIFY(!receiver.completeManifest(102, preview.serialize(), &remote));
+  QCOMPARE(platform->starts, 1u);
+  QCOMPARE(platform->ready, 0u);
+  QCOMPARE(platform->aborted, 1u);
+  QCOMPARE(receiver.transfers(), size_t(0));
+}
+
+void FileDragTests::previewRejectsChangedItems()
+{
+  DragEvents events;
+  auto *platform = new TestDragComputer(&events);
+  deskflow::Computer computer(platform, &events);
+  FileDragReceiver receiver(&events, &computer, m_tmp.filePath("Drops").toStdString());
+  DragRemote remote;
+  Manifest preview{{dir("Album")}};
+  Manifest changed{{dir("Other")}};
+  QVERIFY(receiver.begin(103, preview.serialize(), &remote, true));
+  receiver.startDrag();
+  QVERIFY(!receiver.completeManifest(103, changed.serialize(), &remote));
+  QCOMPARE(remote.cancels, 1u);
+  QCOMPARE(platform->ready, 0u);
+  QCOMPARE(receiver.transfers(), size_t(0));
+}
+
+void FileDragTests::previewCompletesEmptyFolder()
+{
+  DragEvents events;
+  auto *platform = new TestDragComputer(&events);
+  deskflow::Computer computer(platform, &events);
+  FileDragReceiver receiver(&events, &computer, m_tmp.filePath("Drops").toStdString());
+  DragRemote remote;
+  Manifest preview{{dir("Empty")}};
+  QVERIFY(receiver.begin(104, preview.serialize(), &remote, true));
+  // Full list may arrive before the platform starts the pending drag.
+  QVERIFY(receiver.completeManifest(104, preview.serialize(), &remote));
+  QCOMPARE(platform->ready, 0u);
+  receiver.startDrag();
+  QCOMPARE(platform->ready, 1u);
+  QCOMPARE(platform->starts, 1u);
 }
 
 QTEST_MAIN(FileDragTests)

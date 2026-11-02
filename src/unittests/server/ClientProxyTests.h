@@ -24,6 +24,8 @@ private Q_SLOTS:
   void keyUp_data();
   void keyUp();
   void fileDragRespectsWindowAndAcks();
+  void fileDragWindowCountsBytes();
+  void fileDragSplitsLargeManifest();
   void fileDragStopsOnCancel();
   void fileDragUnreadableFileCancels();
   void fileDragSendsFolders();

@@ -9,15 +9,16 @@
 
 #include "../deskflow/MockEventQueue.h"
 #include "deskflow/AppUtil.h"
+#include "deskflow/FileDrag.h"
+#include "deskflow/ProtocolTypes.h"
+#include "deskflow/ProtocolUtil.h"
 #include "io/IStream.h"
 #include "server/ClientProxy1_0.h"
 #include "server/ClientProxy1_1.h"
+#include "server/ClientProxy1_10.h"
 #include "server/ClientProxy1_6.h"
 #include "server/ClientProxy1_7.h"
 #include "server/ClientProxy1_8.h"
-#include "deskflow/ProtocolTypes.h"
-#include "deskflow/ProtocolUtil.h"
-#include "server/ClientProxy1_10.h"
 #include "server/ClientProxy1_9.h"
 
 #include <memory>
@@ -31,6 +32,9 @@
 #include <fstream>
 
 namespace {
+
+// the starting window, in full-size chunks
+constexpr uint32_t kWindowChunks = deskflow::filedrag::kWindowBytes / deskflow::filedrag::kChunkSize;
 
 class TestAppUtil : public AppUtil
 {
@@ -146,7 +150,13 @@ private:
 class TestProxy1_9 : public ClientProxy1_9
 {
 public:
-  using ClientProxy1_9::ClientProxy1_9;
+  TestProxy1_9(
+      const std::string &name, deskflow::IStream *stream, Server *server, IEventQueue *events,
+      bool largeManifests = true
+  )
+      : ClientProxy1_9(name, stream, server, events, largeManifests)
+  {
+  }
   using ClientProxy1_9::parseMessage;
   using ClientProxy1_9::pump;
 };
@@ -358,6 +368,107 @@ void ClientProxyTests::fileDragRespectsWindowAndAcks()
   QCOMPARE(fileEnds, 1L);
 }
 
+void ClientProxyTests::fileDragWindowCountsBytes()
+{
+  using namespace deskflow::filedrag;
+  QTemporaryDir dir;
+  const std::filesystem::path root = dir.filePath("Small").toStdString();
+  std::filesystem::create_directories(root);
+  const uint32_t files = 200;
+  for (uint32_t i = 0; i < files; ++i)
+    std::ofstream(root / ("f" + std::to_string(i)), std::ios::binary) << std::string(1024, 'x');
+
+  MockEventQueue events;
+  auto *stream = new CapturingStream;
+  TestProxy1_9 proxy("client", stream, reinterpret_cast<Server *>(0x1), &events);
+  stream->take();
+
+  // small files fill the window by size, each counting kMinChunkCost, not a
+  // whole 64 KB chunk each
+  const long expected = kWindowBytes / kMinChunkCost;
+  QVERIFY(expected > long(kWindowChunks));
+  QVERIFY(proxy.startFileDrag({root.string()}));
+  auto codes = pumpUntil(proxy, stream, "DGDT", expected);
+  QCOMPARE(countCode(codes, "DGDT"), expected);
+  QCOMPARE(countCode(codes, "DGFE"), expected);
+
+  // acking them all lets the rest through
+  long sent = expected;
+  for (int i = 0; i < 50 && sent < long(files); ++i) {
+    stream->feed(be32(1) + be32(static_cast<uint32_t>(sent)));
+    QVERIFY(proxy.parseMessage(reinterpret_cast<const uint8_t *>("DGAK")));
+    sent += countCode(pumpUntil(proxy, stream, "DGDT", 1), "DGDT");
+  }
+  QCOMPARE(sent, long(files));
+}
+
+void ClientProxyTests::fileDragSplitsLargeManifest()
+{
+  using namespace deskflow::filedrag;
+  QTemporaryDir dir;
+  const std::filesystem::path root = dir.filePath("Many").toStdString();
+  std::filesystem::create_directories(root);
+  // long names make a manifest over 1 MB (the protocol's string limit) from
+  // a few thousand files
+  const uint32_t files = 5000;
+  for (uint32_t i = 0; i < files; ++i)
+    std::ofstream(root / (std::to_string(i) + std::string(200, 'n'))) << "x";
+
+  MockEventQueue events;
+  auto *stream = new CapturingStream;
+  TestProxy1_9 proxy("client", stream, reinterpret_cast<Server *>(0x1), &events);
+  stream->take();
+
+  QVERIFY(proxy.startFileDrag({root.string()}));
+  std::vector<QByteArray> messages;
+  for (int i = 0; i < 400; ++i) {
+    proxy.pump();
+    auto m = stream->takeMessages();
+    messages.insert(messages.end(), m.begin(), m.end());
+    if (std::any_of(messages.begin(), messages.end(), [](const QByteArray &x) { return x.startsWith("DGFM"); }))
+      break;
+    QTest::qWait(10);
+  }
+
+  // The preview starts the drag; DGBP parts, then DGFM fill in the contents; none above the string limit
+  std::string whole;
+  long parts = 0;
+  bool begun = false;
+  for (const auto &m : messages) {
+    if (!m.startsWith("DGBP") && !m.startsWith("DGFM"))
+      continue;
+    QVERIFY2(!begun, "parts come before the begin message");
+    QCOMPARE(readBe32(m, 4), 1u);
+    const uint32_t len = readBe32(m, 8);
+    QVERIFY(len <= PROTOCOL_MAX_STRING_LENGTH);
+    QCOMPARE(m.size(), static_cast<qsizetype>(12 + len));
+    whole.append(m.constData() + 12, len);
+    if (m.startsWith("DGBP"))
+      ++parts;
+    else
+      begun = true;
+  }
+  QVERIFY(begun);
+  QVERIFY(whole.size() > PROTOCOL_MAX_STRING_LENGTH);
+  QCOMPARE(parts, long((whole.size() - 1) / kManifestPartSize));
+  const auto manifest = Manifest::parse(whole);
+  QVERIFY(manifest.has_value());
+  QCOMPARE(manifest->fileCount(), size_t(files));
+
+  // The root-only preview precedes all manifest parts and data.
+  QVERIFY(!messages.empty());
+  QCOMPARE(messages.front().left(4), QByteArray("DGPR"));
+  const auto &previewMessage = messages.front();
+  const auto preview = Manifest::parse(std::string(previewMessage.constData() + 12, readBe32(previewMessage, 8)));
+  QVERIFY(preview.has_value());
+  QCOMPARE(preview->entries.size(), size_t(1));
+  QVERIFY(preview->entries.front().isDirectory());
+
+  // the receiving side takes a part without complaint
+  stream->feed(be32(0x80000001u) + be32(4) + QByteArray("part"));
+  QVERIFY(proxy.parseMessage(reinterpret_cast<const uint8_t *>("DGBP")));
+}
+
 void ClientProxyTests::fileDragStopsOnCancel()
 {
   using namespace deskflow::filedrag;
@@ -403,10 +514,23 @@ void ClientProxyTests::fileDragSendsFolders()
 
   QVERIFY(proxy.startFileDrag({root.string()}));
   const auto codes = pumpUntil(proxy, stream, "DGFE", 2);
-  QCOMPARE(countCode(codes, "DGBN"), 1L);
+  QCOMPARE(codes.front(), std::string("DGPR"));
+  QCOMPARE(countCode(codes, "DGPR"), 1L);
+  QCOMPARE(countCode(codes, "DGFM"), 1L);
   QCOMPARE(countCode(codes, "DGDT"), 2L); // a.jpg and Sub/b.jpg
   QCOMPARE(countCode(codes, "DGFE"), 2L);
   QCOMPARE(countCode(codes, "DGCN"), 0L);
+
+  // A peer negotiating 1.9/1.10 still gets its original small-folder format.
+  auto *legacyStream = new CapturingStream;
+  TestProxy1_9 legacy("legacy", legacyStream, reinterpret_cast<Server *>(0x1), &events, false);
+  legacyStream->take();
+  QVERIFY(legacy.startFileDrag({root.string()}));
+  const auto legacyCodes = pumpUntil(legacy, legacyStream, "DGFE", 2);
+  QCOMPARE(legacyCodes.front(), std::string("DGBN"));
+  QCOMPARE(countCode(legacyCodes, "DGPR"), 0L);
+  QCOMPARE(countCode(legacyCodes, "DGFM"), 0L);
+  QCOMPARE(countCode(legacyCodes, "DGFE"), 2L);
 }
 
 void ClientProxyTests::fileDragUnreadableFileCancels()
@@ -464,7 +588,7 @@ void ClientProxyTests::fileDragParallelTransfersTakeTurns()
   QTemporaryDir dir;
   const std::string a = dir.filePath("a.bin").toStdString();
   const std::string b = dir.filePath("b.bin").toStdString();
-  const uint32_t chunksEach = 20;
+  const uint32_t chunksEach = kWindowChunks * 2 + 4;
   std::ofstream(a, std::ios::binary) << std::string(kChunkSize * chunksEach, 'a');
   std::ofstream(b, std::ios::binary) << std::string(kChunkSize * chunksEach, 'b');
 
@@ -516,12 +640,13 @@ void ClientProxyTests::fileDragParallelTransfersTakeTurns()
   const long a1 = dataOf(msgs, 1);
   const long b1 = dataOf(msgs, 2);
   QVERIFY2(a1 > 0 && b1 > 0, "both transfers progress");
-  QVERIFY(a1 + b1 <= long(std::max(kWindowChunks, 2 * kAckEveryChunks)));
+  // a full round acked without delay may have grown the window by one step
+  QVERIFY(a1 + b1 <= long(std::max((kWindowBytes + kWindowStepBytes) / kChunkSize, 2 * kAckEveryChunks)));
   sentA += a1;
   sentB += b1;
+  long fileEnds = std::count_if(msgs.begin(), msgs.end(), [](const QByteArray &m) { return m.startsWith("DGFE"); });
 
   // keep acking both until everything was sent
-  long fileEnds = 0;
   for (int i = 0; i < 100 && (sentA < chunksEach || sentB < chunksEach); ++i) {
     stream->feed(be32(1) + be32(sentA));
     QVERIFY(proxy.parseMessage(reinterpret_cast<const uint8_t *>("DGAK")));

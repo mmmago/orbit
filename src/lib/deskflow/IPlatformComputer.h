@@ -170,6 +170,11 @@ public:
     return false;
   }
 
+  //! Secondary: the full size and entry count of a preview are now known.
+  virtual void fileDragItemInfo(uint32_t transferId, uint32_t item, uint64_t size, uint32_t entries)
+  {
+  }
+
   //! Secondary: a dragged item (file or whole folder) is complete.
   virtual void fileDragItemReady(uint32_t transferId, uint32_t item)
   {

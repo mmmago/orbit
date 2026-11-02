@@ -92,11 +92,16 @@ def build_entries(paths):
 
 def parse_manifest(data):
     magic, count = struct.unpack(">II", data[:8])
-    assert magic == 0x44464D32, "bad manifest"
+    assert magic in (0x44464D32, 0x44464D33), "bad manifest"
     pos, out = 8, []
     for _ in range(count):
-        t, size, n = struct.unpack(">BQI", data[pos:pos + 13])
-        pos += 13
+        if magic == 0x44464D33:
+            t, mode, size, n = struct.unpack(">BHQI", data[pos:pos + 15])
+            pos += 15
+        else:
+            t, size, n = struct.unpack(">BQI", data[pos:pos + 13])
+            pos += 13
+        assert t != 2, "reverse test does not support symlinks"
         out.append((data[pos:pos + n].decode(), size, t == 1))
         pos += n
     return out
@@ -127,10 +132,18 @@ def reader(conn: Conn):
                 log(f"client drag state: {'dragging' if conn.client_dragging else 'not dragging'}")
                 with conn.cv:
                     conn.cv.notify_all()
-            elif code == b"DGBN":
+            elif code == b"DGBP":
+                # leading part of a large manifest (the rest comes in DGBN)
+                (plen,) = struct.unpack(">I", msg[8:12])
+                conn.manifest_parts = getattr(conn, "manifest_parts", b"") + msg[12:12 + plen]
+            elif code == b"DGPR":
+                tid = struct.unpack(">I", msg[4:8])[0]
+                log(f"incoming preview {tid:#x}")
+            elif code in (b"DGBN", b"DGFM"):
                 tid = struct.unpack(">I", msg[4:8])[0]
                 (mlen,) = struct.unpack(">I", msg[8:12])
-                entries = parse_manifest(msg[12:12 + mlen])
+                entries = parse_manifest(getattr(conn, "manifest_parts", b"") + msg[12:12 + mlen])
+                conn.manifest_parts = b""
                 files = sum(1 for e in entries if not e[2])
                 log(f"incoming transfer {tid:#x}: {len(entries)} entries, {files} files")
                 for rel, size, is_dir in entries:
@@ -223,6 +236,8 @@ def main():
     ap.add_argument("--chunk-delay", type=float, default=0.0, help="seconds between chunks (simulate a slow link)")
     ap.add_argument("--second", nargs="+", metavar="FILE",
                     help="after the first drop: leave, then drag these too while the first transfer still runs")
+    ap.add_argument("--manifest-delay", type=float, default=0.0,
+                    help="announce root promises immediately; send full manifest after this many seconds")
     ap.add_argument("--second-delay", type=float, default=1.5)
     ap.add_argument("--reverse", metavar="OUT_DIR",
                     help="client -> server: press at --enter, drag towards --drop, ask for the files, store them here")
@@ -241,7 +256,7 @@ def main():
     sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
     conn = Conn(sock)
 
-    conn.send(b"Synergy" + struct.pack(">hh", 1, 9))
+    conn.send(b"Synergy" + struct.pack(">hh", 1, 11))
     hello = conn.recv()
     major, minor = struct.unpack(">hh", hello[7:11])
     log(f"client hello back: {hello[:7]!r} {major}.{minor} name={hello[15:].decode()!r}")
@@ -263,9 +278,21 @@ def main():
     tid = 1
     entries = build_entries(a.files)
     log(f"drag begin: {len(entries)} entries from {[os.path.basename(os.path.normpath(p)) for p in a.files]}")
-    conn.send(b"DGBN" + struct.pack(">I", tid) + s(manifest(entries)))
+    roots = [e for e in entries if "/" not in e[0]]
+    first_code = b"DGPR" if a.manifest_delay else b"DGBN"
+    conn.send(first_code + struct.pack(">I", tid) + s(manifest(roots if a.manifest_delay else entries)))
     conn.send(b"CINN" + struct.pack(">hhIH", ex, ey, 1, 0))
-    sender = threading.Thread(target=stream_files, args=(conn, tid, entries, a.chunk_delay), daemon=True)
+    def send_contents():
+        if a.manifest_delay:
+            time.sleep(a.manifest_delay)
+            data = manifest(entries)
+            while len(data) > 512 * 1024:
+                conn.send(b"DGBP" + struct.pack(">I", tid) + s(data[:512 * 1024]))
+                data = data[512 * 1024:]
+            log("full manifest ready")
+            conn.send(b"DGFM" + struct.pack(">I", tid) + s(data))
+        stream_files(conn, tid, entries, a.chunk_delay)
+    sender = threading.Thread(target=send_contents, daemon=True)
     sender.start()
 
     if a.release_early:

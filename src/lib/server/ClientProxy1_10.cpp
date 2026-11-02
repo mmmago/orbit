@@ -11,9 +11,9 @@
 #include "deskflow/ProtocolUtil.h"
 
 ClientProxy1_10::ClientProxy1_10(
-    const std::string &name, deskflow::IStream *adoptedStream, Server *server, IEventQueue *events
+    const std::string &name, deskflow::IStream *adoptedStream, Server *server, IEventQueue *events, bool largeManifests
 )
-    : ClientProxy1_9(name, adoptedStream, server, events)
+    : ClientProxy1_9(name, adoptedStream, server, events, largeManifests)
 {
 }
 

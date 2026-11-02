@@ -14,7 +14,7 @@
 class ServerProxy1_9 : public ServerProxy1_8
 {
 public:
-  ServerProxy1_9(Client *client, deskflow::IStream *stream, IEventQueue *events);
+  ServerProxy1_9(Client *client, deskflow::IStream *stream, IEventQueue *events, bool largeManifests = false);
   ~ServerProxy1_9() override = default;
 
   void sendFileDragAck(uint32_t transferId, uint32_t chunksReceived) override;
@@ -27,4 +27,5 @@ protected:
 
 private:
   deskflow::filedrag::FileDragSender m_sender;
+  deskflow::filedrag::ManifestAssembler m_manifestParts;
 };

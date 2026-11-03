@@ -11,7 +11,7 @@ files between them, like Universal Control.
 
 Orbit is macOS only and based on [Deskflow](https://github.com/deskflow/deskflow)
 (GPL-2.0). It is not affiliated with the Deskflow project: report Orbit
-problems here.
+problems here. It is intended to port official macOS features without the risk of breaking on other platforms.
 
 ## Features
 

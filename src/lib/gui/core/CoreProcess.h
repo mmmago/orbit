@@ -52,6 +52,8 @@ public:
   void reloadConfig();
   //! Answer touchIdRequested()
   void sendTouchIdResult(const QString &nonce, bool success);
+  //! Answer touchIdRequested(): the menu bar icon is not shown
+  void sendTouchIdNotShown(const QString &nonce);
   void cleanup();
   void applyLogLevel();
   void clearSettings();

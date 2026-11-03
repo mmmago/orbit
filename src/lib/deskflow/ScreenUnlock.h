@@ -54,20 +54,30 @@ public:
 //! Touch ID shown in the menu bar icon (kOptionTouchIdInMenuBar): the icon
 //! belongs to the gui, so the core asks it over the core ipc socket
 //! ("touchIdRequest=<nonce>:<reason>", "touchIdCancel=<nonce>") and the gui
-//! answers "touchIdResult=<nonce>:<0|1>".
+//! answers "touchIdResult=<nonce>:<0|1|u>". The glyph goes over Control
+//! Center's icon when Orbit's is folded behind the menu bar's «; u when
+//! neither is in sight, for the core to ask in its panel.
 namespace deskflow::screenunlock::menubar {
+
+enum class Answer
+{
+  Failed,
+  Succeeded,
+  //! the icon is not shown: nothing was asked
+  NotShown,
+};
 
 //! True if the gui is connected to answer
 bool available();
 
 //! Ask the gui; \p reply runs on the ipc (main) thread. Dismisses a previous
 //! request without replying to it.
-void request(const std::string &reason, std::function<void(bool success)> reply);
+void request(const std::string &reason, std::function<void(Answer answer)> reply);
 
 //! Dismiss the pending request, without replying to it
 void cancel();
 
 //! The gui answered (called by the core ipc server)
-void deliver(const std::string &nonce, bool success);
+void deliver(const std::string &nonce, Answer answer);
 
 } // namespace deskflow::screenunlock::menubar

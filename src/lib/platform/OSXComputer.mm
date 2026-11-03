@@ -2501,7 +2501,19 @@ uint32_t OSXComputer::requestUserAuthentication(const std::string &reason)
   if (m_touchIdInMenuBar && deskflow::screenunlock::menubar::available()) {
     deskflow::screenunlock::osx::cancelAuthentication();
     const auto request = deskflow::screenunlock::osx::nextRequest();
-    deskflow::screenunlock::menubar::request(reason, [post, request](bool success) { post(request, success); });
+    deskflow::screenunlock::menubar::request(reason, [post, request, reason](auto answer) {
+      using deskflow::screenunlock::menubar::Answer;
+      if (answer != Answer::NotShown) {
+        post(request, answer == Answer::Succeeded);
+        return;
+      }
+      // the icon is folded behind the menu bar's « and Control Center's
+      // icon could not be found: the panel instead
+      LOG_DEBUG("screen unlock: no menu bar icon in sight, touch id in the panel");
+      if (deskflow::screenunlock::osx::authenticate(reason, post, request) == 0) {
+        post(request, false);
+      }
+    });
     return request;
   }
   deskflow::screenunlock::menubar::cancel();

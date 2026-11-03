@@ -135,7 +135,9 @@ NSPanel *newTouchIdPanel(LAContext *context, NSString *reason) API_AVAILABLE(mac
 
 } // namespace
 
-uint32_t authenticate(const std::string &reason, std::function<void(uint32_t request, bool success)> reply)
+uint32_t authenticate(
+    const std::string &reason, std::function<void(uint32_t request, bool success)> reply, uint32_t request
+)
 {
   // only to know now whether Touch ID can be asked; the panel's context is
   // made on the main thread with the panel
@@ -146,7 +148,9 @@ uint32_t authenticate(const std::string &reason, std::function<void(uint32_t req
     return 0;
   }
 
-  const uint32_t request = nextRequest();
+  if (request == 0) {
+    request = nextRequest();
+  }
 
   NSString *text = [NSString stringWithUTF8String:reason.c_str()] ?: @"unlock a client";
   // AppKit and the context live on the main thread; this queue is serial, so

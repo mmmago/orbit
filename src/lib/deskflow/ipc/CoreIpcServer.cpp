@@ -32,10 +32,16 @@ CoreIpcServer &CoreIpcServer::instance()
 void CoreIpcServer::processCommand(QLocalSocket *clientSocket, const QString &command, const QStringList &parts)
 {
   if (command == QStringLiteral("touchIdResult")) {
-    // "<nonce>:<0|1>", from the gui showing Touch ID in its menu bar icon
+    // "<nonce>:<0|1|u>", from the gui showing Touch ID in its menu bar icon
+    using deskflow::screenunlock::menubar::Answer;
     const auto answer = parts.size() >= 2 ? parts.at(1).split(':') : QStringList();
     if (answer.size() == 2) {
-      deskflow::screenunlock::menubar::deliver(answer.at(0).toStdString(), answer.at(1) == QStringLiteral("1"));
+      const auto &value = answer.at(1);
+      deskflow::screenunlock::menubar::deliver(
+          answer.at(0).toStdString(), value == QStringLiteral("1")   ? Answer::Succeeded
+                                      : value == QStringLiteral("u") ? Answer::NotShown
+                                                                     : Answer::Failed
+      );
     }
     return;
   }

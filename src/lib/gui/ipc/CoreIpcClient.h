@@ -24,6 +24,8 @@ public:
   void sendReload();
   //! Answer a "touchIdRequest" from the core (menu bar Touch ID)
   void sendTouchIdResult(const QString &nonce, bool success);
+  //! The menu bar icon is not in sight: the core asks for Touch ID itself
+  void sendTouchIdNotShown(const QString &nonce);
 
 Q_SIGNALS:
   void commandReceived(const QString &command, const QString &args);

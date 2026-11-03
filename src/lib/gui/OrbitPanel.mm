@@ -32,12 +32,17 @@ OrbitPanel::OrbitPanel(QObject *parent) : QObject(parent), m_impl(std::make_uniq
     if (self)
       Q_EMIT self->touchIdFinished(QString::fromNSString(nonce), success);
   };
+  m_impl->controller.onTouchIdNotShown = ^(NSString *nonce) {
+    if (self)
+      Q_EMIT self->touchIdNotShown(QString::fromNSString(nonce));
+  };
 }
 
 OrbitPanel::~OrbitPanel()
 {
   m_impl->controller.onAction = nil;
   m_impl->controller.onTouchIdResult = nil;
+  m_impl->controller.onTouchIdNotShown = nil;
   [m_impl->controller hide];
 }
 

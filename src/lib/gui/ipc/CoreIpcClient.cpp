@@ -33,6 +33,11 @@ void CoreIpcClient::sendTouchIdResult(const QString &nonce, bool success)
   sendMessage(QStringLiteral("touchIdResult=%1:%2").arg(nonce, success ? QStringLiteral("1") : QStringLiteral("0")));
 }
 
+void CoreIpcClient::sendTouchIdNotShown(const QString &nonce)
+{
+  sendMessage(QStringLiteral("touchIdResult=%1:u").arg(nonce));
+}
+
 void CoreIpcClient::processCommand(const QString &command, const QStringList &parts)
 {
   const auto args = parts.size() >= 2 ? parts.at(1) : QString();

@@ -578,6 +578,12 @@ void CoreProcess::sendTouchIdResult(const QString &nonce, bool success)
     m_coreIpcClient->sendTouchIdResult(nonce, success);
 }
 
+void CoreProcess::sendTouchIdNotShown(const QString &nonce)
+{
+  if (m_coreIpcClient && m_coreIpcClient->isConnected())
+    m_coreIpcClient->sendTouchIdNotShown(nonce);
+}
+
 void CoreProcess::reloadConfig()
 {
   if (m_processState != ProcessState::Started)

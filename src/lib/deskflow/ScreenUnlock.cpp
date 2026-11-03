@@ -20,7 +20,7 @@ namespace {
 
 std::mutex s_mutex;
 std::string s_nonce;
-std::function<void(bool)> s_reply;
+std::function<void(Answer)> s_reply;
 
 std::string newNonce()
 {
@@ -40,7 +40,7 @@ bool available()
   return deskflow::core::ipc::CoreIpcServer::instance().hasClients();
 }
 
-void request(const std::string &reason, std::function<void(bool success)> reply)
+void request(const std::string &reason, std::function<void(Answer answer)> reply)
 {
   std::string previous;
   std::string nonce = newNonce();
@@ -69,9 +69,9 @@ void cancel()
   }
 }
 
-void deliver(const std::string &nonce, bool success)
+void deliver(const std::string &nonce, Answer answer)
 {
-  std::function<void(bool)> reply;
+  std::function<void(Answer)> reply;
   {
     std::lock_guard lock(s_mutex);
     if (nonce.empty() || nonce != s_nonce) {
@@ -82,7 +82,7 @@ void deliver(const std::string &nonce, bool success)
     reply.swap(s_reply);
   }
   if (reply) {
-    reply(success);
+    reply(answer);
   }
 }
 

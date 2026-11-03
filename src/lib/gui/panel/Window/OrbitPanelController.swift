@@ -17,6 +17,9 @@ public final class OrbitPanelController: NSObject {
     /// The answer to `beginTouchId(_:reason:)`: its nonce, and whether the
     /// user touched Touch ID
     @objc public var onTouchIdResult: ((String, Bool) -> Void)?
+    /// Instead of `onTouchIdResult`: neither the icon nor Control Center's is
+    /// in sight, so nothing was asked (the core shows its own panel)
+    @objc public var onTouchIdNotShown: ((String) -> Void)?
 
     private let model = PanelModel()
     private var panel: OrbitPanelWindow?
@@ -97,11 +100,27 @@ public final class OrbitPanelController: NSObject {
             onTouchIdResult?(nonce, false)
             return
         }
+        guard let place = Self.touchIdPlace(for: button) else {
+            onTouchIdNotShown?(nonce)
+            return
+        }
 
         // Touch ID ignores the finger in the status item's own window, which
         // can never be key: the glyph goes in a small transparent panel of
-        // ours that can, right over the icon (without activating Orbit)
-        let overlay = TouchIdOverlayPanel(over: button, side: Self.touchIdSide + 2 * Self.touchIdMargin)
+        // ours that can, right over the icon (without activating Orbit). Over
+        // Control Center's icon, a pill of its own hides that icon
+        let side = Self.touchIdSide + 2 * Self.touchIdMargin
+        let overlay: TouchIdOverlayPanel
+        switch place {
+        case let .icon(frame):
+            overlay = TouchIdOverlayPanel(center: NSPoint(x: frame.midX, y: frame.midY), size: NSSize(width: side, height: side), pill: false)
+        case let .controlCenter(frame):
+            overlay = TouchIdOverlayPanel(
+                center: NSPoint(x: frame.midX, y: frame.midY),
+                size: NSSize(width: max(frame.width, side) + 4, height: max(frame.height, Self.touchIdSide) + 2),
+                pill: true
+            )
+        }
         // menu bar colours, which follow the wallpaper, not the app
         overlay.appearance = button.effectiveAppearance
         // Apple's glyph is what lets Touch ID answer here rather than in the
@@ -169,6 +188,34 @@ public final class OrbitPanelController: NSObject {
     public func cancelTouchId(_ nonce: String) {
         guard touchId?.nonce == nonce else { return }
         endTouchId()
+    }
+
+    /// Where the Touch ID glyph goes
+    private enum TouchIdPlace {
+        /// in place of Orbit's icon
+        case icon(NSRect)
+        /// Orbit's icon is folded behind the menu bar's «: over Control
+        /// Center's icon, always shown, left of the clock
+        case controlCenter(NSRect)
+    }
+
+    /// nil if the icon is folded and Control Center's can't be found
+    private static func touchIdPlace(for button: NSStatusBarButton) -> TouchIdPlace? {
+        var icon = NSRect(origin: NSEvent.mouseLocation, size: .zero)
+        if let window = button.window {
+            icon = window.convertToScreen(button.convert(button.bounds, to: nil))
+        }
+        // without accessibility nothing tells a folded icon: as before
+        guard let menuBar = SystemMenuBar.read(), let overflow = menuBar.overflowButton else {
+            return .icon(icon)
+        }
+        // macOS 27 folds the items that don't fit (the app in front has many
+        // menus) behind a «, and gives them the frame of that «; the items in
+        // sight are right of it
+        if icon.midX > overflow.maxX {
+            return .icon(icon)
+        }
+        return menuBar.controlCenter.map { .controlCenter($0) }
     }
 
     /// The menu bar glyph's side, the logo's
@@ -456,16 +503,13 @@ public final class OrbitPanelController: NSObject {
 
 /// Holds the Touch ID glyph over the menu bar icon: borderless, above the
 /// menu bar, and able to be key, which Touch ID needs, without activating
-/// Orbit (the user keeps typing in the app in front)
+/// Orbit (the user keeps typing in the app in front). Clicks go through, to
+/// the icon under it.
 private final class TouchIdOverlayPanel: NSPanel {
-    init(over button: NSStatusBarButton, side: CGFloat) {
-        var center = NSPoint(x: NSEvent.mouseLocation.x, y: NSEvent.mouseLocation.y)
-        if let window = button.window {
-            let frame = window.convertToScreen(button.convert(button.bounds, to: nil))
-            center = NSPoint(x: frame.midX, y: frame.midY)
-        }
+    /// \p pill: an opaque capsule under the glyph, to hide another app's icon
+    init(center: NSPoint, size: NSSize, pill: Bool) {
         super.init(
-            contentRect: NSRect(x: center.x - side / 2, y: center.y - side / 2, width: side, height: side),
+            contentRect: NSRect(x: center.x - size.width / 2, y: center.y - size.height / 2, width: size.width, height: size.height),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -476,7 +520,11 @@ private final class TouchIdOverlayPanel: NSPanel {
         level = .popUpMenu
         hidesOnDeactivate = false
         isReleasedWhenClosed = false
+        ignoresMouseEvents = true
         collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
+        if pill {
+            contentView = TouchIdPillView()
+        }
     }
 
     override var canBecomeKey: Bool { true }
@@ -624,5 +672,98 @@ private final class TouchIdSymbolView: NSView {
             shape.strokeEnd = 1
         }
         CATransaction.commit()
+    }
+}
+
+/// Under the glyph put over Control Center's icon: a black capsule, opaque so
+/// that icon doesn't show through
+private final class TouchIdPillView: NSView {
+    override init(frame: NSRect) {
+        super.init(frame: frame)
+        wantsLayer = true
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) is not supported")
+    }
+
+    override var wantsUpdateLayer: Bool { true }
+
+    override func updateLayer() {
+        guard let layer else { return }
+        layer.cornerRadius = bounds.height / 2
+        layer.cornerCurve = .continuous
+        layer.backgroundColor = NSColor.black.cgColor
+    }
+
+    override func layout() {
+        super.layout()
+        needsDisplay = true
+    }
+}
+
+/// The system's part of the menu bar, read through accessibility (Orbit has
+/// it): MenuBarAgent (macOS 27) holds Apple's menu extras, and the « that
+/// shows the items folded for lack of room, the only button among them
+private struct SystemMenuBar {
+    var overflowButton: NSRect?
+    var controlCenter: NSRect?
+
+    /// nil without accessibility, or before macOS 27
+    @MainActor
+    static func read() -> SystemMenuBar? {
+        guard AXIsProcessTrusted(),
+              let agent = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.MenuBarAgent").first
+        else { return nil }
+        let app = AXUIElementCreateApplication(agent.processIdentifier)
+        // the main thread waits for it
+        AXUIElementSetMessagingTimeout(app, 0.25)
+        guard let extras = element(app, kAXExtrasMenuBarAttribute) else { return nil }
+        var menuBar = SystemMenuBar()
+        for child in children(extras) {
+            if string(child, kAXRoleAttribute) == kAXButtonRole as String {
+                menuBar.overflowButton = frame(child)
+            }
+            for item in children(child) where string(item, kAXIdentifierAttribute) == "com.apple.menuextra.controlcenter" {
+                menuBar.controlCenter = frame(item)
+            }
+        }
+        return menuBar
+    }
+
+    private static func value(_ element: AXUIElement, _ attribute: String) -> CFTypeRef? {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else { return nil }
+        return value
+    }
+
+    private static func element(_ element: AXUIElement, _ attribute: String) -> AXUIElement? {
+        guard let value = value(element, attribute), CFGetTypeID(value) == AXUIElementGetTypeID() else { return nil }
+        return (value as! AXUIElement)
+    }
+
+    private static func children(_ element: AXUIElement) -> [AXUIElement] {
+        (value(element, kAXChildrenAttribute) as? [AXUIElement]) ?? []
+    }
+
+    private static func string(_ element: AXUIElement, _ attribute: String) -> String? {
+        value(element, attribute) as? String
+    }
+
+    /// In AppKit's coordinates (accessibility's start at the top left of the
+    /// main screen, going down)
+    @MainActor
+    private static func frame(_ element: AXUIElement) -> NSRect? {
+        guard let position = value(element, kAXPositionAttribute), let size = value(element, kAXSizeAttribute),
+              CFGetTypeID(position) == AXValueGetTypeID(), CFGetTypeID(size) == AXValueGetTypeID(),
+              let top = NSScreen.screens.first?.frame.maxY
+        else { return nil }
+        var origin = CGPoint.zero
+        var extent = CGSize.zero
+        guard AXValueGetValue(position as! AXValue, .cgPoint, &origin),
+              AXValueGetValue(size as! AXValue, .cgSize, &extent)
+        else { return nil }
+        return NSRect(x: origin.x, y: top - origin.y - extent.height, width: extent.width, height: extent.height)
     }
 }

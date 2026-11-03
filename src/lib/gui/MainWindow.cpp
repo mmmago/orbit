@@ -256,6 +256,7 @@ void MainWindow::setupControls()
   connect(&m_coreProcess, &CoreProcess::touchIdRequested, m_panel, &OrbitPanel::beginTouchId);
   connect(&m_coreProcess, &CoreProcess::touchIdCancelled, m_panel, &OrbitPanel::cancelTouchId);
   connect(m_panel, &OrbitPanel::touchIdFinished, &m_coreProcess, &CoreProcess::sendTouchIdResult);
+  connect(m_panel, &OrbitPanel::touchIdNotShown, &m_coreProcess, &CoreProcess::sendTouchIdNotShown);
 #endif
   connect(m_statusBar, &StatusBar::statusChanged, this, &MainWindow::updatePanel);
 

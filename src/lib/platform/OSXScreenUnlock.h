@@ -16,9 +16,12 @@ namespace deskflow::screenunlock::osx {
 
 //! Server: show the Touch ID glyph in a small panel (the system prompt before
 //! macOS 12). \p reply runs on another thread with the
-//! answer. Returns the request's number, 0 if Touch ID is not available. A
-//! new request dismisses the previous one, whose reply then says false.
-uint32_t authenticate(const std::string &reason, std::function<void(uint32_t request, bool success)> reply);
+//! answer. Returns the request's number (\p request if not 0, else a new
+//! one), 0 if Touch ID is not available. A new request dismisses the
+//! previous one, whose reply then says false.
+uint32_t authenticate(
+    const std::string &reason, std::function<void(uint32_t request, bool success)> reply, uint32_t request = 0
+);
 
 //! Server: dismiss the prompt, if one is up.
 void cancelAuthentication();

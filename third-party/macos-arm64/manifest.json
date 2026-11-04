@@ -350,29 +350,29 @@
     {
       "downloads": [
         {
-          "archive": "jpeg-turbo/libjpeg-turbo-3.2.0.tar.gz",
+          "archive": "jpeg-turbo/libjpeg-turbo-3.2.1.tar.gz",
           "kind": "source",
-          "sha256": "6f30092cef9fb839779646608f4ee14ae3cbac989c47fa05e841b0841f09878e",
-          "url": "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.2.0/libjpeg-turbo-3.2.0.tar.gz"
+          "sha256": "c27ad72a68da151177929aa969ae773a2da5ac2af9ce946079314fdac8cece7f",
+          "url": "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.2.1/libjpeg-turbo-3.2.1.tar.gz"
         }
       ],
       "files": [
         {
-          "cellar_relative_path": "jpeg-turbo/3.2.0/lib/libjpeg.8.3.2.dylib",
+          "cellar_relative_path": "jpeg-turbo/3.2.1/lib/libjpeg.8.3.2.dylib",
           "path": "Frameworks/libjpeg.8.dylib",
           "uuids": [
             [
-              "B1700FCF-6A50-3752-B353-E43C3888F311",
+              "AB6305F8-CB34-384A-84BB-21234065DD24",
               "arm64"
             ]
           ]
         }
       ],
       "formula": "jpeg-turbo",
-      "installed_version": "3.2.0",
+      "installed_version": "3.2.1",
       "package_license_expression": "IJG AND Zlib AND BSD-3-Clause",
-      "recipe_sha256": "860c0c90f8c2d0541de067218452d57f555dd4da5b5dc49151f13b563229ab24",
-      "version": "3.2.0"
+      "recipe_sha256": "a9839e669928c7ee0666c10f85e11d2c55f60986c58ff0c835845863f71af11b",
+      "version": "3.2.1"
     },
     {
       "downloads": [
@@ -850,8 +850,8 @@
   ],
   "homebrew_build_scripts": {
     "archive": "Homebrew-build-scripts.tar.gz",
-    "revision": "2833c25c11846269f89b8c0bd90abf58bcba89fe",
-    "sha256": "777a697c96722a2486164d98e50a5f26ff49d5836aa91bb977f924b6c154d3c1"
+    "revision": "96d2a24a745d3f7dcf41ccdbb6f67243b54c27a4",
+    "sha256": "f5e0fb3db96ce99950da8c959d3b86eddf55fd1e732bd9c2407daf62acc87c21"
   },
   "legal_files": {
     "LICENSE-Homebrew.txt": "f80329e58613ad669c0e73cb132d8060b9b2c55e339c73848068e4d1567f4627",
@@ -955,15 +955,15 @@
     "icu4c@78/icu4c@78.rb": "db6d475bc93d9138f6ec7272dcc2718614e3df68dc0edeb2ab63054493eec04b",
     "icu4c@78/notices/icu/LICENSE": "e55522d81edc687a341a4411e0776e54ca654e90147f354a90458aaced4116af",
     "icu4c@78/notices/icu/license.html": "c62d7697c03979f5056d28b338fafc7a1152820f7b379adf4a9d88cd37160f96",
-    "jpeg-turbo/homebrew.spdx.json": "453014f55941fbf1181da4e36c4288a9a3c9b69547e04a3e6f42fe5954f2ebd6",
-    "jpeg-turbo/jpeg-turbo.rb": "860c0c90f8c2d0541de067218452d57f555dd4da5b5dc49151f13b563229ab24",
-    "jpeg-turbo/notices/libjpeg-turbo-3.2.0/LICENSE.md": "ba6bceebcba0fdd35488477c2cca8c4632ce82c74dbfbc87d886ce6fc4433579",
-    "jpeg-turbo/notices/libjpeg-turbo-3.2.0/README.ijg": "75815e3bf6484201a3c3d17a1bbf10f2e8e3237f84df10a2357ea896db2a81d6",
-    "jpeg-turbo/notices/libjpeg-turbo-3.2.0/release/License.rtf": "d26120ab237f87dea10aa4fa7fd4243cadffd26e54eb2f3903d5fb0f8ed336b2",
-    "jpeg-turbo/notices/libjpeg-turbo-3.2.0/src/spng/LICENSE": "0622b0794d0fecde47d743f1bb70a03e6fdf082be8e71f39de672ed995d96ff9",
-    "jpeg-turbo/notices/libjpeg-turbo-3.2.0/src/spng/libpng-LICENSE.txt": "4f52a606ef0eb8a1bedee6088364f483df777611c0d554b090bf9b0f7cd3e798",
-    "jpeg-turbo/notices/libjpeg-turbo-3.2.0/src/spng/zlib/LICENSE": "e32ff4e00d9d94930537635291da39e7e612703334bf6fde8c7f1686fe8a45a2",
-    "jpeg-turbo/notices/libjpeg-turbo-3.2.0/testimages/LICENSE.txt": "1c4d5dfc985d5061ba11180a8ffb541cc1778bccf87fd9f0fb92cbae69d8a9cc",
+    "jpeg-turbo/homebrew.spdx.json": "d183dee8218e34523ce4c849541127e616a324e54167fe42018a31f543b10c95",
+    "jpeg-turbo/jpeg-turbo.rb": "a9839e669928c7ee0666c10f85e11d2c55f60986c58ff0c835845863f71af11b",
+    "jpeg-turbo/notices/libjpeg-turbo-3.2.1/LICENSE.md": "ba6bceebcba0fdd35488477c2cca8c4632ce82c74dbfbc87d886ce6fc4433579",
+    "jpeg-turbo/notices/libjpeg-turbo-3.2.1/README.ijg": "75815e3bf6484201a3c3d17a1bbf10f2e8e3237f84df10a2357ea896db2a81d6",
+    "jpeg-turbo/notices/libjpeg-turbo-3.2.1/release/License.rtf": "d26120ab237f87dea10aa4fa7fd4243cadffd26e54eb2f3903d5fb0f8ed336b2",
+    "jpeg-turbo/notices/libjpeg-turbo-3.2.1/src/spng/LICENSE": "0622b0794d0fecde47d743f1bb70a03e6fdf082be8e71f39de672ed995d96ff9",
+    "jpeg-turbo/notices/libjpeg-turbo-3.2.1/src/spng/libpng-LICENSE.txt": "4f52a606ef0eb8a1bedee6088364f483df777611c0d554b090bf9b0f7cd3e798",
+    "jpeg-turbo/notices/libjpeg-turbo-3.2.1/src/spng/zlib/LICENSE": "e32ff4e00d9d94930537635291da39e7e612703334bf6fde8c7f1686fe8a45a2",
+    "jpeg-turbo/notices/libjpeg-turbo-3.2.1/testimages/LICENSE.txt": "1c4d5dfc985d5061ba11180a8ffb541cc1778bccf87fd9f0fb92cbae69d8a9cc",
     "libb2/homebrew.spdx.json": "3143cc791d3ea626329acc71c329c292fb9640500d0557a9c01d4f6f2749fddf",
     "libb2/libb2.rb": "972ca2546719e26aaf8d608f75706c8fc620d253ae7de76330239b45617c9e2b",
     "libb2/notices/libb2-0.98.1/COPYING": "6a1ee543e5282cd9061881edf462e6fdab181f328da71fc2c9a6950a80e94d01",

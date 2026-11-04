@@ -1,15 +1,15 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "spdxVersion": "SPDX-2.3",
-  "name": "SBOM-SPDX-jpeg-turbo-3.2.0",
+  "name": "SBOM-SPDX-jpeg-turbo-3.2.1",
   "creationInfo": {
-    "created": "2026-09-14T08:35:38Z",
+    "created": "2026-11-04T15:58:50Z",
     "creators": [
-      "Tool: https://github.com/Homebrew/brew@7.0.1"
+      "Tool: https://github.com/Homebrew/brew@7.0.11-24-g2833c25"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://formulae.brew.sh/spdx/jpeg-turbo-3.2.0.json",
+  "documentNamespace": "https://formulae.brew.sh/spdx/jpeg-turbo-3.2.1.json",
   "documentDescribes": [
     "SPDXRef-Archive-jpeg-turbo-src",
     "SPDXRef-Compiler",
@@ -18,11 +18,11 @@
   "files": [
     {
       "SPDXID": "SPDXRef-File-jpeg-turbo",
-      "fileName": "libjpeg-turbo-3.2.0.tar.gz",
+      "fileName": "libjpeg-turbo-3.2.1.tar.gz",
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "6f30092cef9fb839779646608f4ee14ae3cbac989c47fa05e841b0841f09878e"
+          "checksumValue": "c27ad72a68da151177929aa969ae773a2da5ac2af9ce946079314fdac8cece7f"
         }
       ]
     }
@@ -31,31 +31,31 @@
     {
       "SPDXID": "SPDXRef-Archive-jpeg-turbo-src",
       "name": "jpeg-turbo",
-      "versionInfo": "3.2.0",
+      "versionInfo": "3.2.1",
       "filesAnalyzed": false,
       "licenseDeclared": "NOASSERTION",
-      "builtDate": "2026-06-30T17:25:43Z",
+      "builtDate": "2026-10-26T16:31:39Z",
       "licenseConcluded": "IJG AND Zlib AND BSD-3-Clause",
-      "downloadLocation": "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.2.0/libjpeg-turbo-3.2.0.tar.gz",
+      "downloadLocation": "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.2.1/libjpeg-turbo-3.2.1.tar.gz",
       "copyrightText": "NOASSERTION",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:brew/homebrew/core/jpeg-turbo@3.2.0",
+          "referenceLocator": "pkg:brew/homebrew/core/jpeg-turbo@3.2.1",
           "referenceType": "purl"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "6f30092cef9fb839779646608f4ee14ae3cbac989c47fa05e841b0841f09878e"
+          "checksumValue": "c27ad72a68da151177929aa969ae773a2da5ac2af9ce946079314fdac8cece7f"
         }
       ]
     },
     {
       "SPDXID": "SPDXRef-Compiler",
       "name": "clang",
-      "versionInfo": "26.6",
+      "versionInfo": "27.0",
       "filesAnalyzed": false,
       "licenseDeclared": "NOASSERTION",
       "licenseConcluded": "NOASSERTION",
@@ -67,24 +67,24 @@
     {
       "SPDXID": "SPDXRef-Bottle-jpeg-turbo",
       "name": "jpeg-turbo",
-      "versionInfo": "3.2.0",
+      "versionInfo": "3.2.1",
       "filesAnalyzed": false,
       "licenseDeclared": "NOASSERTION",
-      "builtDate": "2026-09-02T13:05:51Z",
+      "builtDate": "2026-10-27T23:14:20Z",
       "licenseConcluded": "IJG AND Zlib AND BSD-3-Clause",
-      "downloadLocation": "https://ghcr.io/v2/homebrew/core/jpeg-turbo/blobs/sha256:02539b0736cfacdc6c4bb6a7d274d0c5c8b6e1faf9b5bab1e155168961d288aa",
+      "downloadLocation": "https://ghcr.io/v2/homebrew/core/jpeg-turbo/blobs/sha256:3f245f1914445713bba97fbee6b4f7cb379b4e9c91237d12e76ee52c1975ce0e",
       "copyrightText": "NOASSERTION",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:brew/jpeg-turbo@3.2.0",
+          "referenceLocator": "pkg:brew/jpeg-turbo@3.2.1",
           "referenceType": "purl"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "02539b0736cfacdc6c4bb6a7d274d0c5c8b6e1faf9b5bab1e155168961d288aa"
+          "checksumValue": "3f245f1914445713bba97fbee6b4f7cb379b4e9c91237d12e76ee52c1975ce0e"
         }
       ]
     }

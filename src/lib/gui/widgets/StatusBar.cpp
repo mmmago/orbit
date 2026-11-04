@@ -157,6 +157,12 @@ void StatusBar::setServerClients(const QStringList &clients)
   m_lblStatus->setToolTip(toolTipString);
 }
 
+void StatusBar::showServerConnecting()
+{
+  m_statusIcon->setState(OrbitStatusIcon::State::Connecting);
+  setStatusText(tr("%1 is connecting...").arg(kAppName));
+}
+
 void StatusBar::setSecurityIconVisible(bool visible)
 {
   // the shield is not shown; the encryption state is in the logo's tooltip

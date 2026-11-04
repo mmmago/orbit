@@ -32,6 +32,8 @@ add_library(${target} STATIC
   MainWindow.cpp
   OrbitDiscovery.cpp
   OrbitDiscovery.h
+  OrbitRemoteControl.cpp
+  OrbitRemoteControl.h
   MainWindow.h
   MainWindow.ui
   Messages.cpp
@@ -141,6 +143,7 @@ target_link_libraries(${target}
     platform
     net
     Qt6::Widgets
+    Qt6::Network
 )
 
 if(APPLE)
@@ -149,5 +152,6 @@ if(APPLE)
   set_source_files_properties(OrbitPanel.mm OSXScreenUnlockPassword.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
   find_library(OPEN_DIRECTORY_LIBRARY OpenDirectory)
   find_library(SECURITY_LIBRARY Security)
-  target_link_libraries(${target} PRIVATE ${OPEN_DIRECTORY_LIBRARY} ${SECURITY_LIBRARY})
+  find_library(SYSTEM_CONFIGURATION_LIBRARY SystemConfiguration)
+  target_link_libraries(${target} PRIVATE ${OPEN_DIRECTORY_LIBRARY} ${SECURITY_LIBRARY} ${SYSTEM_CONFIGURATION_LIBRARY})
 endif()

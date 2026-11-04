@@ -9,6 +9,7 @@ enum PanelAction: Sendable {
     case selectMode(CoreMode)
     case setOption(String, Bool)
     case pickServer(address: String)
+    case setAsClient(address: String)
     case moveComputer(from: GridCell, to: GridCell)
     case setScreenUnlockPassword(String)
     case removeScreenUnlockPassword
@@ -20,6 +21,7 @@ enum PanelAction: Sendable {
         case .selectMode: "selectMode"
         case .setOption: "setOption"
         case .pickServer: "pickServer"
+        case .setAsClient: "setAsClient"
         case .moveComputer: "moveComputer"
         case .setScreenUnlockPassword: "setScreenUnlockPassword"
         case .removeScreenUnlockPassword: "removeScreenUnlockPassword"
@@ -33,7 +35,7 @@ enum PanelAction: Sendable {
         let arguments: [String: Any] = switch self {
         case .selectMode(let mode): ["mode": mode.rawValue]
         case .setOption(let key, let value): ["key": key, "value": value]
-        case .pickServer(let address): ["address": address]
+        case .pickServer(let address), .setAsClient(let address): ["address": address]
         case .moveComputer(let from, let to):
             ["fromColumn": from.column, "fromRow": from.row, "toColumn": to.column, "toRow": to.row]
         case .setScreenUnlockPassword(let password): ["password": password]

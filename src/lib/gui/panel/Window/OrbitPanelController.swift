@@ -349,6 +349,10 @@ public final class OrbitPanelController: NSObject {
     }
 
     @objc public func show() {
+        // at most three quarters of the screen it opens on
+        if let screen = statusItem?.button?.window?.screen ?? NSScreen.main {
+            model.maxHeight = (screen.visibleFrame.height * 0.75).rounded()
+        }
         let panel = panel ?? makePanel()
         self.panel = panel
         // the settings page, back after the About page was left open: lay

@@ -25,6 +25,8 @@ public:
   explicit StatusBar(QWidget *parent = nullptr);
   void setStatus(ConnectionState connectionState, ProcessState processState, bool isServer);
   void setServerClients(const QStringList &clients);
+  //! Server: a computer is connecting
+  void showServerConnecting();
   void setSecurityIconVisible(bool visible);
   void setConnectionInterval(int newInterval);
   bool securityIconVisible() const;

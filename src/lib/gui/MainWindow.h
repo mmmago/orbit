@@ -23,6 +23,8 @@
 #include "gui/core/NetworkMonitor.h"
 #include "net/Fingerprint.h"
 
+#include <QTimer>
+
 #ifdef Q_OS_MACOS
 #include "gui/OSXHelpers.h"
 #endif
@@ -40,6 +42,11 @@ namespace orbit::discovery {
 class Advertiser;
 class Browser;
 } // namespace orbit::discovery
+namespace orbit::remote {
+class Listener;
+class Request;
+class Sender;
+} // namespace orbit::remote
 class StatusBar;
 
 namespace Ui {
@@ -118,6 +125,16 @@ private:
   void sendPanelState();
   void handlePanelAction(const QString &name, const QJsonObject &arguments);
   void connectToServer(const QString &address);
+  //! Asks the Orbit server at @p address (found with Bonjour) to become a
+  //! client of this Mac, which becomes the server
+  void setAsClient(const QString &address);
+  void setAsClientFinished(bool ok, const QString &error);
+  //! Server: shows that a computer is connecting, for at least @p ms
+  void showClientConnecting(int ms);
+  void clientConnectingEnded();
+  //! Another Orbit asks this Mac to become its client
+  void handleBecomeClientRequest(orbit::remote::Request *request);
+  void becomeClientOf(const QString &server);
   void stopCore();
   bool saveServerConfig();
   void resetCore();
@@ -142,6 +159,9 @@ private:
   bool askToTrustPeer(bool isClient, const QString &peerName);
   void handleMissingKeyboardLayouts(const QString &layouts);
   void closeEvent(QCloseEvent *event) override;
+  //! Quits Orbit, whatever "close to tray" says
+  void quit();
+  bool m_quitting = false;
   bool maybeHideToTray();
   void secureSocket(bool secureSocket);
   void connectSlots();
@@ -212,6 +232,16 @@ private:
   orbit::discovery::Browser *m_browser = nullptr;
   QComboBox *m_serverPicker = nullptr;
   bool m_manualHostEntry = false;
+  // a server takes commands from other Orbits; "Set as client" sends one
+  orbit::remote::Listener *m_remoteListener = nullptr;
+  orbit::remote::Sender *m_remoteSender = nullptr;
+  QString m_setAsClientAddress; // the found server asked, while waiting or failed
+  QString m_setAsClientError;
+  QString m_setAsClientName;
+  // server: a computer is connecting, until it is connected or this times out
+  QTimer *m_clientConnectingTimer = nullptr;
+  bool m_expectingClient = false; // set as client: it connects once this server runs
+  static constexpr int kSetAsClientConnectTime = 30000;
   bool m_startWhenStopped = false; // start the core once the previous one has stopped
 
   // the menu bar panel holds the whole interface; this window stays hidden

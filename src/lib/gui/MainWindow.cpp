@@ -32,6 +32,7 @@
 #include "gui/widgets/LogDock.h"
 #include "gui/OrbitDiscovery.h"
 #include "gui/OrbitPanel.h"
+#include "gui/OrbitRemoteControl.h"
 #include "gui/widgets/ModeCard.h"
 #include "gui/widgets/OrbitIcons.h"
 #include "net/FingerprintDatabase.h"
@@ -53,12 +54,15 @@
 #include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QNetworkInterface>
+#include <QPointer>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
 #include <QScreen>
 #include <QScrollBar>
+#include <QTimer>
 
+#include <algorithm>
 #include <memory>
 
 #if defined(Q_OS_MACOS)
@@ -171,8 +175,13 @@ MainWindow::MainWindow()
   restoreWindow();
 
 #ifdef Q_OS_MACOS
-  // Route native quits (Cmd+Q / Apple menu Quit / Dock "Quit") to the usual close-to-tray decision instead.
-  installQuitHandler([this] { return !maybeHideToTray(); });
+  // Native quits must bypass close-to-tray, just like the panel's Quit.
+  // macOSNativeHide() hides the app without changing Qt's isVisible(), so
+  // visibility cannot distinguish a quit request from closing a window.
+  installQuitHandler([this] {
+    m_quitting = true;
+    return true;
+  });
 #endif
 }
 MainWindow::~MainWindow()
@@ -271,6 +280,17 @@ void MainWindow::setupControls()
   ui->lineHostname->setVisible(false);
   ui->lineHostname->setPlaceholderText(tr("Name or IP address"));
   connect(m_browser, &orbit::discovery::Browser::serversChanged, this, &MainWindow::updateServerPicker);
+  m_remoteListener = new orbit::remote::Listener(this);
+  m_remoteSender = new orbit::remote::Sender(this);
+  connect(
+      m_remoteListener, &orbit::remote::Listener::becomeClientRequested, this, &MainWindow::handleBecomeClientRequest
+  );
+  connect(m_remoteSender, &orbit::remote::Sender::finished, this, &MainWindow::setAsClientFinished);
+  m_clientConnectingTimer = new QTimer(this);
+  m_clientConnectingTimer->setSingleShot(true);
+  connect(m_clientConnectingTimer, &QTimer::timeout, this, &MainWindow::clientConnectingEnded);
+  // a client tries again every few seconds while it can't connect
+  connect(&m_coreProcess, &CoreProcess::clientConnecting, this, [this] { showClientConnecting(5000); });
   connect(m_serverPicker, &QComboBox::activated, this, &MainWindow::serverPicked);
   connect(ui->lineHostname, &QLineEdit::textChanged, this, &MainWindow::updateServerPicker);
   updateServerPicker();
@@ -317,8 +337,8 @@ void MainWindow::connectSlots()
   connect(m_actionAbout, &QAction::triggered, this, &MainWindow::openAboutDialog);
   connect(m_actionMinimize, &QAction::triggered, this, &MainWindow::hide);
 
-  connect(m_actionQuit, &QAction::triggered, this, &MainWindow::close);
-  connect(m_actionTrayQuit, &QAction::triggered, this, &MainWindow::close);
+  connect(m_actionQuit, &QAction::triggered, this, &MainWindow::quit);
+  connect(m_actionTrayQuit, &QAction::triggered, this, &MainWindow::quit);
   connect(m_actionRestore, &QAction::triggered, this, &MainWindow::showAndActivate);
   connect(m_actionSettings, &QAction::triggered, this, &MainWindow::openSettings);
   connect(m_actionStartCore, &QAction::triggered, this, &MainWindow::startCore);
@@ -618,7 +638,9 @@ void MainWindow::updateModeControls()
     m_networkMonitor->stopMonitoring();
   }
 
-  if (isClient)
+  // a client lists the servers to connect to; a server lists the other
+  // servers, to set them as its clients
+  if (isClient || isServer)
     m_browser->start();
   else
     m_browser->stop();
@@ -1014,9 +1036,19 @@ bool MainWindow::maybeHideToTray()
   return true;
 }
 
+void MainWindow::quit()
+{
+  m_quitting = true;
+  if (m_panel)
+    m_panel->hide();
+  close();
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-  if (event->spontaneous() && maybeHideToTray()) {
+  // Only closing the window hides it to the tray. Explicit quits also
+  // generate spontaneous close events through macOS termination.
+  if (event->spontaneous() && !m_quitting && isVisible() && maybeHideToTray()) {
     event->ignore();
     return;
   }
@@ -1054,6 +1086,8 @@ void MainWindow::updateStatus()
     ui->btnEditName->setVisible(process == Stopped);
   }
   m_statusBar->setStatus(connection, process, isServer);
+  if (isServer && process == Started && m_clientConnectingTimer->isActive())
+    m_statusBar->showServerConnecting();
 }
 
 void MainWindow::coreProcessStateChanged(ProcessState state)
@@ -1064,6 +1098,11 @@ void MainWindow::coreProcessStateChanged(ProcessState state)
   updatePanel();
   if (state == Stopped)
     tryAutoStart();
+  // the computer set as client connects to this new server
+  if (state == Started && m_expectingClient && m_coreProcess.mode() == CoreMode::Server)
+    showClientConnecting(kSetAsClientConnectTime);
+  if (state == Started)
+    m_expectingClient = false;
   if (state == Started) {
     qDebug() << "recording that core has started";
     Settings::setValue(Settings::Gui::AutoStartCore, true);
@@ -1321,11 +1360,33 @@ bool MainWindow::generateCertificate()
 
 void MainWindow::serverClientsChanged(const QStringList &clients)
 {
+  // one more client: the one that was connecting is connected
+  if (clients.size() > m_connectedClients.size())
+    m_clientConnectingTimer->stop();
   m_connectedClients = clients;
   updatePanel();
   if (m_coreProcess.mode() != CoreMode::Server || !m_coreProcess.isStarted())
     return;
-  m_statusBar->setServerClients(clients);
+  if (m_clientConnectingTimer->isActive())
+    m_statusBar->showServerConnecting();
+  else
+    m_statusBar->setServerClients(clients);
+}
+
+void MainWindow::showClientConnecting(int ms)
+{
+  if (m_coreProcess.mode() != CoreMode::Server || !m_coreProcess.isStarted())
+    return;
+  if (!m_clientConnectingTimer->isActive() || m_clientConnectingTimer->remainingTime() < ms)
+    m_clientConnectingTimer->start(ms);
+  m_statusBar->showServerConnecting();
+}
+
+void MainWindow::clientConnectingEnded()
+{
+  if (m_coreProcess.mode() != CoreMode::Server || !m_coreProcess.isStarted())
+    return;
+  m_statusBar->setServerClients(m_connectedClients);
 }
 
 void MainWindow::daemonIpcClientConnectionFailed()
@@ -1364,12 +1425,18 @@ void MainWindow::updateAdvertising()
       m_coreProcess.mode() == CoreMode::Server && m_coreProcess.processState() == ProcessState::Started;
   if (!serving) {
     m_advertiser->stop();
+    m_remoteListener->stop();
     return;
   }
   if (!m_advertiser->isActive()) {
     const auto name = Settings::value(Settings::Core::ComputerName).toString();
     const auto port = static_cast<quint16>(Settings::value(Settings::Core::Port).toInt());
-    m_advertiser->start(name, port);
+    // other Orbits can ask this server to become their client
+    if (!m_remoteListener->isListening() && generateCertificate())
+      m_remoteListener->start(
+          orbit::remote::controlPort(port), Settings::value(Settings::Security::Certificate).toString()
+      );
+    m_advertiser->start(name, port, m_remoteListener->port());
   }
 }
 
@@ -1506,6 +1573,141 @@ void MainWindow::connectToServer(const QString &address)
     m_coreProcess.restart();
 }
 
+void MainWindow::setAsClient(const QString &address)
+{
+  if (m_remoteSender->isBusy())
+    return;
+
+  const auto servers = m_browser->servers();
+  const auto found = std::find_if(servers.cbegin(), servers.cend(), [&](const auto &server) {
+    return server.address() == address;
+  });
+  m_setAsClientAddress = address;
+  m_setAsClientError.clear();
+  if (found == servers.cend() || found->controlPort == 0) {
+    setAsClientFinished(false, tr("This Mac's Orbit can't be set as client: update it first"));
+    return;
+  }
+  if (!generateCertificate()) {
+    setAsClientFinished(false, tr("This Mac has no certificate"));
+    return;
+  }
+  m_setAsClientName = found->name;
+  updatePanel();
+
+  // the other Mac connects here by name, so a new address doesn't matter
+  const auto port = static_cast<quint16>(Settings::value(Settings::Core::Port).toInt());
+  auto server = orbit::remote::localHostName();
+  if (constexpr quint16 kDefaultPort = 24800; port != kDefaultPort)
+    server += QStringLiteral(":%1").arg(port);
+  const auto host = found->addresses.isEmpty() ? found->host : found->addresses.first();
+  m_remoteSender->sendBecomeClient(
+      host, found->controlPort, Settings::value(Settings::Core::ComputerName).toString(), server,
+      Settings::value(Settings::Security::Certificate).toString()
+  );
+}
+
+void MainWindow::setAsClientFinished(bool ok, const QString &error)
+{
+  if (!ok) {
+    m_setAsClientError = error.isEmpty() ? tr("It refused") : error;
+    updatePanel();
+    // the error goes after a while, unless another try replaced it
+    const auto address = m_setAsClientAddress;
+    QTimer::singleShot(10000, this, [this, address] {
+      if (m_remoteSender->isBusy() || m_setAsClientAddress != address)
+        return;
+      m_setAsClientAddress.clear();
+      m_setAsClientError.clear();
+      updatePanel();
+    });
+    return;
+  }
+
+  qInfo().noquote() << m_setAsClientName << "becomes a client of this Mac";
+  m_setAsClientAddress.clear();
+  m_setAsClientError.clear();
+
+  // asked from here: trust it as a client, so it doesn't have to be accepted
+  if (const auto fingerprint = m_remoteSender->peerFingerprint(); fingerprint.isValid()) {
+    FingerprintDatabase db;
+    db.read(Settings::tlsTrustedClientsDb());
+    if (!db.isTrusted(fingerprint)) {
+      db.addTrusted(fingerprint);
+      if (!db.write(Settings::tlsTrustedClientsDb()))
+        qWarning().noquote() << "unable to write fingerprint to db:" << Settings::tlsTrustedClientsDb();
+    }
+  }
+
+  // this Mac shares its keyboard and mouse with it now; it connects once
+  // its server has stopped
+  m_expectingClient = true;
+  if (m_coreProcess.mode() != CoreMode::Server)
+    ui->rbModeServer->setChecked(true);
+  else if (m_coreProcess.isStarted())
+    showClientConnecting(kSetAsClientConnectTime);
+  updatePanel();
+}
+
+void MainWindow::handleBecomeClientRequest(orbit::remote::Request *request)
+{
+  QPointer<orbit::remote::Request> guard(request);
+  const auto ownName = Settings::value(Settings::Core::ComputerName).toString();
+  const auto name = request->name().isEmpty() ? request->server() : request->name();
+  const auto fingerprint = request->fingerprint();
+
+  // a server this Mac already trusts may take it; another one is asked for
+  FingerprintDatabase db;
+  db.read(Settings::tlsTrustedServersDb());
+  if (!db.isTrusted(fingerprint)) {
+    QMessageBox box(this);
+    box.setIcon(QMessageBox::Question);
+    box.setWindowTitle(kAppName);
+    box.setText(tr("Use the keyboard and mouse of %1?").arg(name));
+    box.setInformativeText(tr("%1 asks this Mac to become its client.").arg(name));
+    auto *allow = box.addButton(tr("Allow"), QMessageBox::AcceptRole);
+    box.setDefaultButton(allow);
+    box.setEscapeButton(box.addButton(tr("Refuse"), QMessageBox::RejectRole));
+#ifdef Q_OS_MACOS
+    forceAppActive();
+#endif
+    box.raise();
+    box.activateWindow();
+    box.exec();
+    if (!guard)
+      return; // the other Mac gave up meanwhile
+    if (box.clickedButton() != allow) {
+      qInfo().noquote() << "refused to become a client of" << name;
+      request->reply(false, tr("Refused on %1").arg(ownName));
+      return;
+    }
+    db.addTrusted(fingerprint);
+    if (!db.write(Settings::tlsTrustedServersDb())) {
+      qCritical().noquote() << "unable to write fingerprint to db:" << Settings::tlsTrustedServersDb();
+      request->reply(false, tr("%1 could not save the trust").arg(ownName));
+      return;
+    }
+  }
+
+  const auto server = request->server();
+  request->reply(true);
+  // after the answer has gone: becoming a client stops this server
+  QTimer::singleShot(0, this, [this, server] { becomeClientOf(server); });
+}
+
+void MainWindow::becomeClientOf(const QString &server)
+{
+  qInfo().noquote() << "becoming a client of" << server;
+  m_manualHostEntry = false;
+  if (m_coreProcess.mode() == CoreMode::Client) {
+    connectToServer(server);
+    return;
+  }
+  // the client starts with this address once the server has stopped
+  ui->lineHostname->setText(server);
+  ui->rbModeClient->setChecked(true);
+}
+
 void MainWindow::updatePanel()
 {
   // coalesce: many changes come together
@@ -1573,11 +1775,18 @@ void MainWindow::sendPanelState()
         {QStringLiteral("name"), server.name},
         {QStringLiteral("address"), server.address()},
         {QStringLiteral("detail"), detail},
+        {QStringLiteral("canSetAsClient"), server.controlPort != 0},
     });
     if (!state.contains(QStringLiteral("selectedServer")) && server.matches(host))
       state[QStringLiteral("selectedServer")] = server.address();
   }
   state[QStringLiteral("servers")] = servers;
+  if (!m_setAsClientAddress.isEmpty()) {
+    QJsonObject request{{QStringLiteral("address"), m_setAsClientAddress}};
+    if (!m_setAsClientError.isEmpty())
+      request[QStringLiteral("error")] = m_setAsClientError;
+    state[QStringLiteral("setAsClient")] = request;
+  }
 
   const int columns = Settings::value(Settings::Server::GridWidth).toInt();
   const int rows = Settings::value(Settings::Server::GridHeight).toInt();
@@ -1640,6 +1849,8 @@ void MainWindow::handlePanelAction(const QString &name, const QJsonObject &argum
   } else if (name == QStringLiteral("pickServer")) {
     m_manualHostEntry = false;
     connectToServer(arguments.value(QStringLiteral("address")).toString().trimmed());
+  } else if (name == QStringLiteral("setAsClient")) {
+    setAsClient(arguments.value(QStringLiteral("address")).toString());
   } else if (name == QStringLiteral("moveComputer")) {
     const int columns = Settings::value(Settings::Server::GridWidth).toInt();
     const int rows = Settings::value(Settings::Server::GridHeight).toInt();
@@ -1674,8 +1885,7 @@ void MainWindow::handlePanelAction(const QString &name, const QJsonObject &argum
   } else if (name == QStringLiteral("restart")) {
     resetCore();
   } else if (name == QStringLiteral("quit")) {
-    m_panel->hide();
-    close();
+    quit();
   }
 }
 

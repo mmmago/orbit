@@ -19,25 +19,44 @@ struct PanelView: View {
     @State private var height: CGFloat = 0
     @State private var settingsHeight: CGFloat = 0
     @State private var aboutHeight: CGFloat = 0
+    @State private var footerHeight: CGFloat = 0
+
+    /// The pages scroll above this height, so the panel stays within
+    /// `PanelModel.maxHeight`
+    private var pagesMaxHeight: CGFloat {
+        max(model.maxHeight - footerHeight, 200)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            PageStack(shown: model.isShowingAbout ? 1 : 0) {
-                VStack(alignment: .leading, spacing: 0) {
-                    HeaderView()
-                        .padding()
-                    Divider()
-                    settings
+            CappedHeight(maxHeight: pagesMaxHeight) {
+                ScrollView(.vertical) {
+                    PageStack(shown: model.isShowingAbout ? 1 : 0) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            HeaderView()
+                                .padding()
+                            Divider()
+                            settings
+                        }
+                        .page(isShown: !model.isShowingAbout) { settingsHeight = $0 }
+                        AboutView(updater: model.updater)
+                            .padding()
+                            .page(isShown: model.isShowingAbout) { aboutHeight = $0 }
+                    }
                 }
-                .page(isShown: !model.isShowingAbout) { settingsHeight = $0 }
-                AboutView(updater: model.updater)
-                    .padding()
-                    .page(isShown: model.isShowingAbout) { aboutHeight = $0 }
+                .scrollBounceBehavior(.basedOnSize)
             }
-            Divider()
-            FooterView(model: model)
-                .padding(.horizontal)
-                .padding(.vertical, 10)
+            VStack(spacing: 0) {
+                Divider()
+                FooterView(model: model)
+                    .padding(.horizontal)
+                    .padding(.vertical, 10)
+            }
+            .onGeometryChange(for: CGFloat.self) { proxy in
+                proxy.size.height
+            } action: { height in
+                footerHeight = height
+            }
         }
         .overlay(alignment: .topTrailing) {
             aboutButton
@@ -94,8 +113,24 @@ struct PanelView: View {
         let shown = showingAbout ? aboutHeight : settingsHeight
         let next = showingAbout ? settingsHeight : aboutHeight
         if height > 0, shown > 0, next > 0 {
-            onPageChange(height - shown + next)
+            onPageChange(height - min(shown, pagesMaxHeight) + min(next, pagesMaxHeight))
         }
         model.isShowingAbout = !showingAbout
+    }
+}
+
+/// As tall as its content (a scroll view: the height of what it scrolls), up
+/// to `maxHeight`
+private struct CappedHeight: Layout {
+    var maxHeight: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let content = subviews.first else { return .zero }
+        let size = content.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil))
+        return CGSize(width: proposal.width ?? size.width, height: min(size.height, maxHeight))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, anchor: .topLeading, proposal: ProposedViewSize(bounds.size))
     }
 }

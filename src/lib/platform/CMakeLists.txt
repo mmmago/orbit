@@ -96,6 +96,8 @@ elseif(APPLE)
     OSXClipboardUTF16Converter.h
     OSXCocoaApp.h
     OSXCocoaApp.m
+    OSXQuitHandler.h
+    OSXQuitHandler.m
     OSXComputer.h
     OSXComputer.mm
     OSXEventQueueBuffer.cpp

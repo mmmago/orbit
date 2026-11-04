@@ -18,6 +18,10 @@
 #include "deskflow/ServerApp.h"
 #include "deskflow/ipc/CoreIpcServer.h"
 
+#if defined(Q_OS_MACOS)
+#include "platform/OSXQuitHandler.h"
+#endif
+
 #if defined(Q_OS_WIN)
 #include "arch/win32/ArchMiscWindows.h"
 #endif
@@ -121,6 +125,10 @@ int main(int argc, char **argv)
   const auto processName = QFileInfo(argv[0]).fileName();
 
   App *coreApp = createApp(parser, events, processName);
+
+#if defined(Q_OS_MACOS)
+  installCocoaQuitHandler([](void *context) { static_cast<App *>(context)->quit(); }, coreApp);
+#endif
 
   const auto ipcServer = new deskflow::core::ipc::CoreIpcServer(&app); // NOSONAR - Qt managed
   QObject::connect(

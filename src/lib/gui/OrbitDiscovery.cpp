@@ -22,6 +22,8 @@ namespace orbit::discovery {
 namespace {
 
 constexpr quint16 kDefaultPort = 24800;
+//! TXT record key: the port the computer takes commands on
+constexpr auto kControlPortKey = "control";
 
 QString withoutTrailingDot(const char *name)
 {
@@ -121,15 +123,22 @@ Advertiser::Advertiser(QObject *parent) : QObject(parent)
 
 Advertiser::~Advertiser() = default;
 
-void Advertiser::start(const QString &name, quint16 port)
+void Advertiser::start(const QString &name, quint16 port, quint16 controlPort)
 {
   stop();
+  TXTRecordRef txt;
+  TXTRecordCreate(&txt, 0, nullptr);
+  if (controlPort != 0) {
+    const auto value = QByteArray::number(controlPort);
+    TXTRecordSetValue(&txt, kControlPortKey, static_cast<uint8_t>(value.size()), value.constData());
+  }
   DNSServiceRef ref = nullptr;
   const auto utf8 = name.toUtf8();
   const auto error = DNSServiceRegister(
-      &ref, 0, kDNSServiceInterfaceIndexAny, utf8.constData(), kServiceType, nullptr, nullptr, htons(port), 0, nullptr,
-      onRegistered, nullptr
+      &ref, 0, kDNSServiceInterfaceIndexAny, utf8.constData(), kServiceType, nullptr, nullptr, htons(port),
+      TXTRecordGetLength(&txt), TXTRecordGetBytesPtr(&txt), onRegistered, nullptr
   );
+  TXTRecordDeallocate(&txt);
   if (error != kDNSServiceErr_NoError) {
     qWarning() << "bonjour: could not advertise this server, error" << error;
     return;
@@ -182,7 +191,7 @@ struct BrowserCallbacks
 
   static void DNSSD_API resolved(
       DNSServiceRef, DNSServiceFlags, uint32_t interfaceIndex, DNSServiceErrorType error, const char *,
-      const char *host, uint16_t port, uint16_t, const unsigned char *, void *context
+      const char *host, uint16_t port, uint16_t txtLength, const unsigned char *txt, void *context
   )
   {
     auto *ctx = static_cast<Browser::Entry::Context *>(context);
@@ -190,7 +199,16 @@ struct BrowserCallbacks
       qWarning().noquote() << "bonjour: could not resolve" << ctx->name << "error" << error;
       return;
     }
-    ctx->browser->resolved(ctx->name, withoutTrailingDot(host), ntohs(port), interfaceIndex);
+    quint16 controlPort = 0;
+    uint8_t valueLength = 0;
+    if (const auto *value = static_cast<const char *>(TXTRecordGetValuePtr(txtLength, txt, kControlPortKey, &valueLength));
+        value != nullptr) {
+      bool ok = false;
+      const auto parsed = QByteArray(value, valueLength).toUShort(&ok);
+      if (ok)
+        controlPort = parsed;
+    }
+    ctx->browser->resolved(ctx->name, withoutTrailingDot(host), ntohs(port), controlPort, interfaceIndex);
   }
 
   static void DNSSD_API addressed(
@@ -289,7 +307,9 @@ void Browser::serviceLost(const QString &name)
     Q_EMIT serversChanged();
 }
 
-void Browser::resolved(const QString &name, const QString &host, quint16 port, quint32 interfaceIndex)
+void Browser::resolved(
+    const QString &name, const QString &host, quint16 port, quint16 controlPort, quint32 interfaceIndex
+)
 {
   const auto it = m_entries.find(name);
   if (it == m_entries.end())
@@ -297,6 +317,7 @@ void Browser::resolved(const QString &name, const QString &host, quint16 port, q
   auto &entry = *it->second;
   entry.server.host = host;
   entry.server.port = port;
+  entry.server.controlPort = controlPort;
   entry.resolved = true;
 
   // the resolve is done; release it once its callback has returned

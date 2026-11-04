@@ -32,6 +32,7 @@ struct Server
   QString host;          //!< host name, e.g. my-mac.local
   quint16 port = 0;      //!< server port
   QStringList addresses; //!< IPv4 addresses of the host
+  quint16 controlPort = 0; //!< where it takes commands from other Orbits, 0 if it doesn't
 
   //! What a client connects to: the host, with the port if not the default
   QString address() const;
@@ -51,7 +52,8 @@ public:
   explicit Advertiser(QObject *parent = nullptr);
   ~Advertiser() override;
 
-  void start(const QString &name, quint16 port);
+  //! @p controlPort: where this computer takes commands (see OrbitRemoteControl.h), 0 for none
+  void start(const QString &name, quint16 port, quint16 controlPort = 0);
   void stop();
   bool isActive() const
   {
@@ -89,7 +91,7 @@ private:
 
   void serviceFound(const QString &name, quint32 interfaceIndex, const QString &type, const QString &domain);
   void serviceLost(const QString &name);
-  void resolved(const QString &name, const QString &host, quint16 port, quint32 interfaceIndex);
+  void resolved(const QString &name, const QString &host, quint16 port, quint16 controlPort, quint32 interfaceIndex);
   void addressFound(const QString &name, const QString &address);
 
   std::unique_ptr<Handle> m_browse;

@@ -658,6 +658,38 @@ Do you want to connect to the server?
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>This Mac&apos;s Orbit can&apos;t be set as client: update it first</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This Mac has no certificate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>It refused</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use the keyboard and mouse of %1?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 asks this Mac to become its client.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Allow</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refused on %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 could not save the trust</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>No IP Detected</source>
         <translation>未检测到 IP</translation>
     </message>
@@ -1517,6 +1549,28 @@ Shown when in client mode and connected; %1 is the app name, %2 the server</extr
         <source>LocalizedName</source>
         <extracomment>Replace with your Language name This is a required string</extracomment>
         <translation>简体中文</translation>
+    </message>
+</context>
+<context>
+    <name>orbit::remote::Listener</name>
+    <message>
+        <source>Unknown command</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No certificate</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>orbit::remote::Sender</name>
+    <message>
+        <source>This Mac has no certificate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No answer</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

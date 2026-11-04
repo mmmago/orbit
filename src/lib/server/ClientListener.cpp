@@ -13,6 +13,7 @@
 #include "base/IEventQueue.h"
 #include "base/Log.h"
 #include "deskflow/PacketStreamFilter.h"
+#include "deskflow/ipc/CoreIpc.h"
 #include "net/IDataSocket.h"
 #include "net/IListenSocket.h"
 #include "net/ISocketFactory.h"
@@ -132,6 +133,9 @@ void ClientListener::handleClientConnecting()
 
   auto rawSocketPointer = socket.release();
   m_clientSockets.insert(rawSocketPointer);
+
+  // the gui shows that a computer is connecting, until it is connected
+  ipcSendToClient(QStringLiteral("clientConnecting"));
 
   m_events->addHandler(
       EventTypes::ClientListenerAccepted, rawSocketPointer->getEventTarget(),

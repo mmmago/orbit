@@ -42,6 +42,8 @@
 #import <Cocoa/Cocoa.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
+#include "platform/OSXQuitHandler.h"
+
 #include <sys/xattr.h>
 
 #include <algorithm>
@@ -1096,6 +1098,7 @@ int main(int, char **)
     [NSApplication sharedApplication];
     // no Dock icon, never activated by our own panel
     [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
+    installCocoaQuitHandler([](void *) { [NSApp terminate:nil]; }, nullptr);
 
     [NSThread detachNewThreadWithBlock:^{
       readCommands();

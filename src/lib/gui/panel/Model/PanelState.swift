@@ -14,5 +14,8 @@ struct PanelState: Codable, Equatable, Sendable {
     var servers: [FoundServer] = []
     /// Address of the found server matching `client.host`, if any
     var selectedServer: String?
+    /// The found server asked to become a client of this Mac, while waiting
+    /// for its answer or when it failed
+    var setAsClient: SetAsClientRequest?
     var arrangement = Arrangement()
 }

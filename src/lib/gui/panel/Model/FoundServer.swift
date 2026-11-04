@@ -7,6 +7,8 @@ struct FoundServer: Codable, Identifiable, Equatable, Sendable {
     var name: String
     var address: String
     var detail: String
+    /// Its Orbit takes "Set as client" from this Mac
+    var canSetAsClient: Bool
 
     var id: String { address }
 }

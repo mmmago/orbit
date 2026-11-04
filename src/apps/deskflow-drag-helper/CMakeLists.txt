@@ -9,7 +9,8 @@
 
 set(target ${CMAKE_PROJECT_NAME}-drag-helper)
 
-add_executable(${target} main.mm)
+add_executable(${target} main.mm ${PROJECT_SOURCE_DIR}/src/lib/platform/OSXQuitHandler.m)
+target_include_directories(${target} PRIVATE ${PROJECT_SOURCE_DIR}/src/lib)
 set_source_files_properties(main.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 
 find_library(COCOA_LIBRARY Cocoa)

@@ -19,6 +19,10 @@ final class PanelModel {
     /// the settings again
     var isShowingAbout = false
 
+    /// The panel's height at most, set from its screen; its content scrolls
+    /// above it
+    var maxHeight: CGFloat = 10_000
+
     /// Replaces the state with the JSON Orbit sent
     func apply(json: String) {
         guard let decoded = try? JSONDecoder().decode(PanelState.self, from: Data(json.utf8)) else { return }
@@ -47,6 +51,14 @@ final class PanelModel {
     func pickServer(_ address: String) {
         guard address != state.selectedServer || state.phase == .idle else { return }
         send(.pickServer(address: address))
+    }
+
+    /// Asks the Orbit server found at `address` to become a client of this
+    /// Mac, which becomes the server
+    func setAsClient(_ address: String) {
+        guard state.setAsClient?.isWaiting != true else { return }
+        state.setAsClient = SetAsClientRequest(address: address)
+        send(.setAsClient(address: address))
     }
 
     func moveComputer(from: GridCell, to: GridCell) {

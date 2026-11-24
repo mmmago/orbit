@@ -217,6 +217,8 @@ private:
   void setupScreenLock();
   void cleanupScreenLock();
   void checkScreenLock();
+  void dismissScreenSaver();
+  void showPasswordField();
   void typeUnlockKey();
   void stopUnlockTyping();
   void updateFileDragState(bool force);
@@ -291,6 +293,7 @@ private:
   std::string m_screenUnlockToken;
   double m_screenUnlockRetryAt = 0; // no new token before then (after a try)
   EventQueueTimer *m_unlockTypeTimer = nullptr;
+  double m_unlockClickAt = 0;  // 0 once the password field was clicked
   double m_unlockTypeFrom = 0; // the display wakes first
   std::vector<KeyID> m_unlockKeys;
   size_t m_unlockKeyIndex = 0;

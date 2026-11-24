@@ -510,6 +510,10 @@ private:
   BaseClientProxy *m_screenUnlockFor = nullptr;
   std::string m_screenUnlockToken;
   uint32_t m_screenUnlockRequest = 0;
+  std::string m_screenUnlockUsedToken; // the last token sent back to a client
+  // no Touch ID from a mouse move before then (after one was not confirmed)
+  static constexpr double kScreenUnlockMoveRetryDelay = 3.0;
+  double m_screenUnlockMoveRetryAt = 0;
   bool m_fileDragReturnExpected = false;
   bool m_fileDragReturnReleased = false;
   // server -> client: the client our drag was handed to, and its files, until

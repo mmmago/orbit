@@ -12,6 +12,7 @@
 #include "deskflow/ScreenUnlock.h"
 #include "deskflow/TrackpadEvent.h"
 
+#include "arch/Arch.h"
 #include "base/IEventQueue.h"
 #include "base/Log.h"
 #include "deskflow/AppUtil.h"
@@ -1453,7 +1454,8 @@ void Server::clientScreenLockChanged(BaseClientProxy *client)
 void Server::requestScreenUnlock(BaseClientProxy *client)
 {
   const auto token = client->screenUnlockToken();
-  if (token.empty() || (m_screenUnlockFor == client && m_screenUnlockToken == token)) {
+  if (token.empty() || token == m_screenUnlockUsedToken ||
+      (m_screenUnlockFor == client && m_screenUnlockToken == token)) {
     return;
   }
   const auto name = getName(client);
@@ -1481,6 +1483,8 @@ void Server::handleUserAuthenticated(const Event &event)
   m_screenUnlockToken.clear();
   if (!data->m_success) {
     LOG_INFO("screen unlock: Touch ID was not confirmed");
+    // moving on the locked client asks again, but not right away
+    m_screenUnlockMoveRetryAt = Arch::time() + kScreenUnlockMoveRetryDelay;
     return;
   }
   if (client->screenUnlockToken() != token) {
@@ -1488,6 +1492,9 @@ void Server::handleUserAuthenticated(const Event &event)
     return;
   }
   LOG_INFO("screen unlock: unlocking \"%s\"", getName(client).c_str());
+  // a token is used once: until the client sends its new state, a mouse move
+  // there must not ask again
+  m_screenUnlockUsedToken = token;
   client->unlockScreen(token);
 }
 
@@ -1980,6 +1987,12 @@ void Server::onMouseMoveSecondary(int32_t dx, int32_t dy)
   if (m_active == m_primaryClient) {
     // stale event -- we're actually on the primary computer
     return;
+  }
+
+  // moving on a client that locked while the cursor was on it asks for
+  // Touch ID, as entering it does (no-op while a prompt is up for it)
+  if (m_screenUnlockFor != m_active && Arch::time() >= m_screenUnlockMoveRetryAt) {
+    requestScreenUnlock(m_active);
   }
 
   // if doing relative motion on secondary computers and we're locked

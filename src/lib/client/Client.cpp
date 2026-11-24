@@ -959,7 +959,9 @@ namespace {
 // a server key id no keyboard sends, for the typed password
 const KeyButton kUnlockKeyButton = 0x1FE;
 
-// the lock screen needs a moment after the display wakes
+// after the display wakes (and a screen saver goes), the lock screen needs a
+// moment before a click shows its password field, which then animates in
+const double kUnlockClickDelay = 0.5;
 const double kUnlockWakeDelay = 1.0;
 const double kUnlockKeyInterval = 0.02;
 
@@ -1058,13 +1060,38 @@ void Client::unlockScreen(const std::string &token)
 
   LOG_INFO("screen unlock: Touch ID confirmed on the server, unlocking");
   m_computer->wakeDisplay();
-  m_unlockTypeFrom = Arch::time() + kUnlockWakeDelay;
+  dismissScreenSaver();
+  const double now = Arch::time();
+  m_unlockClickAt = now + kUnlockClickDelay;
+  m_unlockTypeFrom = now + kUnlockWakeDelay;
   m_unlockTypeTimer = m_events->newTimer(kUnlockKeyInterval, nullptr);
   m_events->addHandler(EventTypes::Timer, m_unlockTypeTimer, [this](const auto &) { typeUnlockKey(); });
 }
 
+void Client::dismissScreenSaver()
+{
+  // A screen saver over the lock screen eats the first input it gets, and
+  // waking the display does not dismiss it: a little mouse move does,
+  // without typing anything.
+  m_computer->mouseRelativeMove(2, 0);
+  m_computer->mouseRelativeMove(-2, 0);
+}
+
+void Client::showPasswordField()
+{
+  // The lock screen hides its password field until a key or a click: typed
+  // keys would show it but get lost while it animates in. Click where the
+  // cursor is.
+  m_computer->mouseDown(kButtonLeft);
+  m_computer->mouseUp(kButtonLeft);
+}
+
 void Client::typeUnlockKey()
 {
+  if (m_unlockClickAt != 0 && Arch::time() >= m_unlockClickAt) {
+    m_unlockClickAt = 0;
+    showPasswordField();
+  }
   if (Arch::time() < m_unlockTypeFrom) {
     // the lock screen is not showing its password field yet
     return;
@@ -1099,4 +1126,5 @@ void Client::stopUnlockTyping()
   std::fill(m_unlockKeys.begin(), m_unlockKeys.end(), 0);
   m_unlockKeys.clear();
   m_unlockKeyIndex = 0;
+  m_unlockClickAt = 0;
 }

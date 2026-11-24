@@ -22,8 +22,8 @@ problems here. It is intended to port official macOS features without the risk o
   smooth scrolling and swiping between pages work on the other Mac, as does
   the Accessibility Zoom gesture.
 - **Clipboard**: copy text, HTML or images on one Mac, paste on the other.
-- **Touch ID unlock**: unlock a locked client with Touch ID on the server.
-- Everything goes over one TLS connection on your network.
+- **Touch ID unlock**: unlock a locked client with Touch ID on the server. Everything goes over one TLS connection on your network.
+- Fix the double cursor issue of Deskflow, where cursor appear both on server and client on macOS
 
 ## Install
 

@@ -343,6 +343,9 @@ private:
   void handleUserAuthenticated(const Event &event);
   // ask for Touch ID to unlock \p client if it is locked and unlockable
   void requestScreenUnlock(BaseClientProxy *client);
+  // this computer's own lock screen: unlocking it unlocks the client under
+  // the cursor too
+  void checkServerLock();
   void handleSwitchWaitTimeout();
   void handleClientDisconnected(BaseClientProxy *client);
   void handleClientCloseTimeout(BaseClientProxy *client);
@@ -514,6 +517,9 @@ private:
   // no Touch ID from a mouse move before then (after one was not confirmed)
   static constexpr double kScreenUnlockMoveRetryDelay = 3.0;
   double m_screenUnlockMoveRetryAt = 0;
+  static constexpr double kServerLockCheckInterval = 0.25;
+  EventQueueTimer *m_serverLockTimer = nullptr;
+  bool m_serverLocked = false; // this computer's screen
   bool m_fileDragReturnExpected = false;
   bool m_fileDragReturnReleased = false;
   // server -> client: the client our drag was handed to, and its files, until

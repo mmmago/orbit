@@ -19,6 +19,10 @@ offers a one-time token if its user stored the login password in the client's
 own Keychain. When the cursor enters that client the server asks for Touch ID
 and sends the token back (kMsgCScreenUnlock); the client then types its
 password into its lock screen. The password never leaves the client.
+
+When the server is locked too, its own lock screen takes the Touch ID: once
+the server unlocks, it sends the token to the client the cursor is on (or
+was on, before the server's screen saver brought it back).
 */
 namespace deskflow::screenunlock {
 

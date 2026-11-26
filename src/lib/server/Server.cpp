@@ -162,6 +162,11 @@ Server::Server(ServerConfig &config, PrimaryClient *primaryClient, deskflow::Com
     LOG_INFO("default computer lock is on, locking cursor to computer");
     m_lockedToComputer = true;
   }
+
+  // unlocking this computer also unlocks the client under the cursor
+  m_serverLocked = m_primaryClient->getComputer()->isScreenLocked();
+  m_serverLockTimer = m_events->newTimer(kServerLockCheckInterval, nullptr);
+  m_events->addHandler(EventTypes::Timer, m_serverLockTimer, [this](const auto &) { checkServerLock(); });
 }
 
 Server::~Server()
@@ -183,6 +188,9 @@ Server::~Server()
   m_events->removeHandler(PrimaryComputerFakeInputBegin, m_inputFilter);
   m_events->removeHandler(PrimaryComputerFakeInputEnd, m_inputFilter);
   m_events->removeHandler(Timer, this);
+  m_events->removeHandler(Timer, m_serverLockTimer);
+  m_events->deleteTimer(m_serverLockTimer);
+  m_serverLockTimer = nullptr;
   stopSwitch();
 
   try {
@@ -1453,6 +1461,11 @@ void Server::clientScreenLockChanged(BaseClientProxy *client)
 
 void Server::requestScreenUnlock(BaseClientProxy *client)
 {
+  if (m_serverLocked) {
+    // the prompt can't show behind this computer's lock screen; unlocking
+    // this computer unlocks the client (checkServerLock)
+    return;
+  }
   const auto token = client->screenUnlockToken();
   if (token.empty() || token == m_screenUnlockUsedToken ||
       (m_screenUnlockFor == client && m_screenUnlockToken == token)) {
@@ -1469,6 +1482,51 @@ void Server::requestScreenUnlock(BaseClientProxy *client)
   m_screenUnlockFor = client;
   m_screenUnlockToken = token;
   m_screenUnlockRequest = request;
+}
+
+void Server::checkServerLock()
+{
+  const bool locked = m_primaryClient->getComputer()->isScreenLocked();
+  if (locked == m_serverLocked) {
+    return;
+  }
+  m_serverLocked = locked;
+  if (locked) {
+    LOG_DEBUG("screen unlock: this computer is locked");
+    // nobody can answer a prompt behind the lock screen
+    if (m_screenUnlockFor != nullptr) {
+      m_screenUnlockFor = nullptr;
+      m_screenUnlockToken.clear();
+      m_primaryClient->getComputer()->cancelUserAuthentication();
+    }
+    return;
+  }
+
+  // The user just unlocked this computer at its lock screen (Touch ID, often
+  // with the cursor on a locked client): unlock that client too, as a Touch
+  // ID here would. The screen saver brings the cursor back here, so the
+  // client it was on before counts.
+  BaseClientProxy *client = m_active;
+  if (client == m_primaryClient && m_activeSaver != nullptr) {
+    client = m_activeSaver;
+  }
+  if (client == nullptr || client == m_primaryClient) {
+    LOG_DEBUG("screen unlock: this computer is unlocked");
+    return;
+  }
+  const auto token = client->screenUnlockToken();
+  if (token.empty() || token == m_screenUnlockUsedToken) {
+    LOG_DEBUG("screen unlock: this computer is unlocked");
+    return;
+  }
+  LOG_INFO("screen unlock: this computer was unlocked with the cursor on \"%s\", unlocking it too", getName(client).c_str());
+  if (m_screenUnlockFor != nullptr) {
+    m_screenUnlockFor = nullptr;
+    m_screenUnlockToken.clear();
+    m_primaryClient->getComputer()->cancelUserAuthentication();
+  }
+  m_screenUnlockUsedToken = token;
+  client->unlockScreen(token);
 }
 
 void Server::handleUserAuthenticated(const Event &event)

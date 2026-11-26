@@ -11,7 +11,10 @@ struct ClientSettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionTitle(title: "Connect to")
+            SectionTitle(
+                title: model.state.phase == .connected && model.state.selectedServer != nil
+                    ? "Connected to" : "Connect to"
+            )
             SectionCard {
                 ServerPicker(model: model)
             }

@@ -9,4 +9,5 @@ struct Arrangement: Codable, Equatable, Sendable {
     var computers: [ArrangedComputer] = []
 
     var shownComputers: [ArrangedComputer] { computers.filter(\.isShown) }
+    var connectedClients: [ArrangedComputer] { computers.filter { $0.isConnected && !$0.isServer } }
 }

@@ -23,6 +23,8 @@
 #include "gui/core/NetworkMonitor.h"
 #include "net/Fingerprint.h"
 
+#include <QDeadlineTimer>
+#include <QHash>
 #include <QTimer>
 
 #ifdef Q_OS_MACOS
@@ -247,6 +249,16 @@ private:
   // the menu bar panel holds the whole interface; this window stays hidden
   OrbitPanel *m_panel = nullptr;
   QStringList m_connectedClients;
+  // Computers between two modes, by name: the panel shows a spinner instead
+  // of a button that would be stale ("Connect" on a Mac becoming a server)
+  struct ModeChange
+  {
+    QDeadlineTimer deadline;
+    bool untilServer = false; // also ends once it advertises as a server
+  };
+  QHash<QString, ModeChange> m_modeChanges;
+  static constexpr int kClientLeftChangeTime = 10000;
+  void expectModeChange(const QString &name, int ms, bool untilServer);
   bool m_panelUpdatePending = false;
   // why the screen unlock password was not stored, shown in the panel
   QString m_screenUnlockError;

@@ -15,11 +15,13 @@
 #include <map>
 #include <memory>
 
-//! Finding Orbit servers on the local network with Bonjour (DNS-SD)
+//! Finding Orbit computers on the local network with Bonjour (DNS-SD)
 /*!
-A computer running Orbit as server advertises an "_orbit._tcp" service named
-after the computer. Clients browse for it, so they can list the servers on
-the network instead of asking for an address.
+A computer running Orbit advertises an "_orbit._tcp" service named after the
+computer. Clients browse for it, so they can list the servers on the network
+instead of asking for an address. A client advertises itself too, with
+"role=client" in its TXT record, so a server can ask it to connect (see
+OrbitRemoteControl.h); clients don't list each other.
 */
 namespace orbit::discovery {
 
@@ -33,6 +35,7 @@ struct Server
   quint16 port = 0;      //!< server port
   QStringList addresses; //!< IPv4 addresses of the host
   quint16 controlPort = 0; //!< where it takes commands from other Orbits, 0 if it doesn't
+  bool isClient = false;   //!< in client mode: not a server to connect to
 
   //! What a client connects to: the host, with the port if not the default
   QString address() const;
@@ -43,7 +46,7 @@ struct Server
 
 class Handle;
 
-//! Advertises this computer as an Orbit server while active
+//! Advertises this computer as an Orbit server or client while active
 class Advertiser : public QObject
 {
   Q_OBJECT
@@ -53,15 +56,21 @@ public:
   ~Advertiser() override;
 
   //! @p controlPort: where this computer takes commands (see OrbitRemoteControl.h), 0 for none
-  void start(const QString &name, quint16 port, quint16 controlPort = 0);
+  void start(const QString &name, quint16 port, quint16 controlPort = 0, bool isClient = false);
   void stop();
   bool isActive() const
   {
     return m_handle != nullptr;
   }
+  //! Advertised as a client (see start())
+  bool isClient() const
+  {
+    return m_isClient;
+  }
 
 private:
   std::unique_ptr<Handle> m_handle;
+  bool m_isClient = false;
 };
 
 //! Keeps a list of the Orbit servers on the network while active
@@ -91,7 +100,9 @@ private:
 
   void serviceFound(const QString &name, quint32 interfaceIndex, const QString &type, const QString &domain);
   void serviceLost(const QString &name);
-  void resolved(const QString &name, const QString &host, quint16 port, quint16 controlPort, quint32 interfaceIndex);
+  void resolved(
+      const QString &name, const QString &host, quint16 port, quint16 controlPort, bool isClient, quint32 interfaceIndex
+  );
   void addressFound(const QString &name, const QString &address);
 
   std::unique_ptr<Handle> m_browse;

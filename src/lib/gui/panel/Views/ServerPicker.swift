@@ -40,17 +40,78 @@ struct ServerPicker: View {
     }
 }
 
-/// Server mode: the other Orbit servers found on the network, each of which
-/// can be set as a client of this Mac
-struct OtherServerList: View {
+/// Server mode: the clients connected to this Mac, with a check mark, then
+/// the other Orbit computers found on the network: clients to connect, and
+/// servers to set as client
+struct ServerComputerList: View {
     let model: PanelModel
 
     var body: some View {
-        ForEach(Array(model.state.servers.enumerated()), id: \.element.id) { index, server in
-            if index > 0 {
-                Divider()
+        let clients = model.state.arrangement.connectedClients
+        if clients.isEmpty && model.state.servers.isEmpty {
+            HStack(spacing: 8) {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Looking for Orbit computers on the network…")
+                    .foregroundStyle(.secondary)
             }
-            FoundServerRow(model: model, server: server)
+            .padding(.vertical, 10)
+            .accessibilityElement(children: .combine)
+        } else {
+            ForEach(Array(clients.enumerated()), id: \.element.id) { index, client in
+                if index > 0 {
+                    Divider()
+                }
+                ComputerLabel(
+                    name: client.name,
+                    detail: String(localized: "Uses the keyboard and mouse of this Mac"),
+                    isSelected: true
+                )
+                .accessibilityElement(children: .combine)
+            }
+            ForEach(Array(model.state.servers.enumerated()), id: \.element.id) { index, server in
+                if index > 0 || !clients.isEmpty {
+                    Divider()
+                }
+                OtherServerRow(model: model, server: server)
+            }
+        }
+    }
+}
+
+/// Server mode: another Orbit computer found on the network. One button
+/// asks it to use the keyboard and mouse of this Mac: "Connect" for a
+/// client, "Set as client" for a server
+private struct OtherServerRow: View {
+    let model: PanelModel
+    let server: FoundServer
+
+    private var request: SetAsClientRequest? {
+        model.state.setAsClient.flatMap { $0.address == server.address ? $0 : nil }
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            ComputerLabel(name: server.name, detail: server.detail, error: request?.error)
+                .accessibilityElement(children: .combine)
+            if request?.isWaiting == true || server.isChanging {
+                ProgressView()
+                    .controlSize(.small)
+                    .help(String(localized: "Waiting for \(server.name)…"))
+                    .accessibilityLabel(Text("Waiting for \(server.name)"))
+            } else if server.canSetAsClient {
+                Button(server.isClient ? "Connect" : "Set as client") {
+                    model.setAsClient(server.address)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+                .disabled(model.state.setAsClient?.isWaiting == true)
+                .help(
+                    server.isClient
+                        ? String(localized: "\(server.name) connects to this Mac and uses its keyboard and mouse")
+                        : String(localized: "\(server.name) uses the keyboard and mouse of this Mac, which becomes the server")
+                )
+            }
         }
     }
 }
@@ -63,8 +124,8 @@ private struct FoundServerRow: View {
     var isSelected = false
     var phase = ConnectionPhase.idle
     var offersSetAsClient = true
-    /// Connects to it; nil where it isn't a server to connect to
-    var connect: (() -> Void)?
+    /// Connects to it
+    let connect: () -> Void
 
     @State private var isHovered = false
 
@@ -74,16 +135,19 @@ private struct FoundServerRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            if let connect {
-                Button(action: connect) { label }
-                    .buttonStyle(.plain)
-                    .onHover { isHovered = $0 }
-                    .help(isSelected ? String(localized: "Connected to this Mac") : String(localized: "Connect to this Mac"))
-                    .accessibilityAddTraits(isSelected ? .isSelected : [])
-            } else {
-                label
-                    .accessibilityElement(children: .combine)
+            Button(action: connect) {
+                ComputerLabel(
+                    name: server.name,
+                    detail: server.detail,
+                    error: request?.error,
+                    isSelected: isSelected,
+                    isConnecting: isSelected && phase == .connecting
+                )
             }
+            .buttonStyle(.plain)
+            .onHover { isHovered = $0 }
+            .help(isSelected ? String(localized: "Connected to this Mac") : String(localized: "Connect to this Mac"))
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
             if offersSetAsClient && server.canSetAsClient {
                 SetAsClientButton(
                     serverName: server.name,
@@ -102,8 +166,18 @@ private struct FoundServerRow: View {
             }
         }
     }
+}
 
-    private var label: some View {
+/// A computer's icon, name and detail, green with a check mark when
+/// connected (a spinner while connecting)
+private struct ComputerLabel: View {
+    let name: String
+    let detail: String
+    var error: String?
+    var isSelected = false
+    var isConnecting = false
+
+    var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "desktopcomputer")
                 .font(.title3)
@@ -111,15 +185,15 @@ private struct FoundServerRow: View {
                 .frame(width: 24)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text(server.name)
-                if !server.detail.isEmpty {
-                    Text(server.detail)
+                Text(name)
+                if !detail.isEmpty {
+                    Text(detail)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .truncationMode(.middle)
                 }
-                if let error = request?.error {
+                if let error {
                     Text(error)
                         .font(.caption)
                         .foregroundStyle(.red)
@@ -127,15 +201,13 @@ private struct FoundServerRow: View {
                 }
             }
             Spacer(minLength: 8)
-            if isSelected {
-                if phase == .connecting {
-                    ProgressView()
-                        .controlSize(.small)
-                } else {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.white, .green)
-                        .accessibilityHidden(true)
-                }
+            if isConnecting {
+                ProgressView()
+                    .controlSize(.small)
+            } else if isSelected {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.white, .green)
+                    .accessibilityHidden(true)
             }
         }
         .padding(.vertical, 8)

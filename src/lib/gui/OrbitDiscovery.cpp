@@ -9,9 +9,9 @@
 
 #include <QDebug>
 #include <QSocketNotifier>
-#include <QTimer>
 
 #include <algorithm>
+#include <cstring>
 
 #include <arpa/inet.h>
 #include <dns_sd.h>
@@ -24,6 +24,9 @@ namespace {
 constexpr quint16 kDefaultPort = 24800;
 //! TXT record key: the port the computer takes commands on
 constexpr auto kControlPortKey = "control";
+//! TXT record key: "client" for a computer in client mode (none: a server)
+constexpr auto kRoleKey = "role";
+constexpr auto kClientRole = "client";
 
 QString withoutTrailingDot(const char *name)
 {
@@ -123,14 +126,18 @@ Advertiser::Advertiser(QObject *parent) : QObject(parent)
 
 Advertiser::~Advertiser() = default;
 
-void Advertiser::start(const QString &name, quint16 port, quint16 controlPort)
+void Advertiser::start(const QString &name, quint16 port, quint16 controlPort, bool isClient)
 {
   stop();
+  m_isClient = isClient;
   TXTRecordRef txt;
   TXTRecordCreate(&txt, 0, nullptr);
   if (controlPort != 0) {
     const auto value = QByteArray::number(controlPort);
     TXTRecordSetValue(&txt, kControlPortKey, static_cast<uint8_t>(value.size()), value.constData());
+  }
+  if (isClient) {
+    TXTRecordSetValue(&txt, kRoleKey, static_cast<uint8_t>(strlen(kClientRole)), kClientRole);
   }
   DNSServiceRef ref = nullptr;
   const auto utf8 = name.toUtf8();
@@ -140,7 +147,7 @@ void Advertiser::start(const QString &name, quint16 port, quint16 controlPort)
   );
   TXTRecordDeallocate(&txt);
   if (error != kDNSServiceErr_NoError) {
-    qWarning() << "bonjour: could not advertise this server, error" << error;
+    qWarning() << "bonjour: could not advertise this computer, error" << error;
     return;
   }
   m_handle = std::make_unique<Handle>(ref);
@@ -208,7 +215,12 @@ struct BrowserCallbacks
       if (ok)
         controlPort = parsed;
     }
-    ctx->browser->resolved(ctx->name, withoutTrailingDot(host), ntohs(port), controlPort, interfaceIndex);
+    bool isClient = false;
+    if (const auto *value = static_cast<const char *>(TXTRecordGetValuePtr(txtLength, txt, kRoleKey, &valueLength));
+        value != nullptr) {
+      isClient = QByteArray(value, valueLength) == kClientRole;
+    }
+    ctx->browser->resolved(ctx->name, withoutTrailingDot(host), ntohs(port), controlPort, isClient, interfaceIndex);
   }
 
   static void DNSSD_API addressed(
@@ -308,31 +320,38 @@ void Browser::serviceLost(const QString &name)
 }
 
 void Browser::resolved(
-    const QString &name, const QString &host, quint16 port, quint16 controlPort, quint32 interfaceIndex
+    const QString &name, const QString &host, quint16 port, quint16 controlPort, bool isClient, quint32 interfaceIndex
 )
 {
   const auto it = m_entries.find(name);
   if (it == m_entries.end())
     return;
   auto &entry = *it->second;
+  // The resolve stays open: it answers again when the computer advertises
+  // anew under the same name, e.g. switching from client to server mode.
+  // Seen on several interfaces, it may never look lost meanwhile.
+  const bool hostChanged = entry.server.host != host;
+  if (entry.resolved && !hostChanged && entry.server.port == port && entry.server.controlPort == controlPort &&
+      entry.server.isClient == isClient) {
+    return;
+  }
   entry.server.host = host;
   entry.server.port = port;
   entry.server.controlPort = controlPort;
+  entry.server.isClient = isClient;
   entry.resolved = true;
 
-  // the resolve is done; release it once its callback has returned
-  QTimer::singleShot(0, this, [this, name] {
-    if (const auto found = m_entries.find(name); found != m_entries.end())
-      found->second->resolve.reset();
-  });
-
   // look up the host's IPv4 addresses, to recognise a server configured by IP
-  DNSServiceRef ref = nullptr;
-  if (DNSServiceGetAddrInfo(
-          &ref, 0, interfaceIndex, kDNSServiceProtocol_IPv4, host.toUtf8().constData(), BrowserCallbacks::addressed,
-          &entry.context
-      ) == kDNSServiceErr_NoError) {
-    entry.addressQuery = std::make_unique<Handle>(ref);
+  if (hostChanged || !entry.addressQuery) {
+    entry.server.addresses.clear();
+    entry.addressQuery.reset();
+    DNSServiceRef ref = nullptr;
+    if (DNSServiceGetAddrInfo(
+            &ref, 0, interfaceIndex, kDNSServiceProtocol_IPv4, host.toUtf8().constData(), BrowserCallbacks::addressed,
+            &entry.context
+        ) == kDNSServiceErr_NoError) {
+      entry.addressQuery = std::make_unique<Handle>(ref);
+    }
   }
 
   Q_EMIT serversChanged();

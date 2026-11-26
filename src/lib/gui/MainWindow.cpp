@@ -1363,6 +1363,12 @@ void MainWindow::serverClientsChanged(const QStringList &clients)
   // one more client: the one that was connecting is connected
   if (clients.size() > m_connectedClients.size())
     m_clientConnectingTimer->stop();
+  // a client that left may be switching to server mode: its Bonjour entry
+  // still says client for a moment
+  for (const auto &name : std::as_const(m_connectedClients)) {
+    if (!clients.contains(name))
+      expectModeChange(name, kClientLeftChangeTime, true);
+  }
   m_connectedClients = clients;
   updatePanel();
   if (m_coreProcess.mode() != CoreMode::Server || !m_coreProcess.isStarted())
@@ -1421,14 +1427,17 @@ void MainWindow::updateConfigureButtons()
 
 void MainWindow::updateAdvertising()
 {
-  const bool serving =
-      m_coreProcess.mode() == CoreMode::Server && m_coreProcess.processState() == ProcessState::Started;
-  if (!serving) {
+  // a server, for clients to find it; a client, for a server to ask it to
+  // connect ("Connect" in the server's panel)
+  const bool started = m_coreProcess.processState() == ProcessState::Started;
+  const bool serving = started && m_coreProcess.mode() == CoreMode::Server;
+  const bool asClient = started && m_coreProcess.mode() == CoreMode::Client;
+  if (!serving && !asClient) {
     m_advertiser->stop();
     m_remoteListener->stop();
     return;
   }
-  if (!m_advertiser->isActive()) {
+  if (!m_advertiser->isActive() || m_advertiser->isClient() != asClient) {
     const auto name = Settings::value(Settings::Core::ComputerName).toString();
     const auto port = static_cast<quint16>(Settings::value(Settings::Core::Port).toInt());
     // other Orbits can ask this server to become their client
@@ -1436,7 +1445,7 @@ void MainWindow::updateAdvertising()
       m_remoteListener->start(
           orbit::remote::controlPort(port), Settings::value(Settings::Security::Certificate).toString()
       );
-    m_advertiser->start(name, port, m_remoteListener->port());
+    m_advertiser->start(name, port, m_remoteListener->port(), asClient);
   }
 }
 
@@ -1461,7 +1470,7 @@ void MainWindow::updateServerPicker()
   QString serverName;
 
   for (const auto &server : m_browser->servers()) {
-    if (server.name.compare(ownName, Qt::CaseInsensitive) == 0)
+    if (server.isClient || server.name.compare(ownName, Qt::CaseInsensitive) == 0)
       continue;
     m_serverPicker->addItem(server.name);
     const int row = m_serverPicker->count() - 1;
@@ -1625,6 +1634,8 @@ void MainWindow::setAsClientFinished(bool ok, const QString &error)
   }
 
   qInfo().noquote() << m_setAsClientName << "becomes a client of this Mac";
+  // it still advertises as a server until it has switched, then connects
+  expectModeChange(m_setAsClientName, kSetAsClientConnectTime, false);
   m_setAsClientAddress.clear();
   m_setAsClientError.clear();
 
@@ -1708,6 +1719,16 @@ void MainWindow::becomeClientOf(const QString &server)
   ui->rbModeClient->setChecked(true);
 }
 
+void MainWindow::expectModeChange(const QString &name, int ms, bool untilServer)
+{
+  if (name.isEmpty())
+    return;
+  m_modeChanges.insert(name, {QDeadlineTimer(ms), untilServer});
+  // the spinner goes when it is due, if nothing ended it before
+  QTimer::singleShot(ms + 50, this, &MainWindow::updatePanel);
+  updatePanel();
+}
+
 void MainWindow::updatePanel()
 {
   // coalesce: many changes come together
@@ -1763,10 +1784,28 @@ void MainWindow::sendPanelState()
 #endif
   state[QStringLiteral("client")] = client;
 
+  // end the mode changes that are over: connected here, advertised as a
+  // server when that ends it, or too long
+  const auto foundServers = m_browser->servers();
+  for (auto it = m_modeChanges.begin(); it != m_modeChanges.end();) {
+    const auto &name = it.key();
+    const bool advertisedAsServer = std::any_of(foundServers.cbegin(), foundServers.cend(), [&](const auto &server) {
+      return !server.isClient && server.name.compare(name, Qt::CaseInsensitive) == 0;
+    });
+    if (it->deadline.hasExpired() || m_connectedClients.contains(name) || (it->untilServer && advertisedAsServer))
+      it = m_modeChanges.erase(it);
+    else
+      ++it;
+  }
+
   const auto ownName = Settings::value(Settings::Core::ComputerName).toString();
   QJsonArray servers;
-  for (const auto &server : m_browser->servers()) {
+  for (const auto &server : foundServers) {
     if (server.name.compare(ownName, Qt::CaseInsensitive) == 0)
+      continue;
+    // a client lists servers only; a server lists the clients not connected
+    // to it (to ask them to connect) and the other servers (to set as client)
+    if (server.isClient && (mode != CoreMode::Server || m_connectedClients.contains(server.name)))
       continue;
     auto detail = server.host;
     if (!server.addresses.isEmpty())
@@ -1776,8 +1815,10 @@ void MainWindow::sendPanelState()
         {QStringLiteral("address"), server.address()},
         {QStringLiteral("detail"), detail},
         {QStringLiteral("canSetAsClient"), server.controlPort != 0},
+        {QStringLiteral("isClient"), server.isClient},
+        {QStringLiteral("isChanging"), mode == CoreMode::Server && m_modeChanges.contains(server.name)},
     });
-    if (!state.contains(QStringLiteral("selectedServer")) && server.matches(host))
+    if (!server.isClient && !state.contains(QStringLiteral("selectedServer")) && server.matches(host))
       state[QStringLiteral("selectedServer")] = server.address();
   }
   state[QStringLiteral("servers")] = servers;

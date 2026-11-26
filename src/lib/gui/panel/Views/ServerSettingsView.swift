@@ -10,24 +10,19 @@ struct ServerSettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            // the clients connected here, and the other Orbit servers found
+            SectionTitle(title: model.state.arrangement.connectedClients.isEmpty ? "Connect to" : "Connected to")
+            SectionCard {
+                ServerComputerList(model: model)
+            }
+
             SectionTitle(
                 title: "Arrange computers",
                 detail: "Drag the screens to place the computers. The cursor goes across the edges they share."
             )
+            .padding(.top, 8)
             ArrangementCanvas(arrangement: model.state.arrangement, onMove: model.moveComputer)
                 .background(.fill.quaternary, in: .rect(cornerRadius: 10))
-
-            // another Mac in server mode can't connect here: set it as client
-            if !model.state.servers.isEmpty {
-                SectionTitle(
-                    title: "Other servers",
-                    detail: "These Macs are in server mode too. Set one as client to use it from here."
-                )
-                .padding(.top, 8)
-                SectionCard {
-                    OtherServerList(model: model)
-                }
-            }
 
             SectionTitle(title: "Options")
                 .padding(.top, 8)
